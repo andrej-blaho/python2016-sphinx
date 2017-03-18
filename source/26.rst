@@ -1,0 +1,952 @@
+Spájané štruktúry
+=================
+
+Doteraz sme pracovali s "predpripravenými" dátovými štruktúrami jazyka Python (zjednodušene hovoríme, že štruktúra je typ, ktorý môže obsahovať viac prvkov), napr.
+
+* ``list`` -  pole (postupnosť) hodnôt, ktoré sú očíslované indexmi od 0 do počet prvkov-1
+* ``dict`` - asociatívne pole, kde každému prvku zodpovedá kľúč
+* ``set`` - množina rôznych hodnôt
+
+Okrem toho už viete konštruovať vlastné dátové typy pomocou definovania tried. Inštancie tried obsahujú atribúty, ktoré sú buď stavovými premennými alebo metódami. Takto vieme vytvárať vlastné typy, pričom využívame štruktúry Pythonu.
+
+
+.. rubric:: Referencie
+
+Už vieme, že premenné v Pythone (aj atribúty objektov) sú vlastne pomenované **referencie** na nejaké hodnoty, napr. čísla, reťazce polia, funkcie, atď. Referencie (kreslili sme ich šípkou) sú niečo ako adresou do pamäte, kde sa príslušná hodnota nachádza. Takýmito referenciami sú aj prvky iných štruktúrovaných typov, napr.
+
+* pole čísel ``[1, 2, 5, 2]`` je v skutočnosti štvorprvkové pole referencií na hodnoty ``1``, ``2``, ``5`` (posledný prvok obsahuje rovnakú referenciu ako druhý prvok poľa);
+* asociatívne pole uchováva dvojice (kľúč, hodnota) a každá z nich je opäť referenciou na príslušné hodnoty;
+* množina hodnôt sa tiež uchováva ako množina referencií na hodnoty
+* atribúty tried, ktoré sú stavové premenné obsahujú tiež "iba" referencie na hodnoty.
+
+Naučíte sa využívať referencie (adresy rôznych hodnôt, teda adresy objektov) na vytváranie **spájaných štruktúr**.
+
+
+Spájaný zoznam
+--------------
+
+   Spájaný zoznam (linked list) je taká štruktúra, v ktorej každý prvok obsahuje referenciu (adresu, niekedy hovoríme aj *link*, *smerník*, *pointer*) na nasledovný prvok štruktúry. Prvkom štruktúry hovoríme **Vrchol** (alebo niekedy po anglicky **Node**). Spájané štruktúry budú vždy prístupné pomocou premennej, ktorá odkazuje (obsahuje referenciu) na prvý prvok (vrchol) zoznamu. Spájaný zoznam reprezentuje postupnosť nejakých hodnôt a v tejto postupnosti je jeden vrchol posledný, za ktorým už nie je nasledovný prvok. Tento jeden vrchol si teda namiesto nasledovníka bude pamätať informáciu, že nasledovník už nie je - najčastejšie na to využijeme hodnotu ``None``.
+
+Takúto štruktúru si budeme kresliť takto:
+
+* jedna premenná odkazuje (obsahuje referenciu) na prvý prvok (vrchol) zoznamu
+* každý vrchol nakreslíme ako obdĺžnik s dvomi priečinkami: časť s údajom (pomenujeme to ako ``data``) a časť s referenciou na nasledovníka (pomenujeme ako ``next``)
+* referencie budeme kresliť šípkami, pričom neexistujúcu referenciu (pre nasledovníka posledného vrcholu), t.j. hodnotu ``None`` môžeme značiť prečiarknutím políčka ``next``
+
+ .. image:: image/26_1.png
+    :alt: šesťprvkový spájaný zoznam
+
+
+Reprezentácia vrcholu
+.....................
+
+Vrchol budeme definovať ako objekt s dvoma premennými ``data`` a ``next``:
+
+ ::
+
+  class Vrchol:
+      def __init__(self, data, next=None):
+          self.data = data
+          self.next = next
+
+Pozrite, čo sa definuje týmto zápisom:
+
+ ::
+
+  >>> v1 = Vrchol(11)
+
+Vytvorili sme jeden vrchol, resp. jednovrcholový spájaný zoznam. Jeho nasledovníkom je ``None``. Na tento vrchol odkazuje premenná ``v1``. Jedine, čo zatiaľ môžeme s takýmto vrcholom robiť je to, že si vypíšeme jeho atribúty:
+
+ ::
+
+  >>> print(v1.data)
+  11
+  >>> print(v1.next)
+  None
+
+Podobne zapíšeme:
+
+ ::
+
+  >>> v2 = Vrchol(22)
+  >>> v3 = Vrchol(33)
+
+Teraz máme vytvorené 3 izolované vrcholy, ktoré sú prístupné pomocou troch premenných ``v1``, ``v2`` a ``v3``. Tieto tri vrcholy sa nachádzajú v rôznych častiach pamäti a nie sú nijako prepojené.
+
+ .. image:: image/26_2.png
+    :alt: tri izolované vrcholy
+
+Vytvorme prvé prepojenie: ako nasledovníka ``v1`` nastavíme vrchol ``v2``:
+
+ ::
+
+  >>> v1.next = v2
+  >>> print(v1.next)
+  <__main__.Vrchol object at 0x01FAF0D0>
+
+Vidíte, že nasledovníkom ``v1`` už nie je ``None`` ale nejaký objekt typu ``Vrchol`` - zrejme je to vrchol ``v2``. Môžete sa pozrieť na údaj nasledovníka ``v1``:
+
+ ::
+
+  >>> print(v1.next.data)
+  22
+  >>> print(v1.next.next)
+  None
+
+Keďže jeho nasledovníkom je ``None``, znamená to, že nasledovníka nemá. Premenná ``v1`` obsahuje referenciu na vrchol, ktorý má jedného nasledovníka, t.j. ``v1`` odkazuje na dvojprvkový spájaný zoznam. Pripojme teraz do tejto postupnosti aj vrchol ``v3``:
+
+ ::
+
+  >>> v2.next = v3
+
+Takže prvým vrcholom v spájanom zozname je ``v1`` s hodnotou ``11``, jeho nasledovníkom je ``v2`` s hodnotou ``22`` a nasledovníkom ``v2`` je ``v3`` s hodnotou ``33``. Nasledovníkom tretieho vrcholu je stále ``None``, teda tento vrchol nemá nasledovníka.
+
+ .. image:: image/26_3.png
+    :alt: tri pospájané vrcholy
+
+Vytvorili sme trojprvkový spájaný zoznam, ktorého vrcholy majú postupne tieto hodnoty:
+
+ ::
+
+  >>> print(v1.data)
+  11
+  >>> print(v1.next.data)
+  22
+  >>> print(v1.next.next.data)
+  33
+
+Vidíte, že pomocou referencie na prvý vrchol sa vieme dostať ku každému vrcholu, len treba dostatočný počet krát zapísať ``next``. Premenné ``v2`` a ``v3`` teraz už nepotrebujete a mohli by ste ich hoci aj zrušiť, na vytvorený zoznam to už nemá žiaden vplyv:
+
+ ::
+
+  >>> del v2, v3
+
+Pozrite ešte na tento zápis:
+
+ ::
+
+  >>> a = Vrchol('a')
+  >>> b = Vrchol('b')
+  >>> a.next = b
+  >>> del b
+
+Vytvorí dvojprvkový zoznam, pričom premenná ``b`` je len pomocná a hneď po priradení do ``a.next`` sa aj zruší. To isté môžete zapísať aj bez nej:
+
+ ::
+
+  >>> a = Vrchol('a')
+  >>> a.next = Vrchol('b')
+
+Tu si všimnite, že inicializačná metóda (``Vrchol.__init()``) má druhý parameter, ktorým môžete definovať hodnotu ``next`` už pri vytváraní vrcholu. Preto môžete tieto dve priradenia zlúčiť do jedného:
+
+ ::
+
+  >>> a = Vrchol('a', Vrchol('b'))
+
+Hoci teraz je tu malý rozdiel a to v tom, že vrchol ``Vrchol('b')`` sa vytvorí skôr ako ``Vrchol('a')``, čo ale vo väčšine prípadov nevadí. Podobne by sme vedeli jedným priradením vytvoriť nielen dvojprvkový, ale aj viacprvkový zoznam, napr.
+
+ ::
+
+  >>> zoznam = Vrchol('P', Vrchol('y', Vrchol('t', Vrchol('h', Vrchol('o', Vrchol('n'))))))
+
+Vytvorí šesťprvkový zoznam, pričom každý prvok obsahuje jedno písmeno z reťazca 'Python'.
+
+
+.. rubric:: pythontutor.com
+
+Zo zimného semestra poznáme http://pythontutor.com/visualize.html - veľmi užitočný nástroj na vizualizáciu pythonovských programov. Vieme, že sem môžeme preniesť skoro ľubovoľný algoritmus, ktorý sme robili doteraz (okrem grafiky) a odkrokovať ho. Môžete sem preniesť napr. tento program
+
+ ::
+
+  class Vrchol:
+      def __init__(self, data, next=None):
+          self.data, self.next = data,next
+
+  v1 = Vrchol(11)
+  v2 = Vrchol(22)
+  v3 = Vrchol(33)
+  v1.next = v2
+  v2.next = v3
+  del v2,v3
+
+Po spustení vizualizácie dostávate:
+
+ .. image:: image/26_4.png
+    :alt: obsah pamäti po vykonaní kódu
+
+Vidíte, že globálna premenná ``v1`` obsahuje referenciu na inštanciu triedy ``Vrchol``, v ktorej atribút ``data`` má hodnotu 11 a atribút ``next`` je opäť referenciou na ďalšiu inštanciu triedy ``Vrchol``, atď.
+
+Tiež tu môžete vidieť, že globálna premenná ``Vrchol`` obsahuje referenciu na definíciu triedy ``Vrchol``.
+
+
+Výpis pomocou cyklu
+...................
+
+Predpokladajte, že máte vytvorený nejaký, napr. štvorprvkový zoznam:
+
+ ::
+
+  >>> v1 = Vrchol(11, Vrchol(22, Vrchol(33, Vrchol(44))))
+
+V pamäti by ste ho mohli vidieť nejako takto:
+
+ .. image:: image/26_5.png
+    :alt: štvorprvkový zoznam
+
+Teraz treba vypísať všetky jeho hodnoty postupne od prvej po poslednú, môžete to urobiť napr. takto:
+
+ ::
+
+  >>> print(v1.data)
+  11
+  >>> print(v1.next.data)
+  22
+  >>> print(v1.next.next.data)
+  33
+  >>> print(v1.next.next.next.data)
+  44
+
+alebo v jednom riadku:
+
+ ::
+
+   >>> print(v1.data, v1.next.data, v1.next.next.data, v1.next.next.next.data)
+   11 22 33 44
+
+Zrejme pre zoznam ľubovoľnej dĺžky budeme musieť použiť nejaký cyklus, najskôr while-cyklus. Keď vypíšete prvú hodnotu, posuniete premennú ``v1`` na nasledovníka prvého vrcholu:
+
+ ::
+
+  >>> print(v1.data)
+  >>> v1 = v1.next
+
+a môže sa to celé opakovať. Zápis ``v1 = v1.next`` je veľmi dôležitý a budeme ho v súvislosti so spájanými zoznamami používať veľmi často. Označuje, že do premennej ``v1`` sa namiesto referencie na nejaký vrchol dostáva referencia na jeho nasledovníka. Ak už tento vrchol nasledovníka nemá, do ``v1`` sa dostane hodnota ``None``. Preto kompletný výpis hodnôt zoznamu môžeme zapísať takto:
+
+ ::
+
+  while v1 is not None:
+      print(v1.data, end=' -> ')
+      v1 = v1.next
+  print(None)
+
+Pre názornosť sme tam medzi každé dve vypisované hodnoty pridali reťazec ``' -> '``:
+
+ ::
+
+  11 -> 22 -> 33 -> 44 -> None
+
+Hoci to vyzerá dobre a dostatočne jednoducho, má to jeden problém: po skončení vypisovania pomocou tohto while-cyklu je v premennej ``v1`` hodnota ``None``:
+
+ ::
+
+  >>> print(v1)
+  None
+
+Teda výpisom sme si zničili jedinú referenciu na prvý vrchol zoznamu a teda Python pochopil, že so zoznamom už pracovať ďalej nechceme a celú štruktúru z pamäti vyhodil (hovorí sa tomu *garbage collection*). Môžete to skontrolovať aj vo vizualizácii http://pythontutor.com/visualize.html. Tento príklad ukazuje to, že niekedy bude potrebné si uchovať referenciu na začiatok zoznamu, resp. v takomto cykle nebude pracovať priamo s premennou ``v1``, ale s jej kópiou, napr. takto:
+
+ ::
+
+  pom = v1
+  while pom is not None:
+      print(pom.data, end=' -> ')
+      pom = pom.next
+  print(None)
+
+Po skončení tohto výpisu sa premenná ``pom`` vynuluje na ``None``, ale začiatok zoznamu ``v1`` ostáva neporušený.
+
+Takýto výpis sa dá zapísať aj do funkcie, pričom tu pomocnú referenciu na začiatok zoznamu zastúpi parameter:
+
+ ::
+
+  def vypis(zoznam):
+      while zoznam is not None:
+          print(zoznam.data, end=' -> ')
+          zoznam = zoznam.next
+      print(None)
+
+Pri volaní funkcie sa do formálneho parametra ``zoznam`` priradí hodnota skutočného parametra (napr. obsah premennej ``v1``) a teda referencia na začiatok zoznamu sa týmto volaním nepokazí.
+
+Teraz môžete volať funkciu na výpis nielen so začiatkom zoznamu ale hoci napr. aj od druhého vrcholu:
+
+ ::
+
+  >>> vypis(v1)
+  11 -> 22 -> 33 -> 44 -> None
+  >>> vypis(v1.next)
+  22 -> 33 -> 44 -> None
+
+Vidíte, že referencia na prvý vrchol v spájanom zozname má špeciálny význam a preto sa zvykne označovať nejakým dohodnutým menom, napr. ``zoznam``, ``zoz``, ``zac``, ``z`` (ako začiatok zoznamu) alebo niekedy aj po anglicky ``head`` (hlavička zoznamu).
+
+.. topic:: Postupné prechádzanie vrcholov zoznamu
+
+   Spôsob, akým sa prechádzajú všetky vrcholy zoznamu pomocou while-cyklu, bude užitočný aj na riešenie iných úloh. Často sa preto použije práve takáto schéma algoritmu:
+
+    ::
+
+     pom = zoznam
+     while pom is not None:
+         # spracuj vrchol s referenciou pom
+         pom = pom.next
+
+Vytvorenie zoznamu pomocou cyklu
+................................
+
+Zoznamy sa doteraz vytvárali sériou priradení a to bez cyklov. Častejšie sa ale budú vytvárať, možno aj dosť dlhé, zoznamy pomocou opakujúcich sa konštrukcií. Začneme vytváraním zoznamu pridávaním nového vrcholu na začiatok doterajšieho zoznamu, keďže toto je výrazne jednoduchšie.
+
+Vytvoríme desaťprvkový zoznam s hodnotami 0, 1, 2, ... 9. Začneme s prázdnym zoznamom:
+
+ ::
+
+  >>> zoz = None
+
+Vytvoríme prvý vrchol s hodnotou 0 a dáme ho na začiatok:
+
+ ::
+
+  >>> pom = Vrchol(0)
+  >>> zoz = pom
+
+Keby sme to vypísali pomocou funkcie ``vypis()``, dostali by sme: ``0 -> None``
+
+Vytvoríme druhý vrchol a dáme ho opäť na začiatok:
+
+ ::
+
+  >>> pom = Vrchol(1)
+  >>> pom.next = zoz
+  >>> zoz = pom
+
+Po výpise by sme dostali: ``1 -> 0 -> None``
+
+Toto môžeme opakovať viackrát pre rôzne hodnoty - zakaždým sa na začiatok doterajšieho zoznamu pridá nový vrchol:
+
+ ::
+
+  >>> pom = Vrchol(2)
+  >>> pom.next = zoz
+  >>> zoz = pom
+
+  >>> pom = Vrchol(3)
+  >>> pom.next = zoz
+  >>> zoz = pom
+
+Takto by sme mohli pokračovať až do 9. Teraz už vidíte, čo sa tu opakuje a čo treba dať do cyklu:
+
+ ::
+
+  zoz = None                    # zatial este prazdny zoznam
+  for hodnota in range(10):
+      pom = Vrchol(hodnota)
+      pom.next = zoz
+      zoz = pom
+
+Týmto postupom sme dostali 10 prvkový zoznam hodnôt v poradí od 9 do 0:
+
+ ::
+
+  >>> vypis(zoz)
+  9 -> 8 -> 7 -> 6 -> 5 -> 4 -> 3 -> 2 -> 1 -> 0 -> None
+
+Opäť si všimnime zápis tela cyklu:
+
+ ::
+
+      pom = Vrchol(hodnota)
+      pom.next = zoz
+      zoz = pom
+
+Vytvorí sa tu nový vrchol najprv s danou hodnotou a nasledovníkom ``None``. Potom sa tento nasledovník zmení na ``pom.next = zoz`` a na záver sa tento nový vrchol ``pom`` stáva novým začiatkom zoznamu, t.j. ``zoz = pom``. Toto isté sa dá zapísať kompaktnejšie:
+
+ ::
+
+  for hodnota in range(10):
+      zoz = Vrchol(hodnota, zoz)
+
+.. topic:: Pridanie nového vrcholu na začiatok zoznamu
+
+   Zapamätajte si, že zápis ``zoz = Vrchol(hodnota, zoz)`` pre ``zoz``, ktorý referencuje na začiatok zoznamu, znamená pridanie nového vrcholu na začiatok zoznamu.
+
+Takto by sme vedeli vytvoriť ľubovoľné zoznamy. Zapíšme tento algoritmus do funkcie:
+
+ ::
+
+  def vyrob(postupnost):
+      zoz = None
+      for hodnota in postupnost:
+          zoz = Vrchol(hodnota, zoz)
+      return zoz
+
+Otestujme napr.
+
+ ::
+
+  >>> zoz1 = vyrob(range(1000))
+  >>> vypis(zoz1)
+  999 -> 998 -> ... -> 1 -> 0 -> None
+  >>> zoz2 = vyrob('Python')
+  >>> vypis(zoz2)
+  n -> o -> h -> t -> y -> P -> None
+
+Vytvorili sa dva zoznamy: prvý s 1000 vrcholmi a druhý so šiestimi vrcholmi s písmenami reťazca 'Python'. Treba si pri tomto uvedomiť, že takto sa vytvárajú zoznamy s hodnotami v opačnom poradí, ako so do neho vkladali.
+
+Častejšie budeme potrebovať vyrábať zoznamy, v ktorých budú prvky v tom poradí, v akom sme ich vkladali. Jednoduchým riešením môže byť prevrátenie vstupnej postupnosti pomocou ``reversed()``:
+
+ ::
+
+  def vyrob1(postupnost):
+      zoz = None
+      for hodnota in reversed(postupnost):
+          zoz = Vrchol(hodnota, zoz)
+      return zoz
+
+Otestujeme:
+
+ ::
+
+  >>> zoz2 = vyrob1('Python')
+  >>> vypis(zoz2)
+  P -> y -> t -> h -> o -> n -> None
+
+
+Zistenie počtu prvkov
+.....................
+
+Zapíšeme funkciu, ktorá spočíta počet prvkov zoznamu. Bude pracovať na rovnakom princípe ako funkcia ``vypis()`` len namiesto samotného vypisovania hodnoty funkcia zvýši počítadlo o 1:
+
+ ::
+
+  def pocet(zoznam):
+      vysl = 0
+      while zoznam is not None:
+          vysl += 1
+          zoznam = zoznam.next
+      return vysl
+
+Otestujeme napr.
+
+ ::
+
+  >>> zoz = vyrob('Python')
+  >>> pocet(zoz)
+  6
+
+Malou úpravou túto funkciu vylepšíme:
+
+ ::
+
+  def pocet(zoznam, hodnota=None):
+      vysl = 0
+      while zoznam is not None:
+          if hodnota is None or zoznam.data == hodnota:
+              vysl += 1
+          zoznam = zoznam.next
+      return vysl
+
+Táto funkcia dokáže nielen zistiť počet prvkov zoznamu, ale aj počet výskytov nejakej konkrétnej hodnoty. Napr.
+
+ ::
+
+  >>> zoz1 = vyrob('programujem v pythone')
+  >>> pocet(zoz1)
+  21
+  >>> pocet(zoz1, 'p')
+  2
+
+
+Hľadanie vrcholu
+................
+
+Podobný cyklus, ako sme použili pri výpise a pri zisťovaní počtu prvkov, môžeme použiť pri zisťovaní, či sa daná hodnota nachádza v zozname. Napíšme funkciu, ktorá vráti ``True``, ak nájde konkrétnu hodnotu, inak vráti ``False``:
+
+ ::
+
+  def zisti(zoznam, hodnota):
+      while zoznam is not None:
+          if zoznam.data == hodnota:
+              return True
+          zoznam = zoznam.next
+      return False
+
+Otestujeme:
+
+ ::
+
+  >>> zoznam = vyrob('Python')
+  >>> zisti(zoznam, 'h')
+  True
+  >>> zisti(zoznam, 'g')
+  False
+
+Táto funkcia skončila prechádzanie prvkov zoznamu už pri prvom výskyte hľadanej hodnoty.
+
+Zmena hodnoty vo vrchole
+........................
+
+Najprv jednoduchá funkcia, ktorá zmení všetky hodnoty v zozname:
+
+ ::
+
+  def zmen(zoznam, hodnota):
+      while zoznam is not None:
+          zoznam.data = hodnota
+          zoznam = zoznam.next
+
+ ::
+
+  >>> zoznam = vyrob('Python')
+  >>> zmen(zoznam, 0)
+  >>> vypis(zoznam)
+  0 -> 0 -> 0 -> 0 -> 0 -> 0 -> None
+
+Ak chceme zmeniť len vrcholy, ktoré obsahujú nejakú konkrétnu hodnotu, môžeme to zapísať takto:
+
+ ::
+
+  def zmen(zoznam, hodnota, na_hodnotu):
+      while zoznam is not None:
+          if zoznam.data == hodnota:
+              zoznam.data = na_hodnotu
+              # return
+          zoznam = zoznam.next
+
+Príkaz ``return`` v tele cyklu spôsobí ukončenie funkcie už po prvom výskyte hľadanej hodnoty. Inak sa zmenia obsahy všetkých vrcholov s danou hodnotou.
+
+Otestujeme so zakomentovaným ``return``:
+
+ ::
+
+  >>> zoz = vyrob((1, 2, 3) * 3)
+  >>> zmen(zoz, 2, 'xy')
+  >>> vypis(zoz)
+  1 -> xy -> 3 -> 1 -> xy -> 3 -> 1 -> xy -> 3 -> None
+
+Vloženie vrcholu na koniec zoznamu
+..................................
+
+Chceme vyrobiť novú operáciu, ktorá vloží na koniec zoznamu nový vrchol s danou hodnotou. Už vieme, že pridávanie vrcholu na začiatok je takto jednoduché:
+
+ ::
+
+  zoz = ...       # zoz je referencia na začiatok zoznamu
+  zoz = Vrchol(hodnota, zoz)
+
+S pridávaním na koniec to bude zložitejšie: najprv bude treba nájsť posledný vrchol zoznamu a tomuto vrcholu zmeníme jeho atribút ``next``, t.j. na záver urobíme
+
+ ::
+
+  posledny.next = Vrchol(hodnota)
+
+Hľadanie posledneho vrcholu sa bude podobať na postupné prechádzanie všetkých vrcholov:
+
+ ::
+
+  posledny = zoz                # posledny je pomocná referencia
+  while posledny is not None:
+      posledny = posledny.next
+
+Lenže toto nebude fungovať - po skončení while-cyklu nebude v premennej ``posledny`` referencia na posledný vrchol ale bude tam ``None``. Treba to zapísať trochu zložitejšie - while neskončí až vtedy, keď v ``posledny`` bude ``None``, ale keď jeho ``next`` bude ``None``:
+
+ ::
+
+  posledny = zoz
+  while posledny.next is not None:
+      posledny = posledny.next
+
+Teraz je to už naozaj dobre, ale toto bude fungovať len pre neprázdny zoznam. Pre prázdny zoznam hodnota premennej ``posledny`` bude ``None`` a preto ``posledny.next`` spadne na chybe. Tento špeciálny prípad musíme vyriešiť ešte pred cyklom. Teraz môžeme zapísať kompletnú funkciu, ktorá pridá na koniec zoznamu nový vrchol. Táto funkcia bude vracať ako svoj výsledok začiatok takto vytvoreného zoznamu:
+
+ ::
+
+  def pridaj_koniec(zoz, hodnota):
+      if zoz is None:
+          return Vrchol(hodnota)
+      posledny = zoz
+      while posledny.next is not None:
+          posledny = posledny.next
+      posledny.next = Vrchol(hodnota)
+      return zoz
+
+Môžete otestovať:
+
+ ::
+
+  zoznam = None
+  for i in 'Python':
+      zoznam = pridaj_koniec(zoznam, i)
+  vypis(zoznam)
+
+Mali by ste dostať zoznam so 6 písmenami v správnom poradí. Zapamätajte si:
+
+.. topic:: Hľadanie posledného vrcholu zoznamu
+
+   Aj práca s posledným vrcholom zoznamu sa môže vyskytnúť v našich programoch. Preto najčastejšie použijeme takýto zápis:
+
+    ::
+
+     if zoz is None:
+         '''spracuj prípad, keď zoznam je prázdny'''
+     else:
+         posledny = zoz
+         while posledny.next is not None:
+             posledny = posledny.next
+         '''spracuj posledný vrchol'''
+
+
+Vloženie nového vrcholu do zoznamu
+..................................
+
+Nový vrchol môžeme vložiť buď pred nejaký existujúci alebo za. Jednoduchšie to bude s vkladaním **za** nejaký existujúci. Zapíšme
+
+ ::
+
+  def pridaj_za(zoznam, za_hodnotu, hodnota):
+      while zoznam is not None and zoznam.data != za_hodnotu:
+          zoznam = zoznam.next
+      if zoznam is not None:
+          zoznam.next = Vrchol(hodnota, zoznam.next)
+
+To isté môžeme zapísať aj takto:
+
+ ::
+
+  def pridaj_za(zoznam, za_hodnotu, hodnota):
+      while zoznam is not None:
+          if zoznam.data == za_hodnotu:
+              zoznam.next = Vrchol(hodnota, zoznam.next)
+              return
+          zoznam = zoznam.next
+
+Vkladanie **pred** vrchol bude trochu náročnejšie a bude sa trochu podobať hľadaniu posledného vrcholu v zozname:
+
+ ::
+
+  def pridaj_pred(zoznam, pred_hodnotu, hodnota):
+      if zoznam is None:
+          return                          # nie je čo robiť
+      if zoznam.data == pred_hodnotu:
+          return Vrchol(hodnota, zoznam)  # pred prvý
+      pom = zoznam
+      while pom.next is not None:
+          if pom.next.data == pred_hodnotu:
+              pom.next = Vrchol(hodnota, pom.next)
+              break
+          pom = pom.next
+      return zoznam
+
+Keďže v tomto prípade sa môže zmeniť začiatok zoznamu, táto funkcia vždy vráti začiatok takéhoto zoznamu.
+
+Na tomto príklade sa dá ukázať ešte jedno programátorské vylepšenie prechádzania spájaného zoznamu. Okrem pomocnej referencie ``pom``, budeme mať ešte jeddu referenciu ``pred`` na predchodcu ``pom``:
+
+ ::
+
+  def pridaj_pred(zoznam, pred_hodnotu, hodnota):
+      if zoznam is None:
+          return                          # nie je čo robiť
+      pred, pom = None, zoznam
+      while pom is not None and pom.data != pred_hodnotu:
+          pred, pom = pom, pom.next
+      if pred is None:
+          zoznam = Vrchol(hodnota, zoznam)  # pred prvý
+      elif pom is not None:
+          pred.next = Vrchol(hodnota, pred.next)
+      return zoznam
+
+Všimnite si, že vo while-cykle sa paralelne menia obe referencie: ``pom`` na svojho nasledovníka a ``pred`` na predchodcu ``pom``. Keď while-cyklus skončí a v ``pom`` je ``None``, znamená to, že budeme pracovať s vrcholom, ktorý nemá predchodcu, čo je prvý vrchol v zozname (máme vložiť pred prvý). Ak po skončení while-cyklu je v ``pom`` hodnota ``None``, znamená to, že sme prešli celý spájaný zoznam a nenašli sme vrchol, ktorého hodnota je zadané ``pred_hodnotu``.
+
+
+..
+  ... vyhod prvy
+  ... vyhod posledny
+  ... vyhod za najdenym
+
+
+Cvičenie
+--------
+
+Na riešenie úloh použite triedu ``Vrchol`` z prednášky aj niektoré užitočné funkcie ako ``vypis()``, ``vyrob()`` (vytvorí spájaný zoznam v správnom poradí prvkov postupnosti), ...
+
+1. Bez spúšťania na počítači zistite, čo urobí:
+
+   * prvý spájaný zoznam:
+
+    ::
+
+     v1 = Vrchol('A')
+     v2 = Vrchol('B')
+     v3 = Vrchol('C')
+     v4 = Vrchol('D')
+     v3.next = v1
+     v1.next = v2
+     v2.next = v3
+     v1.next = v4
+     zoz = v2
+     vypis(zoz)
+
+   * druhý spájaný zoznam:
+
+    ::
+
+     v1 = None
+     v2 = Vrchol('X', v1)
+     v2 = Vrchol('Y', v2)
+     v3 = Vrchol('Z', v1)
+     v3 = Vrchol('T', v3)
+     v2 = Vrchol('U', v2)
+     v3.next.next = v2
+     vypis(v3)
+
+
+2. Napíšte funkciu ``pripocitaj1(zoznam)``, ktorá ku každému prvku zoznamu pripočíta 1, ale len vtedy, ak sa dá (nevznikne pritom chyba), inak tento prvok ignoruje a pokračuje na ďalších. Funkcia nič nevracia.
+
+   * otestujte, napr.
+
+    ::
+
+     >>> zoz = vyrob([11, 12, 13.5, 'a', (2, 3), 14])
+     >>> pripocitaj1(zoz)
+     >>> vypis(zoz)
+     12 -> 13 -> 14.5 -> a -> (2, 3) -> 15 -> None
+
+3. Prerobte funkciu ``vypis()`` tak, aby najprv vytvorila pole reťazcov z jednotlivých prvkov zoznamu a až na záver pomocou ``' -> '.join(pole)`` z toho vyrobí reťazec, ktorý vypíše
+
+   * otestujte tento nový výpis aj pre dlhý zoznam (najprv s pôvodnou verziou a potom s prerobenou)
+
+    ::
+
+     >>> vypis(vyrob(range(10000)))
+
+4. Bez spúšťania na počítači zistite, čo urobí:
+
+   * tretí spájaný zoznam:
+
+    ::
+
+     zoz = vyrob((1, 3, 5, 7, 9, 11, 13))
+     v = zoz.next.next
+     v1 = v.next.next
+     v.next.next = v1.next
+     v1.next = v.next
+     v.next = v1
+     vypis(zoz)
+
+5. Napíšte rekurzívnu verziu funkcie ``pocet(zoznam)``, t.j. funkcia prejde všetky prvky zoznamu bez použitia cyklu len pomocou rekurzie. Nepridávajte ďalšie parametre do definície funkcie.
+
+   * otestujte
+
+    ::
+
+     >>> zoz = vyrob(range(10, 20))
+     >>> pocet(zoz)
+     10
+     >>> pocet(zoz.next)
+     9
+
+
+6. Napíšte funkciu ``spoj(zoz1, zoz2)``, ktorá na koniec zoznamu ``zoz1`` pripojí zoznam ``zoz2``. Funkcia ako výsledok vráti začiatok takéhoto nového zoznamu. Nepoužívajte žiadne pomocné pole.
+
+   * otestujte napr.
+
+    >>> z1 = vyrob('ABC')
+    >>> z2 = vyrob('prst')
+    >>> z = spoj(z1, z2)
+    >>> vypis(z)
+    A -> B -> C -> p -> r -> s -> t -> None
+    >>> vypis(spoj(None, Vrchol(1234)))
+    1234 -> None
+
+7. Napíšte funkciu ``prevratena_kopia(zoznam)``, ktorá vytvorí a vráti z daného zoznamu nový zoznam. Tento bude mať všetky prvky z pôvodného v opačnom poradí. Pôvodný zoznam musí ostať bez zmeny. Nepoužívajte žiadne pomocné pole.
+
+   * otestujte
+
+    ::
+
+     >>> z1 = vyrob('python')
+     >>> vypis(z1)
+     p -> y -> t -> h -> o -> n -> None
+     >>> z2 = prevratena_kopia(z1)
+     >>> vypis(z2)
+     n -> o -> h -> t -> y -> p -> None
+     >>> vypis(z1)
+     p -> y -> t -> h -> o -> n -> None
+
+8. Napíšte funkciu ``oprav(zoznam, funkcia)``, ktorá pre každý vrchol v danom zozname spustí zadanú funkciu s parametrom hodnota vo vrchole a ak to nespadne na chybe, zmení hodnotu vrcholu. Funkcia nič nevracia.
+
+   * napr.
+
+    ::
+
+     >>> zoz = vyrob((1, -2, 3, -4, 5, -6))
+     >>> oprav(zoz, abs)
+     >>> vypis(zoz)
+     1 -> 2 -> 3 -> 4 -> 5 -> 6 -> None
+
+9. Napíšte funkciu ``vyhod_prvy(zoznam)``. Funkcia vráti pôvodný zoznam bez prvého prvku
+
+   * napr.
+
+    ::
+
+     >>> x = Vrchol(5, Vrchol(7))
+     >>> vypis(x)
+     5 -> 7 -> None
+     >>> x = vyhod_prvy(x)
+     >>> vypis(x)
+     7 -> None
+     >>> x = vyhod_prvy(x)
+     >>> vypis(x)
+     None
+
+10. Napíšte funkciu ``vyhod_posledny(zoznam)``. Funkcia vráti pôvodný zoznam bez posledného prvku
+
+   * napr.
+
+    ::
+
+     >>> x = Vrchol(5, Vrchol(7))
+     >>> vypis(x)
+     5 -> 7 -> None
+     >>> x = vyhod_posledny(x)
+     >>> vypis(x)
+     5 -> None
+     >>> x = vyhod_posledny(x)
+     >>> vypis(x)
+     None
+
+
+11. Napíšte funkciu ``vyhod(zoznam, podmienka)``, ktorá vyhodí všetky prvky zo zoznamu, pre ktoré zavolanie parametra ``podmienka`` s hodnotou vo ``data`` vo vrchole vráti ``True``.
+
+   * napr.
+
+    ::
+
+     >>> zoz = vyrob(range(5, 12))
+     >>> vypis(zoz)
+     5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> None
+     >>> zoz = vyhod(zoz, lambda x: x%3)
+     >>> vypis(zoz)
+     6 -> 9 -> None
+
+Domáce zadanie
+--------------
+
+.. topic:: L.I.S.T.
+
+   * riešenia odovzdávajte na úlohový server http://capek.ii.fmph.uniba.sk/list do **25.marca 2017**
+
+Napíšte modul ``uloha3.py`` s definíciou triedy ``Fill``, pomocou ktorej sa bude realizovať algoritmus vypĺňania nejakej ohraničenej oblasti v dvojrozmernom poli. Bude to fungovať približne takto:
+
+* predpokladáme, že nejaké dvojrozmerné pole v každom políčku obsahuje nejaký znak (jednoznakový reťazec)
+* každé políčko takejto plochy má 4 susedov (okrem krajných políčok)
+* vyfarbovanie plochy znamená, že začíname vyfarbovanie na niektorom konkrétnom políčku - zafarbíme ho novou farbou (zmeníme znak v políčku plochy) a všetky jeho susedné políčka, ktoré majú rovnakú farbu ako toto, sa tiež zafarbia rovnakou farbou - takto sa farba šíri všetkými smermi na všetky ďalšie a ďalšie susedné políčka
+* podobný princíp funguje aj v grafických editoroch, v ktorých môžeme "vyliať" farbu do nejakej oblasti
+
+Zostavte triedu ``Fill`` s týmito metódami:
+
+ ::
+
+  class Fill:
+
+      class Queue:
+          def __init__(self):
+              ...
+
+          def enqueue(self, data):
+              ...
+
+          def dequeue(self):
+              '''vyberie údaj z radu, ak je rad prázdny, nespadne ale vráti None
+              '''
+              return None
+
+          def empty(self):
+              return True
+
+          def top(self):
+              return None
+
+      def __init__(self, meno_suboru):
+          '''prečíta zadaný súbor s dvojrozmerným poľom znakov'''
+
+      def rob(self, r, s, znak2):
+          '''vykoná jedno vypĺňanie oblasti: začne na znaku na pozícii (r,s) a vypĺňa zadaným znakom;
+             (r,s) označuje riadok a stĺpec v dvojrozmernom poli (číslujeme od 0)
+          '''
+
+      def daj_slovnik(self):
+          '''vráti frekvenčnú tabuľku výskytov všetkých slov v poli v tvare slovníka
+          '''
+          return {}
+
+      def __repr__(self):
+          '''vráti obsah dvojrozmerného poľa ako jeden reťazec znakov,
+             v ktorom sú riadky oddelené '\n';
+             mal by to byť rovnaký tvar ako mal vstupný súbor
+          '''
+          return ''
+
+Algoritmus vypĺňania teda funguje nasledovne:
+
+0. algoritmus štartujeme na pozícii ``(r, s)`` s vypĺňaním ``znak2``
+1. zapamätá si znak na pozícii ``(r, s)``, napr. ako ``znak1``
+2. vytvorí nový rad (``queue``) a vloží (``enqueue``) do neho štartové súradnice ``(r, s)``
+3. kým nie je rad prázdny, vyberie (``dequeue``) dvojicu súradníc ``r`` a ``s``
+4. ak je na tejto súradnici ``znak1``, nahradí ho znakom ``znak2`` a na koniec radu vloží súradnice všetkých 4 susedov momentálnej súradnice (vkladajte len súradnice, ktoré nie sú mimo dvojrozmerného poľa)
+
+Napríklad, ak bol vstupný súbor:
+
+ ::
+
+  ...............
+  ...............
+  ...xxxxxxxx....
+  ...x......x....
+  ...xx....xx....
+  ....x....x.....
+  ...xx....xx....
+  ...x......x....
+  ...xxxxxxxx....
+  ...............
+  ...............
+
+zadaním vypĺňania ``f.rob(5, 0, '+')`` sa pole zmení na
+
+ ::
+
+  +++++++++++++++
+  +++++++++++++++
+  +++xxxxxxxx++++
+  +++x......x++++
+  +++xx....xx++++
+  ++++x....x+++++
+  +++xx....xx++++
+  +++x......x++++
+  +++xxxxxxxx++++
+  +++++++++++++++
+  +++++++++++++++
+
+Ak by sme teraz zisťovali ``f.daj_slovnik()``, funkcia vráti:
+
+ ::
+
+  {'+': 111, '.': 24, 'x': 30}
+
+Ďalšie volanie ``f.rob(5, 6, 'x')`` a ``f.daj_slovnik()`` vráti:
+
+ ::
+
+  {'+': 111, 'x': 54}
+
+Triedu rad (``Queue``) zadefinujte ako vnorenú v triede ``Fill``. Používajte ju potom ako ``self.Queue()``.
+
+.. rubric:: Obmedzenia
+
+* vaše riešenie odovzdajte v súbore ``uloha3.py``, pričom sa v ňom bude nachádzať **len jedna definícia triedy** ``Fill``, trieda ``Queue`` bude vnorená v triede ``Fill``
+* prvé dva riadky tohto súboru budú obsahovať:
+
+  ::
+
+   # autor: Janko Hrasko
+   # uloha: 3. domace zadanie Fill
+
+* zrejme ako autora uvediete svoje meno
+* váš program by nemal počas testovania testovačom nič vypisovať (žiadne vaše testovacie ``print()``)
+

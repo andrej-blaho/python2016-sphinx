@@ -1,0 +1,583 @@
+Pohybujúce sa obrázky
+=====================
+
+Obrázkom v nejakej väčšej scéne, ktoré sa animujú, hýbu, spolupracujú navzájom, resp. sa dajú modifikovať prostredníctvom myši alebo klávesnice, sa zvykne hovoriť `sprite <https://en.wikipedia.org/wiki/Sprite_(computer_graphics)>`_. V predchádzajúcej prednáške sme do grafickej plochy umiestňovali nejaké animované objekty a už toto boli najjednoduchšie verzie sprite (škriatkov).
+
+Grafická aplikácia so spritami
+------------------------------
+
+V dnešnej prednáške sa budeme znovu zaoberať "spritami", ale pridáme im ďalšiu funkčnosť:
+
+* okrem toho, že sa grafické objekty v ploche budú nejako animovať, môžu sa automaticky po scéne pohybovať, resp. meniť smer pohybu na okraji plochy
+* objektmi nemusia byť len obrázky vo formáte ``PhotoImage``, ale aj nakreslené útvary, napr. farebné obdĺžniky
+* objekty budeme môcť pohybovať pomocou myši
+* v niektorých sitáciách budeme riešiť aj vzájomnú polohu viacerých objektov
+
+Automatický pohyb
+.................
+
+Predpokladajme, že všetky grafické objekty môžu mať určený aj svoj smer (vektor) pohybu, t.j. dvojicu ``(dx, dy)``, ktorá pri tikaní časovača mení polohu objektu ``(x, y)``  (t.j. posúva objekt). Zároveň zadefinujeme správanie týhto objektov na okraji plochy: objekt sa odrazí od okrajov ako sa odráža gulečníková guľa od okrajov hracieho stola.
+
+ ::
+
+  import tkinter
+  from random import randrange as rr
+
+  class Zaklad:
+      canvas = None
+      sirka = 0
+      vyska = 0
+      def __init__(self, x, y, dx=0, dy=0, sirka=0, vyska=0):
+          self.x, self.y = x, y
+          self.dx, self.dy = dx, dy
+          self.w2, self.h2 = sirka//2, vyska//2
+          self.id = None
+
+      def timer(self):
+          if self.dx!=0 or self.dy!=0:
+              if self.x+self.dx < self.w2: self.dx = abs(self.dx)
+              if self.y+self.dy < self.h2: self.dy = abs(self.dy)
+              if self.x+self.dx > self.sirka - self.w2: self.dx = -abs(self.dx)
+              if self.y+self.dy > self.vyska - self.h2: self.dy = -abs(self.dy)
+              self.x += self.dx
+              self.y += self.dy
+              if self.id is not None:
+                  self.canvas.move(self.id, self.dx, self.dy)
+
+  #-----------------------------------------------------------------------
+
+  class Ramik(Zaklad):
+      def __init__(self, x, y, dx=0, dy=0, sirka=30, vyska=30, farba=''):
+          super().__init__(x, y, dx, dy, sirka, vyska)
+          if farba == 'random':
+              farba = '#{:06x}'.format(rr(256**3))
+          self.id = self.canvas.create_rectangle(
+              x-self.w2, y-self.h2, x+self.w2, y+self.h2, fill=farba)
+
+  #-----------------------------------------------------------------------
+
+  class Obrazok(Zaklad):
+      def __init__(self, obr, x, y, dx=0, dy=0):
+          if not isinstance(obr, list):
+              obr = [obr]
+          self.pole = obr
+          self.faza = 0
+          super().__init__(x, y, dx, dy, obr[0].width(), obr[0].height())
+          self.id = self.canvas.create_image(x, y, image=obr[0])
+
+      def timer(self):
+          if len(self.pole) > 1:
+              self.canvas.itemconfig(self.id, image=self.pole[self.faza])
+              self.faza = (self.faza + 1) % len(self.pole)
+          super().timer()
+
+  #################################################
+
+  class Plocha(tkinter.Canvas):
+      def __init__(self, *param, **pparam):
+          super().__init__(*param, **pparam)
+          self.pack()
+          Zaklad.canvas = self
+          Zaklad.sirka = int(self['width'])
+          Zaklad.vyska = int(self['height'])
+          self.pole = []
+          self.timer()
+
+      def timer(self):
+          for obj in self.pole:
+              obj.timer()
+          self.after(100, self.timer)
+
+      def pridaj(self, obj):
+          self.pole.append(obj)
+
+Otestujeme:
+
+ ::
+
+  p = Plocha(width=800, height=500, bg='green')
+  for i in range(10):
+      p.pridaj(Ramik(rr(0,800), rr(0, 500), rr(-2, 2), rr(-2, 2), 60, 40, farba='random'))
+  zemegula = [tkinter.PhotoImage(file='a3/z{}.png'.format(i)) for i in range(21)]
+  for i in range(5):
+      p.pridaj(Obrazok(zemegula, rr(0,800), rr(0, 500), rr(-2, 2), rr(-2, 2)))
+
+Ťahanie objektov myšou
+......................
+
+Pridáme metódy:
+
+ ::
+
+  import tkinter
+  from random import randrange as rr
+
+  class Zaklad:
+      canvas = None
+      sirka = 0
+      vyska = 0
+      def __init__(self, x, y, dx=0, dy=0, sirka=0, vyska=0):
+          self.x, self.y = x, y
+          self.dx, self.dy = dx, dy
+          self.w2, self.h2 = sirka//2, vyska//2
+          self.id = None
+
+      def vnutri(self, x, y):
+          return abs(self.x-x) <= self.w2 and abs(self.y-y) <= self.h2
+
+      def mouse_move(self, x, y):
+          if self.id is not None:
+              self.canvas.move(self.id, x-self.x, y-self.y)
+          self.x, self.y = x, y
+
+      def mouse_down(self):
+          pass
+
+      def mouse_up(self):
+          pass
+
+      def timer(self):
+          if self.dx!=0 or self.dy!=0:
+              if self.x+self.dx < self.w2: self.dx = abs(self.dx)
+              if self.y+self.dy < self.h2: self.dy = abs(self.dy)
+              if self.x+self.dx > self.sirka - self.w2: self.dx = -abs(self.dx)
+              if self.y+self.dy > self.vyska - self.h2: self.dy = -abs(self.dy)
+              self.x += self.dx
+              self.y += self.dy
+              if self.id is not None:
+                  self.canvas.move(self.id, self.dx, self.dy)
+
+  #-----------------------------------------------------------------------
+
+  class Ramik(Zaklad):
+      def __init__(self, x, y, dx=0, dy=0, sirka=30, vyska=30, farba=''):
+          super().__init__(x, y, dx, dy, sirka, vyska)
+          if farba == 'random':
+              farba = '#{:06x}'.format(rr(256**3))
+          self.id = self.canvas.create_rectangle(
+              x-self.w2, y-self.h2, x+self.w2, y+self.h2, fill=farba)
+
+      def mouse_down(self):
+          self.canvas.itemconfig(self.id, width=3, outline='red')
+
+      def mouse_up(self):
+          self.canvas.itemconfig(self.id, width=1, outline='black')
+
+
+  #-----------------------------------------------------------------------
+
+  class Obrazok(Zaklad):
+      def __init__(self, obr, x, y, dx=0, dy=0):
+          if not isinstance(obr, list):
+              obr = [obr]
+          self.pole = obr
+          self.faza = 0
+          super().__init__(x, y, dx, dy, obr[0].width(), obr[0].height())
+          self.id = self.canvas.create_image(x, y, image=obr[0])
+
+      def timer(self):
+          if len(self.pole) > 1:
+              self.canvas.itemconfig(self.id, image=self.pole[self.faza])
+              self.faza = (self.faza + 1) % len(self.pole)
+          super().timer()
+
+  #################################################
+
+  class Plocha(tkinter.Canvas):
+      def __init__(self, *param, **pparam):
+          super().__init__(*param, **pparam)
+          self.pack()
+          Zaklad.canvas = self
+          Zaklad.sirka = int(self['width'])
+          Zaklad.vyska = int(self['height'])
+          self.bind('<Button-1>', self.mouse_down)
+          self.bind('<B1-Motion>', self.mouse_move)
+          self.bind('<ButtonRelease-1>', self.mouse_up)
+          self.pole = []
+          self.tahany = None
+          self.timer()
+
+      def timer(self):
+          for obj in self.pole:
+              obj.timer()
+          self.after(100, self.timer)
+
+      def mouse_down(self, event):
+          for obj in reversed(self.pole):
+              if obj.vnutri(event.x, event.y):
+                  self.tahany = obj
+                  self.dx, self.dy = event.x - obj.x, event.y - obj.y
+                  obj.mouse_down()
+                  return
+          self.tahany = None
+
+      def mouse_move(self, event):
+          if self.tahany is not None:
+              self.tahany.mouse_move(event.x-self.dx, event.y-self.dy)
+
+      def mouse_up(self, event):
+          if self.tahany is not None:
+              self.tahany.mouse_up()
+              self.tahany = None
+
+      def pridaj(self, obj):
+          self.pole.append(obj)
+
+Otestujeme:
+
+ ::
+
+  p = Plocha(width=800, height=500, bg='green')
+  for i in range(10):
+      p.pridaj(Ramik(rr(0,800), rr(0, 500), rr(-2, 2), rr(-2, 2), 60, 40, farba='random'))
+  zemegula = [tkinter.PhotoImage(file='a3/z{}.png'.format(i)) for i in range(21)]
+  for i in range(5):
+      p.pridaj(Obrazok(zemegula, rr(0,800), rr(0, 500), rr(-2, 2), rr(-2, 2)))
+
+Akcie pri pustení myši
+......................
+
+Budeme riešiť takúto úlohu: ...
+
+ ::
+
+  import tkinter
+  from random import randrange as rr
+
+  class Zaklad:
+      canvas = None
+
+      def __init__(self, x, y, sirka=0, vyska=0):
+          self.x, self.y = self.x0, self.y0 = x, y
+          self.w2, self.h2 = sirka//2, vyska//2
+          self.id = None
+          self.moze_tahat = True
+          self.vnom = None
+
+      def vnutri(self, x, y):
+          return abs(self.x-x) <= self.w2 and abs(self.y-y) <= self.h2
+
+      def mouse_move(self, x, y):
+          if self.id is not None:
+              self.canvas.move(self.id, x-self.x, y-self.y)
+          self.x, self.y = x, y
+
+      def mouse_down(self):
+          pass
+
+      def mouse_up(self):
+          pass
+
+      def timer(self):
+          pass
+
+      def domov(self):
+          self.mouse_move(self.x0, self.y0)
+
+  #-----------------------------------------------------------------------
+
+  class Ramik(Zaklad):
+      def __init__(self, x, y, sirka=30, vyska=30, farba=''):
+          super().__init__(x, y, sirka, vyska)
+          if farba == 'random':
+              farba = '#{:06x}'.format(rr(256**3))
+          self.id = self.canvas.create_rectangle(
+              x-self.w2, y-self.h2, x+self.w2, y+self.h2, fill=farba)
+
+      def mouse_down(self):
+          self.canvas.itemconfig(self.id, width=3, outline='red')
+
+      def mouse_up(self):
+          self.canvas.itemconfig(self.id, width=1, outline='black')
+
+
+  #-----------------------------------------------------------------------
+
+  class Obrazok(Zaklad):
+      def __init__(self, obr, x, y, dx=0, dy=0):
+          if not isinstance(obr, list):
+              obr = [obr]
+          self.pole = obr
+          self.faza = 0
+          super().__init__(x, y, obr[0].width(), obr[0].height())
+          self.id = self.canvas.create_image(x, y, image=obr[0])
+
+      def timer(self):
+          if len(self.pole) > 1:
+              self.canvas.itemconfig(self.id, image=self.pole[self.faza])
+              self.faza = (self.faza + 1) % len(self.pole)
+
+  #################################################
+
+  class Plocha(tkinter.Canvas):
+      def __init__(self, *param, **pparam):
+          super().__init__(*param, **pparam)
+          self.pack()
+          Zaklad.canvas = self
+          Zaklad.sirka = int(self['width'])
+          Zaklad.vyska = int(self['height'])
+          self.bind('<Button-1>', self.mouse_down)
+          self.bind('<B1-Motion>', self.mouse_move)
+          self.bind('<ButtonRelease-1>', self.mouse_up)
+          self.pole = []
+          self.tahany = None
+          self.ciele = []
+          self.timer()
+
+      def timer(self):
+          for obj in self.pole:
+              obj.timer()
+          self.after(100, self.timer)
+
+      def mouse_down(self, event):
+          for obj in reversed(self.pole):
+              if obj.moze_tahat and obj.vnutri(event.x, event.y):
+                  self.tahany = obj
+                  self.dx, self.dy = event.x - obj.x, event.y - obj.y
+                  obj.mouse_down()
+                  return
+          self.tahany = None
+
+      def mouse_move(self, event):
+          if self.tahany is not None:
+              self.tahany.mouse_move(event.x-self.dx, event.y-self.dy)
+
+      def mouse_up(self, event):
+          if self.tahany is not None:
+              kto = self.tahany
+              kto.mouse_up()
+
+              for ciel in self.ciele:
+                  if ciel.vnom is kto:
+                      ciel.vnom = None
+              for ciel in self.ciele:
+                  if ciel.vnutri(kto.x, kto.y):
+                      if ciel.vnom is not None:
+                          ciel.vnom.domov()
+                      ciel.vnom = kto
+                      kto.mouse_move(ciel.x, ciel.y)
+                      break
+              else:
+                  kto.domov()
+
+
+              self.tahany = None
+
+      def pridaj(self, obj):
+          self.pole.append(obj)
+
+Pri testovaní použijeme napr. tieto `obrázky číslic <_static/numbers.zip>`_:
+
+ ::
+
+  p = Plocha(width=800, height=500, bg='green')
+  for i in range(8):
+      r = Ramik(i*80+50, 200, 70, 70)
+      r.moze_tahat = False
+      p.pridaj(r)
+      p.ciele.append(r)
+
+  for i in range(10):
+      p.pridaj(Obrazok(tkinter.PhotoImage(file='number{}.png'.format(i)), i*50+50, 100))
+
+
+Cvičenie
+--------
+
+Dnešné cvičenie je venované príprave na záverečný test. Tento test bude prebiehať 12.12. v posluchárňach A a B. Pokúste sa vyriešiť čo najviac z týchto vybraných úloh, pričom sa snažte nepoužívať ako pomôcku počítač. Tieto tréningové úlohy sú mierne upravené úlohy z testov v rokoch 2014 a 2015:
+
+1. Zistite, čo vypočíta táto rekurzívna funkcia:
+
+ ::
+
+  def pocitaj(n):
+      if n < 2:
+          return n
+      return pocitaj(n-2) + pocitaj(n-1)
+
+  for i in 5, 5.5, 6, 6.5:
+      print(i, pocitaj(i))
+
+2. Dopíšte funkciu ``vyrob(dlzky)``, ktorá vytvorí dvojrozmerné pole celých čísel tak, že ak parameter ``dlzky`` je pole celých čísel, tak tieto označujú dĺžky riadkov vytváraného dvojrozmerného poľa. Počet prvkov poľa ``dlzky`` označuje počet riadkov vytváraného poľa. Prvky vytváraného poľa pritom postupne zaplňte hodnotami od 1.
+
+ ::
+
+  def vyrob(dlzky):
+       pole = []
+       _______________
+       for d in dlzky:
+           _______________
+           _______________
+
+       return pole
+
+ ::
+
+  >>> pole = vyrob([3, 2, 4])
+  >>> print(*pole, sep='\n')
+  [1, 2, 3]
+  [4, 5]
+  [6, 7, 8, 9]
+
+ Pri dopisovaní kódu do funkcie nemusíte dodržať naznačený počet riadkov programu
+
+
+3. Textový súbor ``'subor.txt'`` v každom riadku obsahuje niekoľko slov oddelených medzerami. Nasledovná funkcia by mala vytvoriť dvojrozmerné pole znakových reťazcov, ktoré bude v každom riadku obsahovať ako prvky slová z príslušného riadku súboru:
+
+ ::
+
+  def urob(meno):
+      with open(meno) as subor:
+          vysledok = []
+          while vysledok:
+              riadok = subor.read()
+              if riadok:
+                  return vysledok
+              riadok = riadok.strip()
+              riadok.append(vysledok)
+
+ Opravte všetky chyby. Nedopisujte nové príkazy - opravte len chybné zápisy.
+
+
+4. V triede ``Kniha`` si ukladáme informácie o knihách:
+
+ ::
+
+  class Kniha:
+      def __init__(self, autor, titul, cena):
+          self.pole = [autor, titul, cena]
+
+      def autor(self, zmen=None):
+          ...
+
+ Dopíšte metódu ``autor()`` tak, aby volanie bez parametrov vrátilo autora knihy a volanie s jedným parametrom zmenilo autora, napr.
+
+ ::
+
+  >>> k = Kniha('Doyle', 'Sherlock Holmes', 11.5)
+  >>> k.autor()
+  'Doyle'
+  >>> k.autor('sir Arthur Conan Doyle')
+  >>> k.pole
+  ['sir Arthur Conan Doyle', 'Sherlock Holmes', 11.5]
+
+5. Zistite, čo sa vypíše:
+
+ ::
+
+  >>> pole1 = [3, 'sedem', 3.14]
+  >>> pole2 = ['dog', 'cat', 'mouse', 'duck']
+  >>> pole3 = {'sedem':[3]*3, 3.14: pole2, 'cat': pole1}
+  >>> pole3[pole3[pole2[1]][2]][2]
+
+
+6. V triede ``Mnozina`` je 5 chýb. Opravte ich! Neopravujte kód, ktorý nie je chybný.
+
+ ::
+
+  class Mnozina:
+      def __init__(self):
+          self.pole = []
+
+      def __str__(self):
+          print(tuple(sorted(self.pole)))
+
+      def add(self, cislo):
+          if cislo in self:
+              self.pole.append(cislo)
+
+      def discard(self, cislo):
+          if cislo in self:
+              self.pole.pop(cislo)
+
+      def __contains__(self, cislo):
+          return self.pole.index(cislo) >= 0
+
+      def __len__(self):
+          return len(self.pole)
+
+      def zjednotenie(self, ina):
+          for i in ina.pole:
+              self.append(i)
+
+
+7. Dopíšte funkciu ``nechaj_float(pole)``, ktorá v poli znakových reťazcov ponechá len tie, ktoré reprezentujú desatinné čísla (dajú sa previesť konverznou funkciou ``float()``). Dopisuje len medzi riadky ``while`` a ``del``:
+
+ ::
+
+  def nechaj_float(pole):
+      i = 0
+      while i < len(pole):
+
+
+
+
+          del pole[i]
+
+ ::
+
+  >>> pole = ['3..', '1e1', '7', '' , '1e1e', '.7.']
+  >>> nechaj_float(pole)
+  >>> pole
+  ['1e1', '7']
+
+
+8. Dané sú dve polia ``pole1`` a ``pole2``, ktoré majú rovnaký počet prvkov. Vytvorte funkciu, ktorá z takýchto dvoch polí vytvorí a vráti nové asociatívne pole. V tomto asociatívnom poli sú kľúčmi prvky z prvého poľa a hodnotami sú príslušné prvky druhého poľa. V tele tejto funkcie môžete použiť štandardnú funkciu ``zip()``.
+
+ ::
+
+  def urob(pole1, pole2):
+
+
+      return ...
+
+ ::
+
+  >>> a = urob(['druh', 'vaha', 'vek'],['slon', 1000, 10])
+  >>> a
+  {'druh': 'slon', 'vek': 10, 'vaha': 1000}
+
+
+9. Funkcia ``vsetky()`` nejako spracováva pole množín:
+
+ ::
+
+  def vsetky(pole_mnozin):
+      vysl, b = set(), True
+      for m in pole_mnozin:
+          if b:
+              vysl |= m
+          else:
+              vysl -= m
+          b = not b
+      return vysl
+
+ Zistite, čo treba dosadiť do premennej ``x``, aby sme dostali tento výsledok:
+
+ ::
+
+  >>> x = ______________________
+  >>> vsetky([set(range(3, 10, 2)), x, set(range(5, 15, 3))])
+  {5, 7, 8, 11, 14}
+
+
+10. Zapíšte funkciu ``urob(n)``, ktorá vytvorí pole tretích mocnín čísel od 1 do ``n``. Zapíšte ju pomocou generátorovej notácie:
+
+ ::
+
+  def urob(n):
+
+      return [...]
+
+ ::
+
+  >>> urob(5)
+  [1, 8, 27, 64, 125]
+
+
+11. Máme daný slovník ``d = {'prvy' :7, 'druhy' :3, 'treti' :5, 'stvrty' :6, 'piaty' :2}``. Zistite, čo vráti tento kód:
+
+ ::
+
+  '.'.join(b for a, b in sorted((d[x], x) for x in d))
+

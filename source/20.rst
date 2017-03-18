@@ -1,0 +1,839 @@
+Funkcie a parametre
+===================
+
+Parametre funkcií
+-----------------
+
+Zapíšme funkciu, ktorá vypočíta súčin niekoľkých čísel. Aby sme ju mohli volať s rôznym počtom parametrov, využijeme náhradné hodnoty:
+
+ ::
+
+  def sucin(a=1, b=1, c=1, d=1, e=1):
+      return a * b * c * d * e
+
+Túto funkciu môžeme volať aj bez parametrov, ale nefunguje viac ako 5 parametrov:
+
+ ::
+
+  >>> sucin(3, 7)
+  21
+  >>> sucin(2, 3, 4)
+  24
+  >>> sucin(2, 3, 4, 5, 6)
+  720
+  >>> sucin(2, 3, 4, 5, 6, 7)
+  ...
+  TypeError: sucin() takes from 0 to 5 positional arguments but 6 were given
+  >>> sucin()
+  1
+  >>> sucin(13)
+  13
+
+Ak chceme použiť aj väčší počet parametrov, môžeme využiť pole:
+
+ ::
+
+  def sucin(pole):
+      vysl = 1
+      for prvok in pole:
+          vysl *= prvok
+      return vysl
+
+Teraz to funguje pre ľubovoľný počet čísel, ale musíme ich uzavrieť do hranatých (alebo okrúhlych) zátvoriek:
+
+ ::
+
+  >>> sucin([3, 7])
+  21
+  >>> sucin([2, 3, 4, 5, 6])
+  720
+  >>> sucin([2, 3, 4, 5, 6, 7])
+  5040
+  >>> sucin(range(2, 8))
+  5040
+  >>> sucin(range(2, 41))
+  815915283247897734345611269596115894272000000000
+
+Teraz môžeme namiesto poľa poslať ako parameter aj ``range(2, 8)``, t.j. ľubovoľnú štruktúru, ktorá sa dá rozobrať pomocou for-cyklu.
+
+Toto riešenie stále nerieši náš problém: funkciu s ľubovoľným počtom parametrov. Na toto slúži tzv. **zbalený parameter** (po anglicky packing):
+
+* pred menom parametra v hlavičke funkcie píšeme znak ``*`` (zvyčajne je to posledný parameter)
+* pri volaní funkcie sa všetky zvyšné parametre **zbalia** do jednej n-tice (typ ``tuple``)
+
+Otestujme:
+
+ ::
+
+  def test(prvy, *zvysne):
+      print('prvy =', prvy)
+      print('zvysne =', zvysne)
+
+po spustení:
+
+ ::
+
+  >>> test('jeden', 'dva', 'tri')
+  prvy = jeden
+  zvysne = ('dva', 'tri')
+  >>> test('jeden')
+  prvy = jeden
+  zvysne = ()
+
+Funkcia sa môže volať s jedným alebo aj viac parametrami. Prepíšme funkciu ``sucin()`` s použitím jedného zbaleného parametra:
+
+ ::
+
+  def sucin(*pole):            # zbalený parameter
+      vysl = 1
+      for prvok in pole:
+          vysl *= prvok
+      return vysl
+
+Uvedomte si, že teraz jeden parameter ``pole`` zastupuje **ľubovoľný počet parametrov** a Python nám do tohto parametra automaticky zbalí všetky skutočné parametre ako jednu n-ticu (``tuple``). Otestujeme:
+
+ ::
+
+  >>> sucin()
+  1
+  >>> sucin(3, 7)
+  21
+  >>> sucin(2, 3, 4, 5, 6, 7)
+  5040
+  >>> sucin(2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
+  479001600
+  >>> sucin(range(2, 13))
+  ...
+  TypeError: unsupported operand type(s) for *=: 'int' and 'range'
+
+V poslednom príklade vidíte, že ``range(...)`` tu nefunguje: Python tento jeden parameter zbalí do jednoprvkovej n-tice a potom sa s týmto ``range()`` bude chcieť násobiť, čo samozrejme nefunguje. 
+
+Ešte ukážme druhý podobný prípad, ktorý sa môže vyskytnúť pri práci s parametrami funkcií. Napíšme funkciu, ktorá dostáva dva alebo tri parametre a nejako ich vypíše:
+
+ ::
+
+  def pis(meno, priezvisko, rok=2015):
+      print('volam sa {} {} a narodil som sa v {}'.format(meno, priezvisko, rok))
+
+Napr.
+
+ ::
+
+  >>> pis('Janko', 'Hrasko', 2014)
+  volam sa Janko Hrasko a narodil som sa v 2014
+  >>> pis('Juraj', 'Janosik')
+  volam sa Juraj Janosik a narodil som sa v 2015
+
+Malá nepríjemnosť nastáva vtedy, keď máme takéto hodnoty pripravené v nejakej štruktúre:
+
+ ::
+
+  >>> p1 = ['Janko', 'Hrasko', 2014]
+  >>> p2 = ['Juraj', 'Janosik']
+  >>> p3 = ['Monty', 'Python', 1968]
+  >>> pis(p1)
+  ...
+  TypeError: pis() missing 1 required positional argument: 'priezvisko'
+
+Nefunguje volanie tejto funkcie s trojprvkovým poľom, ale musíme prvky tohto poľa **rozbaliť**, aby sa priradili do príslušných parametrov, napr.
+
+ ::
+
+  >>> pis(p1[0], p1[1], p1[2])
+  volam sa Janko Hrasko a narodil som sa v 2014
+  >>> pis(p2[0], p2[1])
+  volam sa Juraj Janosik a narodil som sa v 2015
+
+Takáto situácia sa pri programovaní stáva dosť často: v nejakej štruktúre (napr. v poli) máme pripravené parametre pre danú funkciu a my potrebujeme túto funkciu zavolať s rozbalenými prvkami štruktúry. Na toto slúži **rozbaľovací operátor**, pomocou ktorého môžeme ľubovoľnú štruktúru poslať ako skupinu parametrov, pričom sa automaticky rozbalia (a teda prvky sa priradia do formálnych parametrov). Rozbaľovací operátor pre parametre je opäť znak ``*`` a používa sa takto:
+
+ ::
+
+  >>> pis(*p1)              # je to isté ako pis(p1[0], p1[1], p1[2])
+  volam sa Janko Hrasko a narodil som sa v 2014
+  >>> pis(*p2)              # je to isté ako pis(p2[0], p2[1])
+  volam sa Juraj Janosik a narodil som sa v 2015
+
+Takže, všade tam, kde sa očakáva nie jedna štruktúra ako parameter, ale veľa parametrov, ktoré sú prvkami tejto štruktúry, môžeme použiť tento rozbaľovací operátor (po anglicky unpacking argument lists).
+
+Tento operátor môžeme využiť napr. aj v takýchto situáciách:
+
+ ::
+
+  >>> print(range(10))
+  range(0, 10)
+  >>> print(*range(10))
+  0 1 2 3 4 5 6 7 8 9
+  >>> print(*range(10), sep='...')
+  0...1...2...3...4...5...6...7...8...9
+  >>> param = (3, 20, 4)
+  >>> print(*range(*param))
+  3 7 11 15 19
+  >>> dvenasto = 2**100
+  >>> print(dvenasto)
+  1267650600228229401496703205376
+  >>> print(*str(dvenasto))
+  1 2 6 7 6 5 0 6 0 0 2 2 8 2 2 9 4 0 1 4 9 6 7 0 3 2 0 5 3 7 6
+  >>> print(*str(dvenasto), sep='-')
+  1-2-6-7-6-5-0-6-0-0-2-2-8-2-2-9-4-0-1-4-9-6-7-0-3-2-0-5-3-7-6
+  >>> p = [17, 18, 19, 20, 21]
+  >>> [*p[3:], *range(5), *p]
+  [20, 21, 0, 1, 2, 3, 4, 17, 18, 19, 20, 21]
+
+Pripomeňme si funkciu ``sucin()``, ktorá počítala súčin ľubovoľného počtu čísel - tieto sa spracovali jedným zbaleným parametrom. Teda funkcia očakáva veľa parametrov a niečo z nich vypočíta. Ak ale máme jednu štruktúru, ktorá obsahuje tieto čísla, musíme použiť rozbaľovací operátor:
+
+ ::
+
+  >>> cisla = [7, 11, 13]
+  >>> sucin(cisla)              # pole [7, 11, 13] sa násobí 1
+  [7, 11, 13]
+  >>> sucin(*cisla)
+  1001
+  >>> sucin(*range(2, 11))
+  3628800
+  
+Parameter s meniteľnou hodnotou
+...............................
+
+Teraz trochu odbočíme od zbalených a rozbalených parametrov. Ukážme veľký problém, ktorý nás môže zaskočiť v situácii, keď náhradnou hodnotou parametra je meniteľný typ (mutable). Pozrime na túto nevinne vyzerajúcu funkciu:
+
+ ::
+ 
+  def pokus(a=1, b=[]):
+      b.append(a)
+      return b
+      
+Očakávame, že ak neuvedieme druhý parameter, výsledkom funkcie bude jednoprvkové pole s prvkom prvého parametra. Skôr, ako to otestujeme, vypíšme, ako túto našu funkciu vidí ``help()``:
+
+ ::
+ 
+  >>> help(pokus)
+  Help on function pokus in module __main__:
+  
+  pokus(a=1, b=[])
+  
+a teraz test:
+
+ ::
+        
+  >>> pokus(2)
+  [2]
+  
+Zatiaľ je všetko v poriadku. Ale po druhom spustení:
+
+ ::
+ 
+  >>> pokus(7)
+  [2, 7]
+ 
+Vidíme, že Python si tu nejako pamätá aj naše prvé spustenie tejto funkcie. Znovu pozrime ``help()``:
+
+ ::
+ 
+  >>> help(pokus)
+  Help on function pokus in module __main__:
+  
+  pokus(a=1, b=[2, 7])
+
+A vidíme, že sa dokonca zmenila hlavička našej funkcie ``pokus()``. Mali by sme teda rozumieť, čo sa tu vlastne deje:
+
+* Python si pre každú funkciu pamätá zoznam všetkých náhradných hodnôt pre formálne parametre funkcie, tak ako sme ich zadefinovali v hlavičke (môžete si pozrieť premennú ``pokus.__defaults__``)  
+* ak sú v tomto zozname len nemeniteľné hodnoty (immutable), nevzniká žiaden problém
+* problémom sú meniteľné hodnoty (mutable) v tomto zozname: pri volaní funkcie, keď treba použiť náhradnú hodnotu, Python použije hodnotu z tohto zoznamu (použije referenciu na túto štruktúru) - keď tomuto parametru ale v tele funkcie zmeníme obsah, zmení sa tým aj hodnota v zozname náhradných hodnôt (``pokus.__defaults__``) 
+
+Z tohto pre nás vyplýva, že radšej nikdy nebudeme definovať náhradnú hodnotu parametra ako meniteľný objekt. Funkciu ``pokus`` by sme mali radšej zapísať takto:  
+
+ ::
+ 
+  def pokus(a=1, b=None):
+      if b is None:
+          b = []
+      b.append(a)
+      return b
+
+A všetko by fungovalo tak, ako sme očakávali.
+
+Skúsení programátori vedia túto vlastnosť využiť veľmi zaujímavo- Napr. do funkcie posielame nejaké hodnoty a funkcia nám oznamuje, či už sa taká vyskytla, alebo ešte nie:
+
+ ::
+
+  def kontrola(hodnota, bola=set()):
+      if hodnota in bola:
+          print(hodnota, 'uz bolo')
+      else:
+          bola.add(hodnota)
+          print(hodnota, 'OK')
+
+a test:
+
+ ::		
+  
+  >>> kontrola(7)
+  7 OK
+  >>> kontrola(17)
+  17 OK
+  >>> kontrola(-7)
+  -7 OK
+  >>> kontrola(17)
+  17 uz bolo
+  >>> kontrola(7)
+  7 uz bolo
+ 
+Veľmi pekným využitím tejto nečakanej vlastnosti parametra s meniteľnou náhradnou hodnotou je zrýchlenie výpočtu fibonacciho postupnosti. Už sme sa stretli s rekurzívnou verziou, ktorá je pre väčšie hodnoty nepoužiteľne pomalá:  
+
+ ::
+ 
+  def fib(n):
+      if n < 2:
+          return n
+      return fib(n-2) + fib(n-1)
+
+Vyskúšajte napr. ``fib(40)``.
+
+Tu by mohol pomôcť jeden parameter navyše, vďaka ktorému by si funkcia mohla pamätať všetky doteraz vypočítané hodnoty. Zapíšme:
+
+ ::
+ 
+  def fib(n, pamat={}):
+      if n in pamat:
+          return pamat[n]
+      if n < 2:
+          vysl = n
+      else:
+          vysl = fib(n-2) + fib(n-1)
+      pamat[n] = vysl
+      return vysl
+   
+Aj táto funkcia je rekurzívna, len si vie zapamätať niečo navyše. Takému spôsobu riešenia úlohy, pri ktorom vieme využiť až predtým vypočítané a zapamätané medzivýsledky, hovoríme **memoizácia** a budete sa to učiť vo vyšších ročníkoch. 
+
+
+Zbalené pomenované parametre
+............................
+
+Pozrime sa na túto funkciu:
+
+ ::
+ 
+  def vypis(meno, vek, vyska, vaha, bydlisko):
+      print('volam sa', meno)
+      print('    vek =', vek)
+      print('    vyska =', vyska)
+      print('    vaha =', vaha)
+      print('    bydlisko =', bydlisko)
+  
+otestujeme:
+
+ ::
+   
+  >>> vypis('Janko Hrasko', vek=5, vyska=7, vaha=0.3, bydlisko='Pri poli')
+  volam sa Janko Hrasko
+      vek = 5
+      vyska = 7
+      vaha = 0.3
+      bydlisko = Pri poli
+ 
+Radi by sme aj tu dosiahli podobnú vlastnosť parametrov, ako to bolo pri zbalenom parametri, ktorý do jedného parametra dostal ľubovoľný počet skutočných parametrov. V tomto prípade by sme ale chceli, aby sa takto zbalili všetky vlastnosti vypisovanej osoby ale aj s príslušnými menami týchto vlastností. V tomto prípade nám pomôžu **zbalené pomenované parametre**: namiesto viacerých pozičných parametrov, uvedieme jeden s dvomi hviezdičkami ``**``:
+
+ ::
+ 
+  def vypis(meno, **vlastnosti):
+      print('volam sa', meno)
+      for k, h in vlastnosti.items():
+          print('    ', k, '=', h)
+     
+Tento zápis označuje, že ľubovoľný počet pomenovaných parametrov sa zbalí do jedného parametra a ten vo vnútri funkcie bude typu **asociatívne pole**. Uvedomte si ale, že v asociatívnom poli sa nezachováva poradie dvojíc:
+
+ ::
+ 
+  >>> vypis('Janko Hrasko', vek=5, vyska=7, vaha=0.3, bydlisko='Pri poli')
+  volam sa Janko Hrasko
+       vyska = 7
+       vaha = 0.3
+       bydlisko = Pri poli
+       vek = 5
+  
+Ďalší príklad tiež ilustruje takéto zbalené asociatívne pole:
+
+ ::
+
+  import tkinter
+  
+  canvas = tkinter.Canvas()
+  canvas.pack()
+  
+  def kruh(r, x, y):
+      canvas.create_oval(x-r, y-r, x+r, y+r)
+  
+  kruh(50, 100, 100)    
+
+Funkcia ``kruh()`` definuje nakreslenie kruh s daným polomerom a stredom, ale nijako nevyužíva ďalšie parametre na definovanie farieb a obrysu kruhu. Doplňme do funkcie zbalené pomenované parametre:
+
+ ::
+ 
+  def kruh(r, x, y, **param):
+      canvas.create_oval(x-r, y-r, x+r, y+r)
+ 
+Toto označuje, že ``kruh()`` môžeme zavolať s ľubovoľnými ďalšími pomenovanými parametrami, napr. ``kruh(..., fill='red', width=7)``. Tieto parametre ale chceme ďalej poslať do funkcie ``create_oval()``. Určite sem nemôžeme poslať ``param``, lebo toto je premenná typu ``dict`` a ``create_oval()`` s tým pracovať nevie. Tu by sa nám zišlo premennú ``param`` rozbaliť do viacerých pomenovaných parametrov: Rozbaľovací operátor pre pomenované parametre sú dve hviezdičky ``**``, teda zapíšeme:
+
+ ::
+ 
+  def kruh(r, x, y, **param):
+      canvas.create_oval(x-r, y-r, x+r, y+r, **param)
+
+a teraz funguje aj
+
+ ::
+
+  kruh(50, 100, 100)
+  kruh(30, 150, 100, fill='red')
+  kruh(100, 200, 200, width=10, outline='green')
+
+Takýto rozbaľovací parameter by sme vedeli využiť aj v predchádzajúcom príklade s funkciou ``vypis()``:
+
+ ::
+
+  >>> p1 = {'meno':'Janko Hrasko', 'vek':5, 'vyska':7, 'vaha':0.3, 'bydlisko':'Pri poli'}
+  >>> vypis(**p1)
+  volam sa Janko Hrasko
+       vaha = 0.3
+       vek = 5
+       vyska = 7
+       bydlisko = Pri poli
+  >>> p2 = {'vek':25, 'narodeny':'Terchova', 'popraveny':'Liptovsky Mikulas'}
+  >>> vypis('Juraj Janosik', **p2)
+  volam sa Juraj Janosik
+       popraveny = Liptovsky Mikulas
+       vek = 25
+       narodeny = Terchova
+
+
+Funkcia ako hodnota
+-------------------
+
+v Pythone sú aj funkcie objektami a môžeme ich priradiť do premennej, napr.
+
+ ::
+
+  >>> def fun1(x): return x*x
+  >>> fun1(7)
+  49
+  >>> cojaviem = fun1
+  >>> cojaviem(8)
+  64
+
+Funkcie môžu byť prvkami polí, napr.
+
+ ::
+
+  >>> def fun2(x): return 2*x+1
+  >>> def fun3(x): return x//2
+  >>> pole = [fun1, fun2, fun3]
+  >>> for f in pole:
+          print(f(10))
+  100
+  21
+  5
+
+Funkciu môžeme poslať ako parameter do inej funkcie, napr.
+
+ ::
+
+  >>> def urob(fun, x):
+          return fun(x)
+  >>> urob(fun2, 3.14)
+  7.28
+
+
+Funkcia (teda referencia na funkciu) môže byť aj prvkom asociatívneho poľa. Pekne to ilustruje príklad s korytnačkou:
+
+ ::
+ 
+  def vykonaj():
+      t = turtle.Turtle()
+      p = {'fd': t.fd, 'rt': t.rt, 'lt': t.lt}
+      while True:
+          prikaz, parameter = input('> ').split()
+          p[prikaz](int(parameter))
+ 
+a funguje napr.:
+
+ ::
+ 
+  >>> vykonaj()
+  > fd 100
+  > lt 90
+  > fd 50
+  > rt 60
+  > fd 100
+  
+  
+
+Anonymné funkcie
+................
+
+Často sa namiesto jednoriadkovej funkcie, ktorá počíta jednoduchý výraz a tento vráti ako výsledok (``return``) používa špeciálna konštrukcia ``lambda``. Tá vygeneruje tzv. anonymnú funkciu, ktorú môžeme priradiť do premennej alebo poslať ako parameter do funkcie, napr.
+
+ ::
+
+  >>> urob(lambda x: 2*x+1, 3.14)
+  7.28
+
+Tvar konštrukcie ``lambda`` je nasledovný:
+
+ ::
+
+  lambda parametre: výraz
+
+Tento zápis nahrádza definovanie funkcie:
+
+ ::
+
+  def anonymne_meno(parametre):
+      return vyraz
+
+Môžeme zapísať napr.
+
+ ::
+
+  lambda x: x%2==0              # funkcia vráti True pre párne číslo
+  lambda x,y: x**y              # vypočíta príslušnú mocnimu čísla
+  lambda x: isinstance(x, int)  # vráti True pre celé číslo
+  
+
+
+Mapovacie funkcie
+.................
+
+Ideu funkcie ako parametra najlepšie ilustruje funkcia ``mapuj()``:
+
+ ::
+
+  def mapuj(fun, pole):
+      vysl = []
+      for prvok in pole:
+          vysl.append(fun(prvok))
+      return vysl
+
+Funkcia aplikuje danú funkciu (prvý parameter) na všetky prvky poľa a z výsledkov poskladá nové pole, napr.
+
+ ::
+
+  >>> mapuj(fun1, (2,3,7))
+  [4, 9, 49]
+  >>> mapuj(list,'Python'))
+  [['P'], ['y'], ['t'], ['h'], ['o'], ['n']]
+  >>> mapuj(lambda x: [x]*x, range(1,6))
+  [[1], [2, 2], [3, 3, 3], [4, 4, 4, 4], [5, 5, 5, 5, 5]]
+
+V Pythone existuje štandardná funkcia ``map()``, ktorá robí skoro to isté ako naša funkcia ``mapuj()`` ale s tým rozdielom, že ``map()`` nevracia pole, ale niečo ako generátorový objekt, ktorý môžeme použiť ako prechádzanú postupnosť vo for-cykle, alebo napr. pomocou ``list()`` ho previesť na pole, napr.
+
+ ::
+
+  >>> list(map(int,str(2**30)))
+  [1, 0, 7, 3, 7, 4, 1, 8, 2, 4]
+
+Vráti pole cifier čísla 2**30.
+
+Podobná funkcii ``mapuj()`` je aj funkcia ``filtruj()``, ktorá z daného poľa vyrobí nový nové pole, ale nechá len tie prvky, ktoré spĺňanú nejakú podmienku. Podmienka je definovaná funkciou, ktorá je prvým parametrom:
+
+ ::
+
+  def filtruj(fun, pole):
+      vysl = []
+      for prvok in pole:
+          if fun(prvok):
+              vysl.append(prvok)
+      return vysl
+
+Napr.
+
+ ::
+
+  >>> def podm(x): return x%2==0      # zistí, či je číslo párne
+  >>> list(range(1, 20, 3))
+  [1, 4, 7, 10, 13, 16, 19]
+  >>> mapuj(podm, range(1, 20, 3))
+  [False, True, False, True, False, True, False]
+  >>> filtruj(podm, range(1, 20, 3))
+  [4, 10, 16]
+
+Podobne ako pre ``mapuj()`` existuje štandardná funkcia ``map()``, aj pre ``filtruj()`` existuje štandardná funkcia ``filter()`` - tieto dve funkcie ale nevracajú pole (``list``) ale postupnosť, ktorá sa dá prechádzať for-cyklom alebo poslať ako parameter do funkcie, kde sa očakáva postupnosť. 
+
+Ukážkovým využitím funkcie ``map()`` je funkcia, ktorá počíta ciferný súčet nejakého čísla:
+
+ ::
+
+  def cs(cislo):
+      return sum(map(int,str(cislo)))
+
+ ::
+
+  >>> cs(1234)
+  10
+
+
+Generátorová notácia
+--------------------
+
+Veľmi podobná funkcii ``map()`` je generátorová notácia (po anglicky **list comprehension**):
+
+* je to spôsob, ako môžeme elegantne vygenerovať nejaké pole pomocou for-cyklu a nejakého výrazu
+* do ``[...]`` nezapíšeme prvky poľa, ale predpis, akým sa majú vytvoriť, základný tvar je tohto zápisu:
+
+  ::
+
+   [vyraz for i in postupnost]
+
+* kde ``výraz`` najčastejšie obsahuje premennú cyklu a ``postupnosť`` je ľubovoľná štruktúra, ktorá sa dá prechádzať for-cyklom (napr. ``list``, ``set``, ``str``, ``range()``, riadky otvoreného súboru, ale aj výsledok ``map()`` a ``filter()`` a pod.
+* táto notácia môže používať aj vnorené cykly ale aj podmienku ``if``, vtedy je to v takomto tvare:
+
+  ::
+
+   [vyraz for i in postupnost if podmienka]
+
+* generátorová notácia s podmienkou nechá vo výsledku len tie prvky, ktoré spĺňajú danú podmienku
+
+Niekoľko príkladov:
+
+ ::
+
+  >>> [i**2 for i in range(1, 11)]
+  [1, 4, 9, 16, 25, 36, 49, 64, 81, 100]
+  >>> [[i*j for i in range(1, 6)] for j in range(1, 6)]
+  [[1, 2, 3, 4, 5], [2, 4, 6, 8, 10], [3, 6, 9, 12, 15], [4, 8, 12, 16, 20], [5, 10, 15, 20, 25]]
+  >>> [i for i in range(100) if cs(i)==5]      # cs() vypočíta ciferný súčet
+  [5, 14, 23, 32, 41, 50]
+
+Pomocou tejto konštrukcie by sme vedeli zapísať aj mapovacie funkcie:
+
+ ::
+
+  def mapuj(fun, pole):
+      return [fun(prvok) for prvok in pole]
+
+  def filtruj(fun, pole):
+      return [prvok for prvok in pole if fun(prvok)]
+
+Všimnite si, že funkcia ``filtruj()`` využíva ``if``, ktorý je vo vnútri generátorovej notácie.
+
+
+
+Cvičenie
+--------
+
+Zbalené a rozbalené parametre
+.............................
+
+1. Napíšte funkciu ``ntica``, ktorá bude mať ľubovoľný počet parametrov a vráti n-ticu z týchto parametrov
+
+   * napr.
+
+    ::
+    
+     >>> ntica(5, 'x', 7)
+     (5, 'x', 7)
+     >>> p = ntica(123, ntica(37))
+     >>> p
+     (123, (37,))
+     
+2. Napíšte funkciu ``min`` s ľubovoľným počtom parametrov, ktorá vráti najmenšiu hodnotu medzi parametrami.
+
+   * napr.
+
+    ::
+
+     >>> min(5, 3.14, 7)
+     3.14
+     
+3. Napíšte funkciu ``zisti`` s ľubovoľným počtom parametrov, ktorá zistí (vráti ``True``), či aspoň jeden z parametrov je n-tica (typ ``tuple``).
+
+   * napr.
+
+    ::
+    
+     >>> zisti(1, 2, 3)
+     False
+     >>> t = zisti(())
+     >>> t
+     True
+     
+4. Napíšte funkciu ``zlep`` s ľubovoľným počtom parametrov, pričom všetky sú typu ``list``. Výsledkom funkcie je zreťazenie všetkých týchto parametrov.
+
+   * napr.
+
+    ::
+    
+     >>> zlep(['a', 1], [], [('b', 2)])
+     ['a', 1, ('b', 2)]
+     >>> zlep()
+     []
+     
+5. Napíšte funkciu ``vypis(pole)``, ktorá pomocou ``print`` vypíše všetky prvky poľa do jedného riadka. Nepoužite for-cyklus.
+
+   * napr.
+
+    ::
+    
+     >>>vypis([123, 'ahoj', (50, 120), 3.14])
+     123 ahoj (50, 120) 3.14
+
+
+Funkcie ako parametre
+.....................
+
+6. Napíšte funkciu ``retazec(pole)``. Funkcia vráti znakový reťazec, ktorý reprezentuje prvky poľa. Prvky poľa budú v reťazci oddelené znakom bodkočiarka. Nepoužite žiadne cykly, ale namiesto toho štandardnú funkciu ``map`` a metódu ``join``.
+
+   * napr.
+
+    ::
+
+     >>> r = retazec([123, 'ahoj', (50, 120), 3.14])
+     >>> r
+     "123; 'ahoj'; (50, 120); 3.14"
+
+7. Napíšte funkciu ``aplikuj``, ktorej parametrami sú nejaké funkcie, okrem posledného parametra, ktorým je nejaká hodnota. Funkcia postupne zavolá tieto funkcie s danou hodnotou, pričom každú ďalšiu funkciu aplikuje na predchádzajúci výsledok. Napr. ``aplikuj(f1, f2, f3, x)`` vypočíta ``f3(f2(f1(x)))``.
+
+   * napr.
+
+    ::
+
+     >>> def rev(x): return x[::-1]
+     >>> aplikuj(str, rev, int, 1074)
+     4701
+
+8. Napíšte funkciu ``urob(k)``. Funkcia ako svoj výsledok **vráti funkciu** s jedným parametrom, ktorá bude počítať ``k``-tu mocninu parametra.
+
+   * napr.
+
+    ::
+
+     >>> g = urob(3)   # g je funkcia, ktora pocita 3 mocninu
+     >>> g(4)
+     64
+     >>> urob(3)(4)    # tu sa pocita to iste
+     64
+     >>> f = urob(7)
+     >>> print(f(2), f(3), f(4))
+     127 2187 16384
+
+
+Generátorová notácia
+....................
+
+9. Napíšte funkciu ``mocniny(n)``, ktorá vráti pole druhých mocnín čísel od 1 do ``n``.
+
+   * napr.
+
+    ::
+    
+     >>> mocniny(4)
+     [1, 4, 9, 16]
+
+10. Napíšte funkciu ``zistí(veta)``, ktorá zistí dĺžku najdlhšieho slova vo vete.
+
+   * napr.
+
+    ::
+    
+     >>> zisti('isiel macek do malacek')
+     7
+
+11. Napíšte funkciu ``prevrat_slova(veta)``, ktorá vráti zadanú vetu tak, že každé slovo v nej bude otočené.
+
+   * napr.
+
+    ::
+    
+     >>> prevrat_slova('isiel macek do malacek')
+     'leisi kecam od kecalam'
+     
+   * pokúste sa celú funkciu zapísať len do jedného riadka
+
+12. Napíšte funkciu ``najdlhsie_slovo(veta)``, ktorá vráti najdlhšie slovo vo vete. Riešte to takto:
+
+   * funkcia najprv z danej vety vytvorí postupnosť dvojíc (dĺžka slova, slovo)
+   * pomocou ``sorted()`` túto postupnosť dvojíc utriedi
+   * funkcia vráti slovo z poslednej dvojice (je to najdlhšie slovo) utriedenej postupnosti
+   * napr.
+
+    ::
+    
+     >>> najdlhsie_slovo('isiel macek do malacek')
+     'malacek'
+
+   * pokúste sa celú funkciu zapísať do jedného riadka (``return ...``)
+
+13. Napíšte funkciu ``pole2(m, n, hodnota=None)``, ktorá vygeneruje dvojrozmerné pole veľkosti ``m`` x ``n`` pričom všetky prvky majú zadanú hodnotu
+
+   * napr.
+
+    ::
+    
+     >>> pole2(3, 2, 1)
+     [[1, 1], [1, 1], [1, 1]]
+
+14. Predpokladáme, že textový súbor v každom riadku obsahuje niekoľko celých čísel. Napíšte funkciu ``citaj_pole(meno_suboru)``, ktorá z neho vytvorí dvojrozmerné pole čísel.
+
+   * napr. pre súbor
+
+    ::
+    
+     1 2
+     3 4 5 6
+     
+     7 8 9
+     
+   * vytvorí
+
+    ::
+    
+     >>> citaj_pole('subor.txt')
+     [[1, 2], [3, 4, 5, 6], [], [7, 8, 9]]
+     
+15. Napíšte funkciu ``rozdel(pole, x)``, ktorá ako výsledok vráti dve polia: prvé obsahuje všetky menšie prvky ako ``x`` a druhé všetky zvyšné.
+
+   * napr.
+
+    ::
+    
+     >>> p1, p2 = rozdel([6, 8, 4, 7, 11, 9], 7)
+     >>> p1
+     [6, 4]
+     >>> p2
+     [8, 7, 11, 9]
+    
+16. Napíšte funkciu ``enumerate(postupnost)``, ktorá vytvorí takúto postupnosť dvojíc (typu ``list``): prvým prvkom bude poradové číslo dvojice a druhým prvkom prvok zo vstupnej postupnosti.
+
+   * napr.
+
+    ::
+    
+     >>> enumerate('python')
+     [(0, 'p'), (1, 'y'), (2, 't'), (3, 'h'), (4, 'o'), (5, 'n')]
+
+   * v Pythone existuje **štandardná funkcia** ``enumerate()``, ktorá funguje skoro presne ako táto funkcia, len jej výsledkom nie je pole, ale opäť postupnosť
+
+17. Napíšte funkciu ``zip(p1, p2)``, ktorá z dvoch postupností rovnakých dĺžok vytvorí pole zodpovedajúcich dvojíc, t.j. pole v ktorom prvým prvkom bude dvojica prvých prvkov postupností, druhým prvkom dvojica druhých prvkov, ...
+
+   * napr.
+
+    ::
+    
+     >>> zip('python', [2, 3, 5, 7, 11, 13])]
+     [('p', 2), ('y', 3), ('t', 5), ('h', 7), ('o', 11), ('n', 13)]
+     
+   * pokúste sa to zapísať tak, aby to fungovala aj pre postupnosti rôznych dĺžok: vtedy vytvorí len toľko dvojíc, koľko je prvkov v kratšej postupnosti, napr.
+
+    ::
+
+     >>> zip('python', [2, 3, 5, 7, 11])]
+     [('p', 2), ('y', 3), ('t', 5), ('h', 7), ('o', 11)]
+
+   * pokúste sa to zapísať tak, aby funkcia fungovala pre ľubovoľný počet ľubovoľne dlhých postupností, napr.
+
+    ::
+
+     >>> zip('python', [2, 3, 5, 7, 11], 'abcd')]
+     [('p', 2, 'a'), ('y', 3, 'b'), ('t', 5, 'c'), ('h', 7, 'd')]
+     
+   * v Pythone existuje **štandardná funkcia** ``zip()``, ktorá funguje skoro presne ako táto posledná verzia funkcie, len jej výsledkom nie je pole, ale opäť postupnosť
+

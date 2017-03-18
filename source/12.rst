@@ -1,0 +1,1212 @@
+Rekurzia
+========
+
+Rekurzia je mechanizmus, vďaka ktorému môže funkcia zavolať samu seba. Najčastejšie sa bude používať na riešenie úloh, ktoré vieme rozložiť na menšie časti a niektoré z týchto (už menších) častí riešime opäť zavolaním samotnej funkcie. Keďže toto druhé (tzv. rekurzívne) volanie už rieši menšiu úlohu, ako bola pôvodná, je šanca, že sa takéto riešenie priblížilo k očakávanému výsledku.
+
+Aby sme mali šancu lepšie porozumieť mechanizmu rekurzie, pripomeňme si mechanizmus volania funkcií:
+
+* zapamätá sa návratová adresa
+* vytvorí sa nový menný priestor funkcie
+
+  * v ňom sa vytvárajú lokálne premenné aj parametre
+
+* po skončení vykonania tela funkcie sa zruší menný priestor (aj so všetkými premennými)
+* vykonávanie programu sa vráti na návratovú adresu
+
+
+.. rubric:: Nekonečná rekurzia
+
+Rekurzia v programovaní teda znamená, že funkcia najčastejšie zavolá samú seba, t.j. že funkcia je definovaná pomocou samej seba. Na prvej ukážke vidíme rekurzívnu funkciu, ktorá nerobí nič iné, len volá samú seba:
+
+ ::
+
+  def xy():
+      xy()
+
+  xy()
+
+Takéto volanie po krátkom čase skončí chybovou správou:
+
+ ::
+
+  ...
+  RuntimeError: maximum recursion depth exceeded
+
+To, že funkcia naozaj volala samú seba, môžeme vidieť, keď popri rekurzívnom volaní urobíme nejakú akciu, napr. budeme vypisovať hodnoty parametra, ktorý tu bude slúžiť ako počítadlo rekurzívnych volaní:
+
+ ::
+
+  def xy(p):
+      print('xy', p)
+      xy(p + 1)
+
+  xy(0)
+
+ ::
+
+  xy 0
+  xy 1
+  xy 2
+  xy 3
+  xy 4
+  ...
+  xy 976
+  xy 977
+  xy 978
+  Traceback (most recent call last):
+  ...
+  RuntimeError: maximum recursion depth exceeded while calling a Python object
+
+V tomto prípade program opäť spadne, hoci môžeme vidieť, ako sa naozaj zvyšovalo počítadlo. Treba si uvedomiť, že každé zvýšenie počítadla znamená rekurzívne volanie a teda vidíme, že ich bolo skoro tisíc. My už vieme, že každé volanie funkcie (bez ohľadu na to, či je rekurzívna alebo nie) spôsobí, že Python si niekde zapamätá nielen **návratovú adresu**, aby po skončení funkcie vedel, kam sa má vrátiť, ale aj **menný priestor** tejto funkcie. Python má na tieto účely rezervu okolo 1000 vnorených volaní. Ak toto presiahneme, tak sa dozvieme správu **'RuntimeError: maximum recursion depth exceeded'** (hĺbka rekurzívnych volaní presiahla nastavené maximum).
+
+ ::
+
+  import turtle
+
+  def xy(d):
+      t.fd(d)
+      t.lt(60)
+      xy(d + 0.3)
+
+  turtle.delay(0)
+  t = turtle.Turtle()
+  t.speed(0)
+  xy(1)
+
+ ::
+
+  ...
+  RuntimeError: maximum recursion depth exceeded while calling a Python object
+
+Aj tento program, veľmi rýchlo spadne.
+
+Odkrokujme si to:
+
+* v príkazovom riadku je volanie funkcie ``xy()`` => vytvorí sa parameter ``d`` (čo je vlastne lokálna premenná), ktorej hodnota je 1,
+* nakreslí sa čiara dĺžky ``d`` a korytnačka sa otočí doľava o 60 stupňov,
+* znovu sa volá funkcia ``xy()`` s parametrom ``d`` zmeneným na ``d+0.3``, t.j. vytvorí sa nová lokálna premenná ``d`` s hodnotou 1.3 (táto premenná sa vytvára v novom mennom priestore funkcie),
+* toto sa robí donekonečna - našťastie to časom spadne na preplnení pythonovskej pamäte pre volania funkcií
+* informácie o mennom priestore a aj návratovej adrese sa ukladajú v špeciálnej údajovej štruktúre **zásobník**
+
+.. topic:: Zásobník (stack)
+
+   je údajová štruktúra, ktorá má tieto vlastnosti:
+
+   * nové prvky pridávame na vrch (napr. na vrch kopy tanierov, resp. na koniec radu čakajúcich)
+   * keď potrebujeme zo zásobníka nejaký prvok, vždy ho odoberáme z vrchu (odoberáme naposledy položený tanier, resp. posledný v rade čakajúcich)
+
+   Odborne sa tomu hovorí **LIFO** (last in first out), teda posledný prišiel, ale ako prvý odišiel (zrejme, keby to bol rad napr. v obchode, tak by sme ho považovali za **nespravodlivý rad**).
+   
+   Zásobník sa používa na uchovávanie menných priestorov: každé ďalšie volanie funkcie, vytvorí nový menný priestor, ktorý sa uloží na koniec doteraz vytvorených menných priestorov. Keď ale príde ukončenie volania funkcie, z tohto zásobníka sa odstráni naposledy pridávaný menný priestor (hoci sme ho zaradili ako posledný, vybrali sme ho ako prvý, t.j. LIFO).
+
+
+.. rubric:: Chvostová rekurzia (nepravá rekurzia)
+
+Aby sme nevytvárali nikdy nekončiace programy, t.j. nekonečnú rekurziu, niekde do tela rekurzívnej funkcie musíme vložiť test, ktorý zabezpečí, že v niektorých prípadoch rekurzia predsa len skončí. Najčastejšie to budeme riešiť tzv. **triviálnym prípadom**: na začiatok podprogramu umiestnime podmienený príkaz ``if``, ktorý otestuje triviálny prípad, t.j. prípad, keď už nebudeme funkciu rekurzívne volať, ale vykonáme len nejaké "nerekurzívne" príkazy (akcia triviálneho prípadu). Môžeme si to predstaviť aj takto: rekurzívna funkcia rieši nejaký komplexný problém a pri jeho riešení volá samu seba (rekurzívne volanie) väčšinou s nejakými pozmenenými údajmi. V niektorých prípadoch ale rekurzívne volanie na riešenie problému nepotrebujeme, ale vieme to vyriešiť "triviálne" aj bez nej (riešenie takejto úlohy je už "triviálne"). V takto riešených úlohách vidíme, že funkcia sa skladá z dvoch častí:
+
+* pri splnení nejakej podmienky, sa vykonajú príkazy bez rekurzívneho volania (triviálny prípad),
+* inak sa vykonajú príkazy, ktoré v sebe obsahujú rekurzívne volanie.
+
+Zrejme, toto má šancu fungovať len vtedy, keď po nejakom čase naozaj nastane podmienka triviálneho prípadu, t.j. keď sa tak menia parametre rekurzívneho volania, že sa k triviálnemu prípadu nejako blížime. V nasledujúcej ukážke môžete vidieť, že rekurzívna špirála sa kreslí tak, že sa najprv nakreslí úsečka dĺžky ``d``, korytnačka sa otočí o 60 stupňov vľavo a dokreslí sa špirála väčšej veľkosti. Toto celé skončí, keď už budeme chcieť nakresliť špirálu väčšiu ako 100 - takáto špirála sa už nenakreslí. Akciou triviálneho prípadu je tu *nič*, t.j. žiadna akcia pre príliš veľké špirály:
+
+ .. image:: image/12_1.png
+    :width: 300 px
+    :align: right
+
+ ::
+
+  import turtle
+
+  def spir(d):
+      if d > 100:
+          pass     # nerob nič
+      else:
+          t.fd(d)
+          t.lt(60)
+          spir(d + 3)
+
+  turtle.delay(0)
+  t = turtle.Turtle()
+  t.speed(0)
+  spir(10)
+
+Trasujme volanie so simuláciou na zásobníku s počiatočnou hodnotou parametra ``d``, napr. 92, t.j. volanie ``spir(92)``:
+
+* na zásobníku vznikne nová lokálna premenná ``d`` s hodnotou 92 ... korytnačka nakreslí čiaru, otočí sa a volá ``spir()`` s parametrom 95,
+* na zásobníku vznikne nová lokálna premenná ``d`` s hodnotou 95 ... korytnačka nakreslí čiaru, otočí sa a volá ``spir()`` s parametrom 98,
+* na zásobníku vznikne nová lokálna premenná ``d`` s hodnotou 98 ... korytnačka nakreslí čiaru, otočí sa a volá ``spir()`` s parametrom 101,
+* na zásobníku vznikne nová lokálna premenná ``d`` s hodnotou 101 ... korytnačka už nič nekreslí ani sa nič nevolá ... funkcia ``spir()`` končí, t.j.
+
+ * zabudnú sa všetky lokálne premenné na tejto úrovni, t.j. premenná ``d`` s hodnotou 101 a riadenie sa vráti za posledné volanie funkcie ``spir()`` - tá ale končí, t.j.
+ * zabudnú sa všetky lokálne premenné na tejto úrovni, t.j. premenná ``d`` s hodnotou 98 a riadenie sa vráti za posledné volanie funkcie ``spir()`` - tá ale končí, t.j.
+
+* zabudnú sa všetky lokálne premenné na tejto úrovni, t.j. premenná ``d`` s hodnotou 95 a riadenie sa vráti za posledné volanie funkcie ``Spir()`` - tá ale končí, t.j.
+* zabudnú sa všetky lokálne premenné na tejto úrovni, t.j. premenná ``S`` s hodnotou 92 a riadenie sa vráti za posledné volanie funkcie ``Spir()`` - teda do príkazového riadka
+
+Toto nám potvrdia aj kontrolné výpisy vo funkcii:
+
+ ::
+
+  def spir(d):
+      print('volanie spir({})'.format(d))
+      if d > 100:
+          pass     # nerob nič
+          print('... trivialny pripad - nerobim nic')
+      else:
+          t.fd(d)
+          t.lt(60)
+          print('... rekurzivne volam spir({})'.format(d+3))
+          spir(d+3)
+          print('... navrat z volania spir({})'.format(d+3))
+
+ ::
+
+  >>> spir(92)
+  volanie spir(92)
+  ... rekurzivne volam spir(95)
+  volanie spir(95)
+  ... rekurzivne volam spir(98)
+  volanie spir(98)
+  ... rekurzivne volam spir(101)
+  volanie spir(101)
+  ... trivialny pripad - nerobim nic
+  ... navrat z volania spir(101)
+  ... navrat z volania spir(98)
+  ... navrat z volania spir(95)
+
+Nakoľko rekurzívne volanie funkcie je iba na jednom mieste, za ktorým už nenasledujú ďalšie príkazy funkcie, toto rekurzívne volanie sa dá ľahko prepísať cyklom ``while``. Rekurzii, v ktorej za rekurzívnym volaním nie sú ďalšie príkazy, hovoríme **chvostová rekurzia** (jediné rekurzívne volanie je posledným príkazom funkcie). Predchádzajúcu ukážku môžeme prepísať napr. takto:
+
+ ::
+
+  def spir(d):
+      while d <= 100:
+          t.fd(d);
+          t.lt(60);
+          d = d + 3;
+
+Rekurziu môžeme používať nielen pri kreslení pomocou korytnačky, ale napr. aj pri výpise pomocou ``print()``. V nasledujúcom príklade vypisujeme vedľa seba čísla n, n-1, n-2, ..., 2, 1:
+
+ ::
+
+  def vypis(n):
+      if n < 1:
+          pass               # nič nerob len skonči
+      else:
+        print(n, end=', ')
+        vypis(n - 1)         # rekurzívne volanie
+
+ ::
+
+  >>> vypis(20)
+  20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1,
+
+Zrejme je veľmi jednoduché prepísať to bez použitia rekurzie, napr. pomocou while-cyklu. Poexperimentujme, a vymeňme dva riadky: vypisovanie ``print()`` s rekurzívnym volaním ``vypis()``. Po spustení vidíte, že aj táto nová rekurzívna funkcia sa dá prepísať len pomocou while-cyklu (resp. for-cyklu), ale jej činnosť už nemusí byť pre každého na prvý pohľad až tak jasná - odtrasujte túto zmenenú verziu:
+
+ ::
+
+  def vypis(n):
+      if n < 1:
+          pass      # nič nerob len skonči
+      else:
+          vypis(n-1)
+          print(n, end=', ')
+
+ ::
+
+  >>> vypis(20)
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+
+
+Pravá rekurzia
+--------------
+
+Rekurzie, ktoré už nie sú obyčajné chvostové, sú na pochopenie trochu zložitejšie. Pozrime takéto kreslenie špirály:
+
+ ::
+
+  def spir(d):
+      if d > 100:
+          t.pencolor('red')     # a skonči
+      else:
+          t.fd(d)
+          t.lt(60);
+          spir(d + 3)
+          t.fd(d)
+          t.lt(60)
+
+  spir(1)
+
+Nejaké príkazy sú pred aj za rekurzívnym volaním. Aby sme to lepšie rozlíšili, triviálny prípad nastaví inú farbu pera.
+
+Aj takéto rekurzívne volanie sa dá prepísať pomocou dvoch cyklov:
+
+ .. image:: image/12_2.png
+    :width: 300 px
+    :align: right
+
+ ::
+
+  def spir(d):
+      pocet = 0
+      while d <= 100:    # čo sa deje pred rekurzívnym volaním
+          t.fd(d)
+          t.lt(60)
+          d += 3
+          pocet += 1
+      t.pencolor('red')  # triviálny prípad
+      while pocet > 0:   # čo sa deje po vynáraní z rekurzie
+          d -= 3
+          t.fd(d)
+          t.lt(60)
+          pocet -= 1
+
+Aj v ďalších príkladoch môžete vidieť pravú rekurziu. Napr. vylepšená funkcia ``vypis`` vypisuje postupnosť čísel:
+
+ ::
+
+  def vypis(n):
+      if n < 1:
+          pass         # skonči
+      else:
+          print(n, end=', ')
+          vypis(n - 1)
+          print(n, end=', ')
+
+  vypis(10)
+  
+ ::
+ 
+  10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+
+Keď ako triviálny prípad pridáme výpis hviezdičiek, toto sa vypíše niekde medzi postupnosť čísel. Viete, kde sa vypíšu tieto hviezdičky?
+
+ ::
+
+  def vypis(n):
+      if n < 1:
+          print('***', end=', ')         # a skonči
+      else:
+          print(n, end=', ')
+          vypis(n - 1)
+          print(n, end=', ')
+
+  vypis(10)
+  
+
+V ďalších príkladoch s korytnačkou využívame veľmi užitočnú funkciu ``poly``:
+
+ ::
+
+  def poly(pocet, dlzka, uhol):
+      while pocet > 0:
+          t.fd(dlzka)
+          t.lt(uhol)
+          pocet -= 1
+
+Ktorú môžeme cvične prerobiť na rekurzívnu:
+
+ ::
+
+  def poly(pocet, dlzka, uhol):
+      if pocet > 0:
+          t.fd(dlzka)
+          t.lt(uhol)
+          poly(pocet - 1, dlzka, uhol)
+
+Zistite, čo kreslia funkcie ``stvorec`` a ``stvorec1``:
+
+ ::
+
+  def stvorec(a):
+      if a > 100:
+          pass          # nič nerob len skonči
+      else:
+          poly(4, a, 90)
+          stvorec(a + 5)
+
+  def stvorec1(a):
+      if a > 100:
+          t.lt(180)       # a skonči
+      else:
+          poly(4, a, 90)
+          stvorec1(a + 5)
+          poly(4, a, 90)
+
+Všetky tieto príklady s pravou rekurziou by ste mali vedieť jednoducho prepísať bez rekurzie pomocou niekoľkých cyklov.
+
+V nasledujúcom príklade počítame **faktoriál** prirodzeného čísla ``n``, pričom vieme, že
+
+* 0! = 1 ... triviálny prípad
+* n! = (n-1)!*n ... rekurzívne volanie
+
+ ::
+
+  def faktorial(n):
+      if n == 0:
+          return 1
+      return faktorial(n - 1) * n
+
+Triviálnym prípadom je tu úloha, ako vyriešiť ``0!``. Toto vieme aj bez rekurzie, lebo je to 1. Ostatné prípady sú už rekurzívne: na to, aby sme vyriešili zložitejší problém (``n`` faktoriál), najprv vypočítame jednoduchší (''n-1'' faktoriál) - zrejme pomocou rekurzie - a z neho skombinujeme (násobením) požadovaný výsledok. Hoci toto riešenie nie je chvostová rekurzia (po rekurzívnom volaní ``faktorial`` sa musí ešte násobiť), vieme ho jednoducho prepísať pomocou cyklu.
+
+Pozrime ďalšiu jednoduchú rekurzívnu funkciu, ktorá otočí znakový reťazec (zrejme to vieme urobiť aj jednoduchšie pomocou ``retazec[::-1]``):
+
+ ::
+
+  def otoc(retazec):
+      if len(retazec) <= 1:
+          return retazec
+      return otoc(retazec[1:]) + retazec[0]
+
+  print(otoc('Bratislava'))
+  print(otoc('Bratislava'*100))
+
+Táto funkcia pracuje na tomto princípe:
+
+* krátky reťazec (prázdny alebo jednoznakový) sa otáča jednoducho: netreba robiť nič, lebo on je zároveň aj otočeným reťazcom
+* dlhšie reťazce otáčame tak, že z neho najprv odtrhneme prvý znak, otočíme zvyšok reťazca (to je už kratší reťazec ako pôvodný) a k nemu na koniec prilepíme odtrhnutý prvý znak
+
+Toto funguje dobre, ale veľmi rýchlo narazíme na limity rekurzie: dlhší reťazec ako 1000 znakov už táto rekurzia nezvládne.
+
+Vylepšime tento algoritmus takto:
+
+* reťazec budeme skracovať o prvý aj posledný znak, takýto skrátený rekurzívne otočíme a tieto dva znaky opäť k reťazcu prilepíme, ale v opačnom poradí: na začiatok posledný znak a na koniec prvý:
+
+ ::
+
+  def otoc(retazec):
+      if len(retazec) <= 1:
+          return retazec
+      return retazec[-1] + otoc(retazec[1:-1]) + retazec[0]
+
+  print(otoc('Bratislava'))
+  print(otoc('Bratislava'*100))
+  print(otoc('Bratislava'*200))
+
+Táto funkcia už pracuje pre 1000-znakový reťazec správne, ale opäť nefunguje pre reťazce dlhšie ako 2000.
+
+Ďalšie vylepšenie tohto algoritmu už nie je také zrejmé:
+
+* reťazec rozdelíme na dve polovice (pritom jedna z nich môže byť o 1 kratšia ako druhá)
+* každú polovicu samostatne otočíme
+* tieto dve otočené polovice opäť zlepíme dokopy, ale v opačnom poradí: najprv pôjde druhá polovica a za ňou prvá
+
+ ::
+
+  def otoc(retazec):
+      if len(retazec) <= 1:
+          return retazec
+      prva = otoc(retazec[:len(retazec)//2])
+      druha = otoc(retazec[len(retazec)//2:])
+      return druha + prva
+
+  print(otoc('Bratislava'))
+  print(otoc('Bratislava'*100))
+  print(otoc('Bratislava'*200))
+  r = otoc('Bratislava'*100000)
+  print(len(r), r == ('Bratislava'*100000)[::-1])
+
+Zdá sa, že tento algoritmus už nemá problém s obmedzením na hĺbku vnorenia rekurzie. Zvládol aj 1000000 znakový reťazec.
+
+Vidíme, že pri rozmýšľaní nad rekurzívnym riešením problému je veľmi dôležité správne rozdeliť **veľký** problém na jeden alebo aj viac menších, tie rekurzívne vyriešiť a potom to správne spojiť do jedného výsledku. Pri takomto rozhodovaní funguje matematická intuícia a tiež nemalá programátorská skúsenosť. Hoci nie vždy to ide tak elegantne, ako pri otáčaní reťazca.
+
+Ďalší príklad ilustruje využitie rekurzie pri výpočte binomických koeficientov. Vieme, že **binomické koficienty** sa dajú vypočítať pomocou matematického vzorca:
+
+ ::
+
+  bin(n, k) = n! / (k! * (n-k)!)
+
+Teda výpočtom nejakých troch faktoriálov a potom ich delením. Pre veľké ``n`` to môžu byť dosť veľké čísla, napr. ``bin(1000,1)`` potrebuje vypočítať ``1000!`` a tiež ``999!``, čo sú dosť veľké čísla, ale ich vydelením dostávame výsledok len ``1000``. Takýto postup počítať binomické koeficienty pomocou faktoriálov asi nie je najvhodnejší.
+
+Tieto koeficienty ale vieme zobraziť aj pomocou **Pascalovho trojuholníka**, napr.:
+
+ ::
+
+            1
+          1   1
+        1   2   1
+      1   3   3   1
+    1   4   6   4   1
+  1   5  10  10   5   1
+
+Každý prvok v tomto trojuholníku zodpoveda ``bin(n,k)``, kde ``n`` je riadok tabuľky a ``k`` je stĺpec. Pre túto tabuľku poznáme aj takýto vzťah:
+
+ ::
+
+  bin(n,k) = bin(n-1,k-1) + bin(n-1,k)
+
+t.j. každé číslo je súčtom dvoch čísel v riadku nad sebou, pričom na kraji tabuľky sú 1. To je predsa krásna rekurzia, v ktorej kraj tabuľky je triviálny prípad:
+
+ ::
+
+  def bin(n, k):
+      if k == 0 or n == k:
+          return 1
+      return bin(n - 1, k - 1) + bin(n - 1, k)
+
+  for n in range(6):
+      for k in range(n + 1):
+          print(bin(n, k), end=' ')
+      print()
+
+po spustení:
+
+ ::
+
+  1
+  1 1
+  1 2 1
+  1 3 3 1
+  1 4 6 4 1
+  1 5 10 10 5 1
+
+
+Všimnite si, že v tomto algoritme nie je žiadne násobenie iba sčitovanie a ak by sme aj toto sčitovanie previedli na zreťazovanie reťazcov, videli by sme:
+
+ ::
+
+  def bin_retazec(n, k):
+      if k == 0 or n == k:
+          return '1'
+      return bin_retazec(n - 1, k - 1) + '+' + bin_retazec(n - 1, k)
+
+  print(bin(6, 3), '=', bin_retazec(6, 3))
+
+ ::
+
+  20 = 1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1
+
+Rekurzívny algoritmus pre výpočet binárnych koeficientov by mohol využívať vlastne len pričitávanie jednotky.
+
+
+.. rubric:: Fibonacciho čísla
+
+Na podobnom princípe ako napr. výpočet faktoriálu, funguje aj **fibonacciho postupnosť** čísel: postupnosť začína dvomi členmi ``0, 1``. Každý ďalší člen sa vypočíta ako súčet dvoch predchádzajúcich, teda:
+
+ * triviálny prípad: **fib(0) = 0**
+ * triviálny prípad: **fib(1) = 1**
+ * rekurzívny popis: **fib(n) = fib(n-1) + fib(n-2)**
+
+Zapíšeme to v Pythone:
+
+ ::
+
+  def fib(n):
+      if n < 2:
+          return n
+      return fib(n - 1) + fib(n - 2)
+
+ ::
+
+  >>> for i in range(15):
+          print(fib(i), end=', ')
+
+  0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377,
+
+Tento rekurzívny algoritmus je ale **veľmi** neefektívny, napr. ``fib(100)`` asi nevypočítate ani na najrýchlejšom počítači.
+
+V čom je tu problém? Veď nerekurzívne je to veľmi jednoduché, napr.:
+
+ ::
+
+  def fib(n):
+      a, b = 0, 1
+      while n > 0:
+          a, b = b, a + b
+          n -= 1
+      return a
+
+  for i in range(15):
+      print(fib(i), end=', ')
+
+  print('\nfib(100) =', fib(100))
+
+ ::
+
+  0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377,
+  fib(100) = 354224848179261915075
+
+Pridajme do rekurzívnej verzie funkcie ``fib()`` globálne počítadlo, ktoré bude počítať počet zavolaní tejto funkcie:
+
+ ::
+
+  def fib(n):
+      global pocet
+      pocet += 1
+      if n < 2:
+          return n
+      return fib(n-1) + fib(n-2)
+
+  pocet = 0
+  print('fib(15) =', fib(15))
+  print('pocet volani funkcie =', pocet)
+  pocet = 0
+  print('fib(16) =', fib(16))
+  print('pocet volani funkcie =', pocet)
+
+ ::
+
+  fib(15) = 610
+  pocet volani funkcie = 1973
+  fib(16) = 987
+  pocet volani funkcie = 3193
+
+Vidíme, že tento počet volaní veľmi rýchlo rastie a je určite väčší ako samotné fibonnaciho číslo. Preto aj ``fib(100)`` by trvalo veľmi dlho (vyše **354224848179261915075** volaní funkcie).
+
+
+Binárne stromy
+--------------
+
+Medzi informatikmi sú veľmi populárne binárne stromy. Rekurzívne kresby binárnych stromov sa najlepšie kreslia pomocou grafického pera korytnačky. Aby sa nám lepšie o binárnych stromoch rozprávalo, zavedieme pojem **úroveň** stromu, t.j. číslo ``n``, pre ktoré platí:
+
+* ak je úroveň stromu ``n`` = 0, nakreslí sa len čiara nejakej dĺžky (kmeň stromu)
+* pre ``n`` >= 1, sa najprv nakreslí čiara, potom sa na jej konci nakreslí najprv **vľavo** celý binárny strom úrovne ``(n-1)`` a potom **vpravo** opäť binárny strom úrovne ``(n-1)`` (hovoríme im podstromy) - po nakreslení týchto podstromov sa ešte vráti späť po prvej nakreslenej čiare
+* po skončení kreslenia stromu ľubovoľnej úrovne sa korytnačka nachádza na mieste, kde začala kresliť
+* ľavé aj pravé podstromy môžu mať buď rovnako veľké konáre ako kmeň stromu, alebo sa môžu v nižších úrovniach (teda v podstromoch) zmenšovať
+
+**Úroveň** stromu nám hovorí o počte rekurzívnych vnorení pri kreslení stromu (podobne budeme neskôr definovať aj iné rekurzívne obrázky a často budeme pritom používať pojem úroveň).
+
+Najprv ukážeme binárny strom, ktorý má vo všetkých úrovniach rovnako veľké podstromy:
+
+ .. image:: image/12_3.png
+    :width: 300 px
+    :align: right
+
+ ::
+
+  import turtle
+
+  def strom(n):
+      if n == 0:
+          t.fd(30)     # triviálny prípad
+          t.bk(30)
+      else:
+          t.fd(30)
+          t.lt(40)     # natoč sa na kreslenie ľavého podstromu
+          strom(n - 1) # nakresli ľavý podstrom (n-1). úrovne
+          t.rt(80)     # natoč sa na kreslenie pravého podstromu
+          strom(n - 1) # nakresli pravý podstrom (n-1). úrovne
+          t.lt(40)     # natoč sa do pôvodného smeru
+          t.bk(30)     # vráť sa na pôvodné miesto
+
+  t = turtle.Turtle()
+  t.lt(90)
+  strom(4)
+
+ .. image:: image/12_4.png
+    :width: 300 px
+    :align: right
+
+Binárne stromy môžeme rôzne vylepšovať, napr. vetvy stromu sa vo vyšších úrovniach môžu rôzne skracovať, uhol o ktorý je natočený ľavý a pravý podstrom môže byť tiež rôzny. V tomto riešení si všimnite, kde je skrytý triviálny prípad rekurzie:
+
+ ::
+
+  import turtle
+
+  def strom(n, d):
+      t.fd(d)
+      if n > 0:
+          t.lt(40)
+          strom(n - 1, d * 0.7)
+          t.rt(75)
+          strom(n - 1, d * .6)
+          t.lt(35)
+      t.bk(d)
+
+  t = turtle.Turtle()
+  t.lt(90)
+  strom(5, 80)
+
+Algoritmus binárneho stromu môžeme zapísať aj bez parametra ``n``, ktorý určuje úroveň stromu. V tomto prípade rekurzia končí, keď sú kreslené úsečky príliš malé:
+
+ ::
+
+  import turtle
+
+  def strom(d):
+      t.fd(d)
+      if d > 5:
+          t.lt(40)
+          strom(d * 0.7)
+          t.rt(75)
+          strom(d * 0.6)
+          t.lt(35)
+      t.bk(d)
+
+  turtle.delay(0)
+  t = turtle.Turtle()
+  t.lt(90)
+  strom(80)
+
+
+Ak využijeme náhodný generátor, môžeme vytvárať stromy, ktoré budú navzájom rôzne:
+
+ .. image:: image/12_5.png
+    :width: 300 px
+    :align: right
+
+ ::
+
+  import turtle
+  import random
+
+  def strom(n, d):
+      t.pensize(2 * n + 1)
+      t.fd(d)
+      if n == 0:
+          t.dot(10, 'green')
+      else:
+          uhol1 = random.randint(20, 40)
+          uhol2 = random.randint(20, 60)
+          t.lt(uhol1)
+          strom(n - 1, d * random.randint(40, 70) / 100)
+          t.rt(uhol1 + uhol2)
+          strom(n - 1, d * random.randint(40, 70) / 100)
+          t.lt(uhol2)
+      t.bk(d)
+
+  turtle.delay(0)
+  t = turtle.Turtle()
+  t.lt(90)
+  t.pencolor('maroon')
+  strom(6, 150)
+
+V tomto riešení si všimnite, kde sme zmenili hrúbku pera, aby sa strom kreslil rôzne hrubý v rôznych úrovniach. Tiež sa tu na posledných "konároch" nakreslili zelené listy - pridali sme ich v triviálnom prípade. Využili sme tu korytnačiu metódu ``t.dot(veľkosť, farba)``, ktorá na pozícii korytnačky nakreslí bodku danej veľkosti a farby.
+
+Každé spustenie tohto programu nakreslí trochu iný strom. Môžeme vytvoriť celú alej stromov, v ktorej bude každý strom trochu iný:
+
+ .. image:: image/12_6.png
+    :width: 300 px
+    :align: right
+
+ ::
+
+  turtle.delay(0)
+  t = turtle.Turtle()
+  t.speed(0)
+  t.lt(90)
+  t.pencolor('maroon')
+  for i in range(6):
+      t.pu()
+      t.setpos(100 * i - 250, -50)
+      t.pd()
+      strom(5, 50)
+
+V nasledujúcom riešení vzniká zaujímavý efekt tým, že v triviálnom prípade urobí korytnačka malý úkrok vpravo a teda sa nevracia po tých istých čiarach a preto sa ani nevráti presne na to isté miesto, kde štartovala kresliť (pod)strom. Táto "chybička" sa stále zväčšuje a zväčšuje, až pri nakreslení kmeňa stromu je už dosť veľká:
+
+ .. image:: image/12_7.png
+    :width: 300 px
+    :align: right
+
+ ::
+
+  import turtle
+
+  def strom(n, d):
+      t.fd(d)
+      if n == 0:
+          t.rt(90)
+          t.fd(1)
+          t.lt(90)
+      else:
+          t.lt(40)
+          strom(n-1,d*.67)
+          t.rt(75)
+          strom(n-1,d*.67)
+          t.lt(35)
+      t.bk(d)
+
+  turtle.delay(0)
+  t = turtle.Turtle()
+  t.lt(90)
+  strom(6, 120)
+
+Binárny strom sa dá nakresliť viacerými spôsobmi aj nerekurzívne. V jednom z nich využijeme pole korytnačiek, pričom každá z nich po nakreslení jednej úsečky "narodí" na svojej pozícii ďalšiu korytnačku (vytvorí svoju kópiu), pričom ju ešte trochu otočí. Idea algoritmu je takáto:
+
+* prvá korytnačka nakreslí kmeň stromu - prvú úsečku dĺžky ``d``
+* na jeho konci (na momentálnej pozícii tejto korytnačky) sa vyrobí jedna nová korytnačka, s novým relatívnym natočením o 40 stupňov vľavo (pripravuje sa, že bude kresliť ľavý podstrom) a sama sa otočí o 50 stupňov vpravo (pripravuje sa, že bude kresliť pravý podstrom)
+* dĺžka ``d`` sa zníži napr. na ``d`` * 0.6
+* všetky korytnačky teraz prejdú v svojom smere dĺžku ``d`` (nakreslia úsečku dĺžky ``d``) a opäť sa na ich koncových pozíciách vytvoria nové korytnačky otočené o 40 a samé sa otočia o 50 stupňov, a ``d`` sa opäť zníži
+* toto sa opakuje ``n`` krát a takto sa nakreslí kompletný strom
+
+ .. image:: image/12_8.png
+    :width: 300 px
+    :align: right
+
+ ::
+
+  import turtle
+
+  def nova(pos, heading):
+      t = turtle.Turtle()
+      #t.speed(0)
+      #t.ht()
+      t.pu()
+      t.setpos(pos)
+      t.seth(heading)
+      t.pd()
+      return t
+
+  def strom(n, d):
+      pole = [nova([0, -300], 90)]
+      for i in range(n):
+          for j in range(len(pole)):
+              t = pole[j]
+              t.pensize(3 * n - 3 * i + 1)
+              t.pencolor('maroon')
+              t.fd(d)
+              if i == n - 1:
+                  t.dot(20, 'green')
+              else:
+                  pole.append(nova(t.pos(), t.heading() + 40))
+                  t.rt(50)
+          d *= 0.6
+
+      print('pocet korytnaciek =', len(pole))
+
+  #turtle.delay(0)
+  strom(7, 300)
+
+Pre korytnačky na poslednej úrovni sa už ďalšie nevytvárajú, ale na ich koncoch sa nakreslí zelená bodka. Program na záver vypíše celkový počet korytnačiek, ktoré sa takto vyrobili (je ich presne toľko, koľko je zelených bodiek ako listov stromu). Všimnite si pomocnú funkciu ``nova()``, ktorá vytvorí novú korytnačku a nastaví jej novú pozíciu aj smer natočenia. Funkcia ako výsledok vráti túto novovytvorenú korytnačku. V tomto prípade program vypísal:
+
+ ::
+
+  pocet korytnaciek = 64
+
+
+Ďalšie rekurzívne obrázky
+-------------------------
+
+Napíšeme funkciu, ktorá nakreslí obrázok ``stvorce`` úrovne ``n``, veľkosti ``a`` s týmito vlastnosťami:
+
+* pre ``n`` = 0  nekreslí nič
+* pre ``n`` = 1 kreslí štvorec so stranou dĺžky ``a``
+* pre ``n`` > 1 kreslí štvorec, v ktorom v každom jeho rohu (smerom dnu) je opäť obrázok ``stvorce`` ale už zmenšený: úrovne ``n``-1 a veľkosti ``a``/3
+
+Štvorce v každom rohu štvorca:
+
+ .. image:: image/12_9.png
+    :width: 300 px
+    :align: right
+
+ ::
+
+  import turtle
+
+  def stvorce(n, a):
+      if n == 0:
+          pass
+      else:
+          for i in range(4):
+              t.fd(a)
+              t.rt(90)
+              stvorce(n - 1, a / 3)
+              # skúste: stvorce(n - 1, a * 0.45)
+
+  turtle.delay(0)
+  t = turtle.Turtle()
+  stvorce(4, 300)
+
+Uvedomte si, že toto nie je chvostová rekurzia.
+
+Tesne pred rekurzívnym volaním otočíme korytnačku o 30 stupňov a po návrate z rekurzie týchto 30 stupňov vrátime:
+
+ .. image:: image/12_10.png
+    :width: 300 px
+    :align: right
+
+ ::
+
+  import turtle
+
+  def stvorce(n, d):
+      if n > 0:
+          for i in range(4):
+              t.fd(d)
+              t.rt(90)
+              t.lt(30)
+              stvorce(n - 1, d / 3)
+              t.rt(30)
+
+  turtle.delay(0)
+  t = turtle.Turtle()
+  t.speed(0)
+  stvorce(5, 300)
+
+
+.. rubric:: Sierpiňského trojuholník
+
+Rekurzívny obrázok na rovnakom princípe ako boli vnorené štvorce ale trojuholníkového tvaru navrhol poľský matematik `Sierpiňský <http://en.wikipedia.org/wiki/Sierpinski_triangle>`_ ešte v roku 1915:
+
+ .. image:: image/12_11.png
+    :width: 300 px
+    :align: right
+
+ ::
+
+  import turtle
+
+  def trojuholniky(n, a):
+      if n > 0:
+          for i in range(3):
+              t.fd(a)
+              t.rt(120)
+              trojuholniky(n - 1, a / 2)
+
+  turtle.delay(0)
+  t = turtle.Turtle()
+  #t.speed(0)
+  t.rt(60)
+  trojuholniky(6, 400)
+
+Zaujímavé je to, že táto rekurzívna krivka sa dá nakresliť aj jedným ťahom (po každej čiare sa prejde len raz). Porozmýšľajte ako.
+
+
+.. rubric:: Snehová vločka
+
+Ďalej ukážeme veľmi známu rekurzívnu krivku - snehovú vločku (známu tiež ako `Kochova krivka <http://en.wikipedia.org/wiki/Koch_snowflake>`_):
+
+ .. image:: image/12_12.png
+    :width: 300 px
+    :align: right
+
+ ::
+
+  import turtle
+
+  def vlocka(n, d):
+      if n == 0:
+          t.fd(d)
+      else:
+          vlocka(n - 1, d / 3)
+          t.lt(60)
+          vlocka(n - 1, d / 3)
+          t.rt(120)
+          vlocka(n - 1, d / 3)
+          t.lt(60)
+          vlocka(n - 1, d / 3)
+
+  def sneh_vlocka(n, d):
+      for i in range(3):
+          vlocka(n, d)
+          t.rt(120)
+
+  turtle.delay(0)
+  t = turtle.Turtle()
+  t.speed(0)
+  t.lt(120)
+  sneh_vlocka(4, 300)
+
+ .. image:: image/12_13.png
+    :width: 300 px
+    :align: right
+
+Ak namiesto jedného volania funkcie ``vlocka()`` zapíšeme nakreslenie aj všetkých predchádzajúcich úrovní krivky, dostávame tiež zaujímavú kresbu:
+
+ ::
+
+  turtle.delay(0)
+  t = turtle.Turtle()
+  #t.speed(0)
+  t.lt(120)
+  for i in range(5):
+      sneh_vlocka(i, 300)
+
+
+.. rubric:: Ďalšie fraktálové krivky
+
+Špeciálnou skupinou rekurzívnych kriviek sú fraktály (pozri aj `na wikipédii <http://en.wikipedia.org/wiki/Fractal>`_). Už pred érou počítačov sa s nimi "hrali" aj významní matematici (niektoré krivky podľa nich dostali aj svoje meno, aj snehová vločka je fraktálom a vymyslel ju švédsky matematik `Koch <http://sk.wikipedia.org/wiki/Helge_von_Koch>`_). Zjednodušene by sme mohli povedať, že fraktál je taká krivka, ktorá sa skladá z viacerých svojich zmenšených kópií. Keby sme sa na nejakú jej časť pozreli lupou, videli by sme opäť skoro tú istú krivku. Napr. aj binárne stromy a aj snehové vločky sú fraktály.
+
+.. rubric:: C-krivka
+
+Začneme veľmi jednoduchou, tzv. `C-krivkou <http://en.wikipedia.org/wiki/L%C3%A9vy_C_curve>`_:
+
+ .. image:: image/12_14.png
+    :width: 300 px
+    :align: right
+
+ ::
+
+  import turtle
+
+  def ckrivka(n, s):
+      if n == 0:
+          t.fd(s)
+      else:
+          ckrivka(n - 1, s)
+          t.lt(90)
+          ckrivka(n - 1, s)
+          t.rt(90)
+
+  turtle.delay(0)
+  t = turtle.Turtle()
+  t.speed(0)
+  t.ht()
+  ckrivka(9, 4)    # skúste aj: ckrivka(13, 2)
+
+
+.. rubric:: Dračia krivka
+
+C-krivke sa veľmi podobá `Dračia krivka <http://en.wikipedia.org/wiki/Dragon_curve>`_, ktorá sa skladá z dvoch "zrkadlových" funkcií: ``ldrak`` a ``pdrak``. Všimnite si zaujímavú vlastnosť týchto dvoch rekurzívnych funkcií: prvá rekurzívne volá samu seba ale aj druhú a druhá volá seba aj prvú. Našťastie Python toto zvláda veľmi dobre:
+
+ .. image:: image/12_15.png
+    :width: 300 px
+    :align: right
+
+ ::
+
+  import turtle
+
+  def ldrak(n, s):
+      if n == 0:
+          t.fd(s)
+      else:
+          ldrak(n - 1, s)
+          t.lt(90)
+          pdrak(n - 1, s)
+
+  def pdrak(n, s):
+      if n == 0:
+          t.fd(s)
+      else:
+          ldrak(n - 1, s)
+          t.rt(90)
+          pdrak(n - 1, s)
+
+  turtle.delay(0)
+  t = turtle.Turtle()
+  t.speed(0)
+  t.ht()
+  ldrak(12, 6)
+
+ .. image:: image/12_16.png
+    :width: 300 px
+    :align: right
+
+Dračiu krivku môžeme nakresliť aj len jednou funkciou - táto bude mať o jeden parameter ``u`` viac a to, či je to ľavá alebo pravá verzia funkcie:
+
+ ::
+
+  import turtle
+
+  def drak(n, s, u=90):
+      if n == 0:
+          t.fd(s)
+      else:
+          drak(n - 1, s, 90)
+          t.lt(u)
+          drak(n - 1, s, -90)
+
+  turtle.delay(0)
+  t = turtle.Turtle()
+  t.speed(0)
+  t.ht()
+  drak(14, 2)
+
+
+.. rubric:: Hilbertova krivka
+
+V literatúre je veľmi známou `Hilbertova krivka <http://en.wikipedia.org/wiki/Hilbert_curve>`_, ktorá sa tiež skladá z dvoch zrkadlových častí (ako dračia krivka) a preto ich definujeme jednou funkciou a parametrom ``u`` (t.j. uhol pre ľavú a pravú verziu):
+
+ .. image:: image/12_17.png
+    :width: 300 px
+    :align: right
+
+ ::
+
+  import turtle
+
+  def hilbert(n, s, u=90):
+      if n > 0:
+          t.lt(u)
+          hilbert(n - 1, s, -u)
+          t.fd(s)
+          t.rt(u)
+          hilbert(n - 1, s, u)
+          t.fd(s)
+          hilbert(n - 1, s, u)
+          t.rt(u)
+          t.fd(s)
+          hilbert(n - 1, s, -u)
+          t.lt(u)
+
+  turtle.delay(0)
+  t = turtle.Turtle()
+  t.speed(0)
+  t.ht()
+  hilbert(5, 7)          # vyskúšajte: hilbert(7, 2)
+
+Ďalšie inšpirácie na rekurzívne krivky môžete nájsť na `wikipédii <http://en.wikipedia.org/wiki/List_of_fractals_by_Hausdorff_dimension>`_.
+
+
+
+Cvičenie
+--------
+
+1. Daná je funkcia ``urob(a, b)``.
+
+   * zistite bez spúšťania v Pythone, čo vypočíta ``urob(7, 17)``
+
+    ::
+
+     def urob(a, b):
+         if a == 0:
+             return 0
+         return b + urob(a - 1, b)
+         
+   * potom to môžete otestovať napr. vo `Visualize Python <http://pythontutor.com/visualize.html#mode=edit>`_
+
+2. Daná funkcia ``ret(n)`` na základe čísla ``n`` vráti nejaký znakový reťazec
+
+   * zistite bez spúšťania v Pythone, čo sa vypíše
+
+    ::
+
+     def ret(n):
+         if n == 0:
+             return ''
+         if n == 1:
+             return 'a'
+         return ret(n-2) + '+' + ret(n-1)
+
+     for i in range(5):
+         print(i, repr(ret(i)))
+
+3. Máme danú funkciu ``w(n)``.
+
+   * zistite bez spúšťania v Pythone, čo vypočíta ``w(3)``
+
+    ::
+
+     def w(n):
+         s = 0
+         while n:
+             s += n + w(n-1)
+             n -= 1
+         return s
+         
+   * zamyslite sa nad tým, kde v je tejto rekurzívnej funkcii triviálny prípad
+
+4. Funkcia ``urob(a, b)`` z prvej úlohy počíta bez cyklov súčin dvoch nezáporných celých čísel a to len pomocou sčitovania. Napíšte funkciu ``umocni(a, b)``, ktorá pre dve celé čísla vypočíta mocninu ``a**b`` ale bez cyklu a bez násobenia - na násobenie použite funkciu ``urob()``.
+
+   * otestujte
+
+    ::
+    
+     >>> umocni(3, 7)
+
+
+5. Napíšte dve rekurzívne funkcie ``tostr(cislo)`` a ``toint(retazec)``, ktoré bez cyklov a len pomocou štandardných funkcií ``ord()`` a ``chr()`` prevedú celé nezáporné číslo na znakový reťazec a naopak. Obe funkcie nič nevypisujú len vracajú nejakú hodnotu.
+
+   * otestujte napr.
+
+    ::
+
+     >>> tostr(1276)
+     '1276'
+     >>> toint('1276')
+     1276
+
+6. Napíšte rekurzívnu funkciu ``pocet(znak, retazec)``, ktorá bez cyklu a reťazcových metód zistí počet výskytov zadaného znaku vo vstupnom reťazci.
+
+   * otestujte napr.
+
+    ::
+
+     >>> pocet('m', 'mama ma emu a ema ma mamu')
+     8
+
+7. Prechádzajúci príklad vyriešte tak, aby fungoval aj pre dlhšie reťazce. Inšpirujte sa funkciou ``otoc()`` z prednášky
+
+   * otestujte napr.
+
+    ::
+
+     >>> pocet('a', 'ab'*100000)
+     100000
+
+8. Napíšte funkciu ``vela(n)``, ktorá vráti znakový reťazec ``'='*(2**n)``, t.j. obsahuje len znak ``'='``, ktorý sa opakuje ``2**n`` krát. Riešte rekurzívne bez cyklov a viacnásobného zreťazovania reťazcov (bez operácie ``*`` s reťazcami).
+
+   * otestujte napr.
+
+    ::
+
+     >>> vela(0)
+     '='
+     >>> vela(5)
+     '================================'
+
+9. Zapíšte funkciu ``nsd(a, b)`` (najväčší spoločný deliteľ) rekurzívne: triviálny prípad je vtedy, keď ``a==b``, inak ak ``a>b``, tak rekurzívne vypočíta ``nsd(b, a)``, inak rekurzívne zavolá ``nsd(a, b-a)``.
+
+   * otestujte napr.
+
+    ::
+
+     >>> nsd(40, 24)
+     8
+
+10. Napíšte rekurzívnu funkciu ``sucet(pole)``, ktorá bez cyklov zistí súčet prvkov poľa. Prvkami sú len celé čísla.
+
+   * otestujte napr.
+
+    ::
+
+     >>> sucet([2, 4, 6, 8])
+     20
+     >>> sucet([])
+     0
+
+11. Upravte funkciu ``sucet(pole)`` z predchádzajúceho príkladu tak, aby prvkami poľa mohli byť nielen celé čísla, ale aj polia, ktoré obsahujú celé čísla.
+
+   * otestujte napr.
+
+    ::
+
+     >>> sucet([2, 4, [1, 2, 3], 8])
+     20
+     
+   * vyriešte úlohu tak, aby funkcia fungovala aj pre ľubovoľný počet vnorení polí, napr.
+
+    ::
+
+     >>> sucet([2, [[4]], [1, [2, 3]], 8])
+     20
+
+12. Napíšte funkciu ``tolist(pole)``, ktorá z ľubovoľného poľa, ktoré obsahuje aj iné (vnorené) polia vráti pole (typu ``list``) všetkých prvkov, ktoré sa v týchto poliach nachádzajú. Nepoužite cyklus ale rekurziu.
+
+   * otestujte napr.
+
+    ::
+
+     >>> tolist([2, [['4a']], [1, [2, 3.14]], 8])
+     [2, '4a', 1, 2, 3.14, 8]
+     >>> tolist([[[], []], []])
+     []
+
+
+13. Nakreslite rekurzívnu krivku ``stvorce(n, a)``, ktorá pre ``n>0`` nakreslí štvorec so stranou ``a``, v ktorom sú vpísané štvorce (s vrcholmi v stredoch strán vonkajšieho štvorca). Tieto vnorené štvorce vzniknú volaním ``stvorce(n-1, ...)``. Pre ``n=2`` sme to riešili bez rekurzie na predchádzajúcom cvičení.
+
+   * otestujte napr.
+
+    ::
+
+     >>> stvorce(10, 300)
+     
+   * Zamyslite sa, či by bol veľký problém naprogramovať to tak, aby sa po žiadnej čiare neprešlo pri kreslení viackrát (aby sa útvar nakreslil jedným ťahom).
+
+14. Nakreslite takúto rekurzívnu krivku ``krivka(n, dlzka)``: triviálny prípad pre ``n=0`` nakreslí čiaru zadanej dĺžky, inak sa rekurzívne štyrikrát zavolá ``krivka(n-1, dlzka/2)``, pričom medzi týmito volaniami budu tieto otáčania: ``t.lt(90); t.rt(180); t.lt(90)``
+
+   * otestujte napr.
+
+    ::
+
+     >>> krivka(4, 300)
+
+   * zaujímavý efekt vznikne, keď uhly medzi rekurzívnymi volaniami zmeníme: ``t.lt(89); t.rt(178); t.lt(89)``
+
+..
+  * rekurzívne generovať pole, množinu?
+
+  * vypisovanie rekurzívnych volaní - odsúvať vnorené výpisy
+
+  * rekurzia s poľom: súčet, zreťazenie, pole len jednoduchých prvkov, zistiť počet číslic, prázdnych reťazcov, počet medzier v reťazci
+

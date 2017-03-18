@@ -1,0 +1,1238 @@
+Zásobníky a rady
+================
+
+Zoznámime sa s dvoma novými jednoduchými dátovými štruktúrami, ktoré sú veľmi dôležité pri realizácii mnohých algoritmov.
+
+Obe tieto dátové štruktúry uchovávajú nejakú skupinu údajov (tzv. kolekciu), pričom si udržujú informáciu o tom, v akom poradí boli tieto údaje vkladané do kolekcie. Pre oba typy dátovej štruktúry sa definujú operácie:
+
+* na vkladanie ďalšieho údaja do štruktúry
+* na vyberanie jedného údaja zo štruktúry
+* zistenie hodnoty údaja, ešte pred jeho vybratím
+* zistenie, či je kolekcia prázdna
+
+Zrejme, ak by sme chceli vybrať údaj z prázdnej kolekcie, spôsobilo by to vyvolanie výnimky "prázdna dátová štruktúra".
+
+
+Zásobník
+--------
+
+Dátová štruktúra zásobník (budeme používať aj anglické slovo **stack**) je charakteristická tým, že vyberané údaje prichádzajú v opačnom poradí, ako sa do zásobníka vkladali. Môžeme si to predstaviť ako umelohmotnú rúrku, ktorá je na jednom konci uzavretá a do ktorej vkladáme šumivé tablety. Vyberať ich zrejme môžeme len z vrchu, teda najskôr tú, ktorú sme vložili ako poslednú. Tomuto princípu hovoríme **LIFO** z anglického **last-in-first-out**.
+
+Na operácie, ktoré manipulujú so zásobníkom, využijeme zaužívané anglické slová:
+
+* **push** vloží do zásobníka nový údaj - hovoríme, že vkladáme **na vrch** zásobníka
+* **pop** vyberie zo zásobníka naposledy vložený údaj - hovoríme, že vyberáme **z vrchu** zásobníka; táto hodnota je potom výsledkom operácie **pop**; ak je ale zásobník prázdny, nie je čo vybrať, operácia vyvolá výnimku ``EmptyError``
+* **top** vráti hodnotu z vrchu zásobníka (naposledy vkladaný údaj), ale zásobník pritom nemení; ak je ale zásobník prázdny, nie je čo vrátiť, operácia vyvolá výnimku ``EmptyError``
+* **empty** zistí, či je zásobník prázdny; operácia vráti ``True`` alebo ``False``
+
+Zásobník budeme v Pythone realizovať pomocou nejakého už existujúceho typu. Keďže si potrebujeme pamätať poradie vkladaných hodnôt, asi najlepšie sa bude hodiť typ pole (``list``). Ak si zvolíme **vrch zásobníka** ako koniec poľa, potom môžeme pre operácie:
+
+* **push** použiť metódu ``append()``, ktorá vkladá novú hodnotu na koniec poľa
+* **pop** použiť metódu ``pop()``, ktorá odoberá posledný prvkov poľa a vracia jeho hodnotu, hoci budeme musieť zabezpečiť, aby sa namiesto výnimky ``IndexError`` pre prázdne pole vyvolala výnimka ``EmptyError``
+* **top** použiť indexovanie posledného prvku poľa, teda s indexom ``-1``; aj tu budeme musieť zabezpečiť vyvolanie výnimky ``EmptyError``
+* **empty** len odkontrolovať, či je pole prázdne
+
+.. tu by mohla byť séria obrázkov
+
+Zapíšme túto realizáciu pomocou poľa do definície triedy ``Stack``. Všimnite si, že sme pridali aj novú definíciu výnimky ``EmptyError``:
+
+ ::
+
+  class EmptyError(Exception): pass
+
+  class Stack:
+
+      def __init__(self):
+          '''inicializuje pole'''
+          self._pole = []
+
+      def push(self, data):
+          '''na vrch zasobnika vlozi novu hodnotu'''
+          self._pole.append(data)
+
+      def pop(self):
+          '''z vrchu zasobnika vyberie hodnotu, alebo vyvola EmptyError'''
+          if self.empty():
+              raise EmptyError('prazdny zasobnik')
+          return self._pole.pop()
+
+      def top(self):
+          '''z vrchu zasobnika vrati hodnotu, alebo vyvola EmptyError'''
+          if self.empty():
+              raise EmptyError('prazdny zasobnik')
+          return self._pole[-1]
+
+      def empty(self):
+          '''zisti, ci je zasobnik prazdny'''
+          return self._pole == []
+
+V tejto definícii triedy si všimnite, že atribút ``pole`` sme zapísali aj s podčiarkovníkom navyše, teda ako ``_pole``. Takýmto zápisom zvyknú pythonisti označovať, že práve tento atribút je **súkromný** a mimo metód triedy by sme s týmto atribútom nemali pracovať. Neznamená to, že sa to nedá:
+
+ ::
+
+  >>> s = Stack()
+  >>> s.push(37)
+  >>> s.push('x')
+  >>> s._pole
+  [37, 'x']
+
+Hoci takto vidíme prvky *súkromného* poľa nejakej triedy, môžeme to využiť nanajvýš počas ladenia, ale žiadny *slušný* programátor to v reálnych programoch nepoužije. V niektorých iných programovacích jazykoch existujú zápisy, pomocou ktorých môžeme určiť, či je nejaký atribút naozaj súkromný (zvykne sa to označovať ako **private**). Vtedy sa k týmto atribútom programátor naozaj nijako nedostane, ale Python túto vlastnosť ponechal len na slušnosti a skúsenosti programátora: dobrý programátor sa tým, že je atribút označený ako súkromný, naozaj riadi, ale ak to vo výnimočnej situácii bude chcieť použiť, nik mu v tom nebude brániť.
+
+.. rubric:: Otestujme zásobník
+
+Do zásobníka najprv vložíme niekoľko slov a potom ich pomocou ``pop()`` postupe všetky vyberieme a vypíšeme. V tomto výpise by sa mali všetky prvky vyskytnúť v opačnom poradí, ako boli do zásobníka vkladané.
+
+ ::
+
+  s = Stack()
+  for slovo in 'Anicka dusicka kde si bola'.split():
+      s.push(slovo)
+  print('na vrchu zasobnika:', s.top())
+  while not s.empty():
+      print(s.pop())
+  print('zasobnik je prazdny:', s.empty())
+  print('vyberame:', s.pop())
+
+Na záver tohto testovacieho programu sme vložili ešte jedno zavolanie ``pop()``, teda úmyselne sa pokúsime vyberať z prázdneho zásobníka. Dostávame takýto výpis:
+
+ ::
+
+  na vrchu zasobnika: bola
+  bola
+  si
+  kde
+  dusicka
+  Anicka
+  zasobnik je prazdny: True
+  ...
+  EmptyError: prazdny zasobnik
+
+Ďalší príklad využije zásobník na otestovanie, či prvky nejakého poľa tvoria palindrom (dostávame rovnaké poradie prvkov, či pole čítame odpredu alebo odzadu). Použijeme takýto algoritmus: najprv všetky prvky poľa zapíšeme do pomocného zásobníka, potom znovu prejdeme všetky prvky poľa a každý porovnáme s hodnotou, ktorú vyberieme z vrchu zásobníka. Keďže v zásobníku sú prvky poľa uložené tak, že sa vyberajú v opačnom poradí, takéto porovnanie označuje, že porovnávame najprv prvý prvok s posledným, potom druhý prvok s predposledným atď. Zrejme, ak je pole palindrom, všetky tieto testy by mali byť splnené. Program:
+
+ ::
+
+  def palindrom(pole):
+      stack = Stack()
+      for prvok in pole:
+          stack.push(prvok)
+      for prvok in pole:
+          if prvok != stack.pop():
+              return False
+      return True
+
+Otestujeme:
+
+ ::
+
+  >>> palindrom([17, 'xy', 3.14, 'xy', 17])
+  True
+  >>> palindrom(['hello'])
+  True
+  >>> palindrom('hello')
+  False
+
+Uvedomte si, že pri takomto porovnávaní prvkov, či tvoria palindrom, každú dvojicu prvkov kontrolujeme dvakrát, napr. prvý a posledný aj posledný a prvý, druhý a predposledný aj predposledný a druhý, atď. Porozmýšľajte, ako by ste vylepšili túto funkciu, aby pomocou zásobníka testovala každú dvojicu prvkov maximálne raz.
+
+Skôr ako prejdeme na ďalšie príklady so zásobníkom, zamyslime sa nad tým, ako môžeme organizovať definíciu novej triedy, ktorú budeme potrebovať pri riešení našej úlohy. Teda, kde treba umiestniť definíciu triedy ``Stack`` tak, aby sme ju mohli použiť vo funkcii palindrom. Doteraz sme v našich programoch predpokladali, že jej definícia sa v kóde nachádza niekde pred definíciou samotnej funkcie, preto to často vyzeralo takto:
+
+ ::
+
+  class EmptyError(Exception): pass
+
+  class Stack:
+      ...
+
+  def palindrom(pole):
+      ...
+
+  print(palindrom('tahat'))
+
+Keďže je predpoklad, že táto naša nová dátová štruktúra je tak užitočná, že ju využijeme aj v ďalších programoch, uložíme definíciu triedy ``Stack`` (aj s triedou ``EmptyError``) do samostatného súboru, tzv. modulu, napr. s menom ``struktury.py``. Do takéhoto modulu môžeme neskôr vkladať aj ďalšie definície našich tried a aj tie potom používať v ďalších programoch. Teraz náš program môžeme zapísať takto:
+
+
+ ::
+
+  from struktury import Stack
+
+  def palindrom(pole):
+      ...
+
+  print(palindrom('tahat'))
+
+V tomto prípade príkaz ``from struktury import Stack`` označuje, že Python na tomto mieste prečíta celý súbor ``struktury.py`` a do nášho programu vloží definíciu triedy ``Stack``. Od tohto momentu môžeme používať triedu ``Stack`` ako keby bola definovaná v našom súbore s programom.
+
+Niekedy však môžu vzniknúť situácie, keď našu triedu (napr. triedu ``Stack``) chceme použiť len v jednom prípade, napr. v jednej funkcii ``palindrom()`` (alebo len v jednej triede) a nechceme, aby táto naša pomocná trieda bola "videná" aj mimo tejto funkcie. Vtedy môžeme definíciu triedy vnoriť napr. do funkcie alebo do inej triedy a takto vytvoríme **lokálnu definíciu triedy**. Pozrime sa, ako to môžeme zapísať:
+
+ ::
+
+  def palindrom(pole):
+
+      # vnorena definicia tried EmptyError a Stack
+
+      class EmptyError(Exception): pass
+
+      class Stack:
+
+          def __init__(self):
+              self._pole = []
+
+          def push(self, data):
+              self._pole.append(data)
+
+          def pop(self):
+              if self.empty():
+                  raise EmptyError('prazdny zasobnik')
+              return self._pole.pop()
+
+          def top(self):
+              if self.empty():
+                  raise EmptyError('prazdny zasobnik')
+              return self._pole[-1]
+
+          def empty(self):
+              return self._pole == []
+
+      # koniec vnorenej definicie
+
+      # tu pokracuje funkcia palindrom
+
+      stack = Stack()           # pouzivanie vnorenej definicie
+      for prvok in pole:
+          stack.push(prvok)
+      for prvok in pole:
+          if prvok != stack.pop():
+              return False
+      return True
+
+Toto je zrejme extrémny prípad, v ktorom vnorená definícia je príliš komplexná vzhľadom na telo funkcie, v ktorej sa používa. Neskôr uvidíme situácie, v ktorých bude takýto postup výrazným vylepšením kódu.
+
+Podobné situácie sa dajú riešiť aj inak: namiesto vnorenej definície triedy a volaní jej príslušných metód, priamo v tele funkcie zapíšeme kód týchto metód a v komentári zaznačíme, že sa vlastne jedná o akcie príslušných metód. Funkciu ``palindrom()`` by sme mohli zapísať aj takto:
+
+ ::
+
+  def palindrom(pole):
+      stack = []                    # Stack()
+      for prvok in pole:
+          stack.append(prvok)       # push(prvok)
+      for prvok in pole:
+          if prvok != stack.pop():  # pop()
+              return False
+      return True
+
+Takýto zápis označuje, že čitateľ tohto programu vie, čo je to **stack** a vie, ako sa s tým pracuje, a teda bude rozumieť princípu fungovania algoritmu.
+
+Lenže takýto spôsob používania, napr. štruktúry zásobník, **vo všeobecnosti neodporúčame**, lebo
+
+* pri nahrádzaní volania metódy priamo kódom môžeme do kódu vložiť chyby, ktoré sa môžu ťažko odladiť
+* do funkcie sme vložili kód konkrétnej realizácie zásobníka, ale v skutočnosti môžu byť tieto metódy realizované inak a možno výrazne efektívnejšie - mali by sme namiesto toho radšej používať volania metód (neskôr uvidíme aj inú realizáciu zásobníka)
+* je to zlý obraz o našom spôsobe programovania a naozaj ho použime len pri rýchlom otestovaní nejakého algoritmu, ale nie v odovzdanom kóde
+
+
+.. rubric:: Počet prvkov v zásobníku
+
+V ďalšom príklade napíšeme funkciu, ktorá zistí počet prvkov v zásobníku. Zrejme by sa to dalo zapísať takto jednoducho:
+
+ ::
+
+  def pocet_prvkov(zasobnik):
+      return len(zasobnik._pole)
+
+My už vieme, že autor tejto realizácie dátovej štruktúry ``Stack`` označil atribút ``_pole`` so znakom podčiarkovník a teda nepredpokladá, že by sme si to niekedy dovolili použiť. Preto to vyriešme správne. Najprv nie najlepšia verzia:
+
+
+ ::
+
+  def pocet_prvkov(zasobnik):
+      pocet = 0
+      while not zasobnik.empty():
+          zasobnik.pop()
+          pocet += 1
+      return pocet
+
+Hoci táto verzia dáva správny výsledok, popri tom nám ale vymaže celý obsah zásobníka. Takéto správanie funkcie sa nám bude hodiť veľmi zriedka. Častejšie budeme očakávať, že sa pôvodný obsah zachová. Niekoho by možno napadlo riešenie, v ktorom si zo zásobníka urobíme kópiu, zistíme koľko má prvkov táto kópia a tým sa nám pôvodný zásobník uchová. Lenže ani táto verzia nemá šancu fungovať správne:
+
+ ::
+
+  def pocet_prvkov(zasobnik):
+      pocet = 0
+      kopia = zasobnik
+      while not kopia.empty():
+          kopia.pop()
+          pocet += 1
+      return pocet
+
+Žiaľ, aj táto verzia funkcie vymaže pôvodný zásobník. Priradenie ``kopia = zasobnik`` nevytvorí naozaj kópiu, ale do premennej ``kopia`` priradí referenciu na pôvodný zásobník. A operácia ``kopia.pop()`` v skutočnosti číta pôvodnú dátovú štruktúru.
+
+Správne riešenie bude vyžadovať, aby sme celý obsah zásobníka prečítali, niekam si ho popritom ukladali a zároveň počítali počet prvkov. Potom sa všetky prvky presunú späť do pôvodného zásobníka. V nasledovnom riešení sme ako pomocnú štruktúru na uloženie prvkov použili opäť zásobník:
+
+ ::
+
+  def pocet_prvkov(zasobnik):
+      pocet = 0
+      kopia = Stack()                # pomocny zasobnik
+      while not zasobnik.empty():
+          kopia.push(zasobnik.pop())
+          pocet += 1
+      while not kopia.empty():       # vrati povodny obsah zasobnika
+          zasobnik.push(kopia.pop())
+      return pocet
+
+Uvedomte si, že v premennej ``kopia`` bude po prvom while-cykle kópia obsahu pôvodného zásobníka, ale prvky v ňom budú v opačnom poradí. Za tým nasledujúci while-cyklus vráti tento obsah späť ale už v správnom poradí.
+
+Aritmetické výrazy
+..................
+
+Aby sme videli krásu dátovej štruktúry zásobník, ukážeme si jej použitie pri práci s aritmetickými výrazmi. Pritom sa musíme zoznámiť so základnou terminológiou:
+
+* aritmetické výrazy sa skladajú z operandov (napr. čísla a premenné ako ``127`` a ``pocet``) a operátorov (napr. pre operácie súčet ``+``, súčin ``*``, ...)
+* ďalej budeme uvažovať len s binárnymi operáciami, pri ktorých každému operátoru prislúchajú práve dva operandy (napr. ``pocet + 1`` alebo ``22 % 6``)
+* niektoré operátory majú pri vyhodnocovaní vyššiu prioritu (precedenciu) ako iné (napr. vo výraze ``2 + 3 * 4`` sa najprv vyhodnotí súčin a až potom súčet, lebo operátor ``*`` má vyššiu prioritu ako ``+``)
+
+  * ak by vás zaujímalo, môžete si pozrieť kompletnú tabuľku `priorít operátorov v Pythone <https://docs.python.org/3/reference/expressions.html#operator-precedence>`_
+
+* časti aritmetického výrazu môžeme uzavrieť do okrúhlych zátvoriek a tým zmeníme poradie vyhodnocovania výrazu (napr. vo výraze ``(2 + 3) * 4`` sa najprv vyhodnotí súčet a až jeho výsledok sa vynásobí operandom ``4``)
+
+Pravdepodobne ste všetky tieto pojmy už poznali predtým, alebo intuitívne s týmto pracujete už dlhšie.
+
+.. rubric:: Infixový zápis
+
+Takýto zápis výrazov je v matematike najbežnejší a hovorí sa mu `infixový zápis <https://en.wikipedia.org/wiki/Infix_notation>`_. Takéto pomenovanie dostal preto, lebo operátor sa nachádza medzi (teda **in**) operandami. My sa budeme zaoberať najmä s číselnými výrazmi a preto nás budú zaujímať len operácie s číslami. V nasledovnej tabuľke uvádzame skupiny priorít operátorov, pričom v jednej skupine sú operátory s rovnakou prioritou:
+
+ ======================== =========================
+ ``(`` ``)``              zátvorky
+ ``**``                   umocňovanie
+ ``*`` ``/`` ``%`` ``//`` násobenie, delenie
+ ``+`` ``-``              sčitovanie, odčitovanie
+ ======================== =========================
+
+Najvyššiu prioritu majú zátvorky, potom nasleduje umocňovanie (jediné sa vyhodnocuje sprava doľava, všetky ostatné zľava doprava), nasleduje násobenie a delenie a najnižšiu prioritu majú sčitovanie a odčitovanie.
+
+Kvôli komplikovaným pravidlám priorít operátorov a tiež zátvorkám, sa takéto aritmetické výrazy vyhodnocujú nejakým programom trochu ťažšie. Skúste sa zamyslieť, ako by ste naprogramovali funkciu, ktorá by vyhodnocovala aritmetické výrazy zadané v znakovom reťazci, napr. ``'5+(71-13*4)//(5+22%7)'``. Nie je to až tak ťažké, existuje na to niekoľko elegantných algoritmov, ktoré sa budete možno učiť niekedy neskôr, ale my si ukážeme iné spôsoby zápisov aritmetických výrazov, ktoré sa vyhodnocujú výrazne jednoduchšie a práve pri nich veľmi elegantne využijeme typ **zásobník**.
+
+.. rubric:: Prefixový zápis
+
+`Prefixový zápis <https://en.wikipedia.org/wiki/Polish_notation>`_, niekedy sa mu hovorí poľský zápis (na počesť poľského matematika, ktorý zaviedol tento zápis), je charakteristický tým, že operátory sa nezapisujú medzi svoje operandy, ale **pred** operandy. Teda namiesto ``3 * 4`` zapíšeme
+
+ ::
+
+  * 3 4
+
+Funguje to takto aj so zložitejšími výrazmi, napr. namiesto ``2 + 3 * 4`` zapíšeme
+
+ ::
+
+  + 2 * 3 4
+
+čo prečítame ako "sčítaj 2 a výsledok súčinu 3 a 4". Zaujímavo vyzerajú výrazy so zátvorkami, napr. ``(2 + 3) * 4`` v prefixovom zápise vyzerá
+
+ ::
+
+  * (+ 2 3) 4
+
+a označuje "vynásob výsledok súčtu 2 a 3 číslom 4". Lenže v prefixovom zápise sa zátvorky nepíšu a preto bez zátvoriek to vyzerá takto
+
+ ::
+
+  * + 2 3 4
+
+a má to úplne rovnaký význam ako predchádzajúci zápis so zátvorkami. Prefix má oproti infixu tieto dve užitočné vlastnosti:
+
+* na vyhodnocovanie výrazu nepotrebujeme poznať prioritu operátorov - všetky operátory majú rovnakú prioritu a výraz sa vyhodnocuje zľava doprava
+* zátvorkovanie výrazu nemá zmysel, lebo ten sa vyhodnocuje jednoznačne
+
+Uveďme niekoľko príkladov:
+
+ ===================== ==================
+ infix                 prefix
+ ===================== ==================
+ ``2 + 3 * 4 - 5``     ``- + 2 * 3 4 5``
+ ``(2 + 3) * 4 - 5``   ``- * + 2 3 4 5``
+ ``2 + 3 * (4 - 5)``   ``+ 2 * 3 - 4 5``
+ ``(2 + 3) * (4 - 5)`` ``* + 2 3 - 4 5``
+ ===================== ==================
+
+Všimnite si, že poradie operandov je v infixovom aj prefixovom rovnaké, tieto zápisy sa líšia len umiestnením operátorov.
+
+Takéto prefixové zápisy sa vyhodnocujú veľmi jednoducho: každý operátor má za sebou dva operandy, pričom každý z nich je buď nejaká hodnota (napr. číslo) alebo ďalší prefixový zápis. Keď to budeme vyhodnocovať ručne, môžeme si pomôcť zátvorkami, napr. ``- + 2 * 3 4 5`` ozátvorkujeme takto ``(- (+ 2 (* 3 4)) 5)`` z čoho vidíme, že najprv sa vyhodnotí ``(* 3 4)``, výsledok tohto výrazu sa dosadí do súčtu ``(+ 2 12)`` a hodnota tohto výrazu sa vloží do rozdielu ``(- 14 5)``, teda výsledkom je ``9``. Na vyhodnocovanie prefixových výrazov programom zátvorky potrebovať nebudeme - neskôr uvidíte algoritmus.
+
+
+.. rubric:: Postfixový zápis
+
+`Postfixový zápis <https://en.wikipedia.org/wiki/Reverse_Polish_notation>`_ niekedy sa mu hovorí prevrátený poľský zápis, má podobný princíp ako infix a prefix, len sa líši v umiestnení operátora ku svojim dvom operandom: operátor píšeme **za** svoje operandy. Uvedieme podobné ukážky, ako sme videli pri prefixe a porovnáme ich s týmto prefixom:
+
+ ===================== ================== ==================
+ infix                 prefix             postfix
+ ===================== ================== ==================
+ ``3 * 4``             ``* 3 4``          ``3 4 *``
+ ``2 + 3 * 4``         ``+ 2 * 3 4``      ``2 3 4 * +``
+ ``(2 + 3) * 4``       ``* + 2 3 4``      ``2 3 + 4 *``
+ ``2 + 3 * 4 - 5``     ``- + 2 * 3 4 5``  ``2 3 4 * + 5 -``
+ ``(2 + 3) * 4 - 5``   ``- * + 2 3 4 5``  ``2 3 + 4 * 5 -``
+ ``2 + 3 * (4 - 5)``   ``+ 2 * 3 - 4 5``  ``2 3 4 5 - * +``
+ ``(2 + 3) * (4 - 5)`` ``* + 2 3 - 4 5``  ``2 3 + 4 5 - *``
+ ===================== ================== ==================
+
+Všimnite si, že aj pri postfixe je zachované poradie všetkých operandov, len operátory sa presťahovali na iné pozície. V porovnaní s prefixom sú tieto operátory v opačnom poradí, len sú na iných miestach. Keď sa budete cvičiť v ručnom prevádzaní medzi týmito zápismi, prípadne budete ich ručne vyhodnocovať, niekedy pomôže ich najprv ozátvorkovať, vykonať prevod (alebo vyhodnotenie) do iného zápisu a zbytočné zátvorky vyhodiť.
+
+Na postfixovom zápise si ukážeme algoritmus vyhodnocovania takýchto aritmetických výrazov. Princíp je nasledovný:
+
+* postupne sa prechádza postfixový výraz zľava doprava
+* keď je v postupnosti operand (najčastejšie celé číslo), vloží sa do zásobníka
+* keď spracovávame operátor, z vrhu zásobníka sa vyberú dve hodnoty a tie sa stanú operandami spracovávanej operácie: príslušná operácia sa vykoná a jej výsledok sa vloží do zásobníka (namiesto dvoch práve vybraných operandov)
+* keď sme spracovali celý výraz, na vrchu zásobníka ostala jediná hodnota a to je vyhodnotením aritmetického výrazu
+
+Postup najprv ukážeme na konkrétnom príklade s výrazom ``2 3 4 * + 5 -``:
+
+ =========== ============ ==================== ===========================================================
+ zásobník    spracovávame výraz v postfixe     čo robíme
+ =========== ============ ==================== ===========================================================
+ \                        ``2 3 4 * + 5 -``    na začiatku je zásobník prázdny
+ \                ``2``   ``3 4 * + 5 -``      zoberieme prvý prvok
+ ``2``                    ``3 4 * + 5 -``      vložíme ho na vrch zásobníka
+ ``2``            ``3``   ``4 * + 5 -``        zoberieme ďalší prvok
+ ``2 3``                  ``4 * + 5 -``        vložíme ho na vrch zásobníka
+ ``2 3``          ``4``   ``* + 5 -``          zoberieme ďalší prvok
+ ``2 3 4``                ``* + 5 -``          vložíme ho na vrch zásobníka
+ ``2 3 4``        ``*``   ``+ 5 -``            zoberieme ďalší prvok
+ ``2``          ``3*4``   ``+ 5 -``            vykonáme operáciu s dvoma vrchnými prvkami zásobníka
+ ``2 12``                 ``+ 5 -``            výsledok vložíme na vrch zásobníka
+ ``2 12``         ``+``   ``5 -``              zoberieme ďalší prvok
+ \             ``2+12``   ``5 -``              vykonáme operáciu s dvoma vrchnými prvkami zásobníka
+ ``14``                   ``5 -``              výsledok vložíme na vrch zásobníka
+ ``14``           ``5``   ``-``                zoberieme ďalší prvok
+ ``14 5``                 ``-``                vložíme ho na vrch zásobníka
+ ``14 5``         ``-``                        zoberieme ďalší prvok
+ \             ``14-5``                        vykonáme operáciu s dvoma vrchnými prvkami zásobníka
+ ``9``                                         výsledok vložíme na vrch zásobníka = výsledok výrazu
+ =========== ============ ==================== ===========================================================
+
+Naprogramujme:
+
+ ::
+
+  def pocitaj(vyraz):
+      s = Stack()
+      for prvok in vyraz.split():
+          if prvok == '+':
+              s.push(s.pop() + s.pop())
+          elif prvok == '-':
+              s.push(-s.pop() + s.pop())
+          elif prvok == '*':
+              s.push(s.pop() * s.pop())
+          elif prvok == '/':
+              op2 = s.pop()             # mozeme zapisat aj: op2, op1 = s.pop(), s.pop()
+              op1 = s.pop()
+              s.push(op1 // op2)
+          else:
+              s.push(int(prvok))
+      return s.pop()
+
+Je veľmi dôležité si pre jednotlivé operácie uvedomiť, v akom poradí vyberáme operandy zo zásobníka. Keďže operácie súčtu a násobenia čísel sú komutatívne, nemusíme sa starať o to, v akom poradí boli operandy v zásobníku. Pri rozdiele a podiele je to už iné: tu musíme presne rozlišovať, ktorý z operandov je na vrchu zásobníka a ktorý je v zásobníku pod ním. Keď vykonávame operáciu rozdiel ``7 2 -``, označuje to, že od prvého operandu odčitujeme druhý. Keďže do zásobníka sa našim algoritmom najprv dostáva prvý operand a až potom druhý a vyberajú sa v opačnom poradí, musíme to zohľadniť aj pri výpočte, preto to zapíšeme ako ``-s.pop() + s.pop()``. Teda to, čo bolo na vrchu zásobníka dostáva opačné znamienko a odčíta sa od druhého operandu v zásobníku pod ním. Podobne je to aj s podielom (v našom prípade celočíselnom), ale tu sme to kvôli čitateľnosti najprv priradili do dvoch premenných a až potom sme vykonali operáciu delenia.
+
+Otestujme:
+
+ ::
+
+  >>> pocitaj('2 3 4 * + 5 -')
+  9
+  >>> pocitaj('2 3 + 4 * 5 -')
+  15
+  >>> pocitaj('2 3 4 5 - * +')
+  -1
+  >>> pocitaj('2 3 + 4 5 - *')
+  -5
+
+Pravdepodobne by sme mali do kódu pridať ešte niekoľko testov, aby to nepadalo s nepochopiteľnými hláškami výnimiek pri chybových situáciách. Napr.
+
+* po skončení for-cyklu v zásobníku nie je nič, alebo je tam viac ako jedna hodnota
+* delenie nulou
+* namiesto očakávaného čísla (príkaz za ``else``, v ktorom sa prevádza reťazec na číslo) prišiel chybný reťazec, napr. pri ``22 7 %``
+
+Program by mohol v takých situáciách buď vyvolať nejakú svoju výnimku (napr. ``ExpressionError('delenie nulou')``) alebo vrátiť nejakú špeciálnu hodnotu (napr. znakový reťazec s popisom chyby). Toto budete riešiť na cvičeniach.
+
+Funkcia ``pocitaj()`` funguje len pre **postfixový zápis** a pre prefix asi rýchlo spadne na chybe. Ak budeme ale v tomto algoritme vstupnú postupnosť prvkov výrazu brať v opačnom poradí od konca, po malej úprave to bude fungovať práve pre **prefixový zápis**:
+
+ ::
+
+  def pocitaj_prefix(vyraz):
+      s = Stack()
+      for prvok in reversed(vyraz.split()):
+          if prvok == '+':
+              s.push(s.pop() + s.pop())
+          elif prvok == '-':
+              s.push(s.pop() - s.pop())
+          elif prvok == '*':
+              s.push(s.pop() * s.pop())
+          elif prvok == '/':
+              s.push(s.pop() // s.pop())
+          else:
+              s.push(int(prvok))
+      return s.pop()
+
+Všimnite si tieto dôležité zmeny oproti verzii pre postfix:
+
+* aby sme for-cyklom prechádzali prvky vstupnej postupnosti výrazu od konca, použili sme štandardnú funkciu ``reversed()`` - táto funkcia bude z postupnosti prvkov dávať do for-cyklu prvky od konca; mohli sme to zapísať aj ako ``vyraz.split()[::-1]`` ale odporúča sa to pomocou ``reversed()`` lebo toto je čitateľnejšie
+* pre všetky naše operácie je poradie operandov v správnom poradí, teda v zásobníku je najprv prvý operand a pod ním druhý; preto aj vyhodnocovanie operácií je teraz jednoduchšie a čitateľnejšie
+
+Podobne, ako sme odkrokovali vyhodnocovanie postfixového zápisu, zapíšme aj postup pre prefix pre výraz ``- + 2 * 3 4 5``:
+
+ =========== ============ ==================== ===========================================================
+ zásobník    spracovávame výraz v postfixe     čo robíme
+ =========== ============ ==================== ===========================================================
+ \                        ``- + 2 * 3 4 5``    na začiatku je zásobník prázdny
+ \                ``5``   ``- + 2 * 3 4``      zoberieme posledný prvok výrazu
+ ``5``                    ``- + 2 * 3 4``      vložíme ho na vrch zásobníka
+ ``5``            ``4``   ``- + 2 * 3``        zoberieme ďalší prvok
+ ``5 4``                  ``- + 2 * 3``        vložíme ho na vrch zásobníka
+ ``5 4``          ``3``   ``- + 2 *``          zoberieme ďalší prvok
+ ``5 4 3``                ``- + 2 *``          vložíme ho na vrch zásobníka
+ ``5 4 3``        ``*``   ``- + 2``            zoberieme ďalší prvok
+ ``5``          ``3*4``   ``- + 2``            vykonáme operáciu s dvoma vrchnými prvkami zásobníka
+ ``5 12``                 ``- + 2``            výsledok vložíme na vrch zásobníka
+ ``5 12``         ``2``   ``- +``              zoberieme ďalší prvok
+ ``5 12 2``               ``- +``              vložíme ho na vrch zásobníka
+ ``5 12 2``       ``+``   ``-``                zoberieme ďalší prvok
+ ``5``         ``2+12``   ``-``                vykonáme operáciu s dvoma vrchnými prvkami zásobníka
+ ``5 14``                 ``-``                výsledok vložíme na vrch zásobníka
+ ``5 14``         ``-``                        zoberieme ďalší prvok
+ \             ``14-5``                        vykonáme operáciu s dvoma vrchnými prvkami zásobníka
+ ``9``                                         výsledok vložíme na vrch zásobníka = výsledok výrazu
+ =========== ============ ==================== ===========================================================
+
+Funkciu otestujeme na tých istých výrazoch ako predtým, ale v prefixovej verzii zápisu:
+
+ ::
+
+  >>> pocitaj_prefix('- + 2 * 3 4 5')
+  9
+  >>> pocitaj_prefix('- * + 2 3 4 5')
+  15
+  >>> pocitaj_prefix('+ 2 * 3 - 4 5')
+  -1
+  >>> pocitaj_prefix('* + 2 3 - 4 5')
+  -5
+
+Môžete vidieť, že takýto algoritmus je dostatočne jednoduchý na to, aby sa rozšíril o ďalšie operácie, napr. zvyšok po delení ``%``, resp. prerobil na čísla s desatinnou čiarkou ``float``.
+
+S infixovým zápisom to nie je až tak jednoduché ako s prefixom alebo postfixom. V rámci domáceho zadania si precvičíte jeden konkrétny nie veľmi náročný algoritmus na prepis aritmetického výrazu v infixovom zápise do prefixového tvaru. Tento už potom dokážete veľmi jednoducho aj vyhodnocovať.
+
+
+Náhrada rekurzie
+................
+
+Dátová štruktúra zásobník ma ešte jedno veľmi užitočné využitie: pomocou nej vieme niektoré **rekurzívne funkcie** relatívne jednoducho previesť na nerekurzívny výpočet. Začnime najprv triviálnou verziou rekurzie:
+
+ ::
+
+  def vypis(pole):
+      if len(pole) == 0:
+          print()
+      else:
+          print(pole[0], end=' ')
+          vypis(pole[1:])
+
+ktorá vypíše prvky poľa do jedného riadku, napr.
+
+ ::
+
+  >>> vypis([2, 3, 5, 7, 11, 13, 17])
+  2 3 5 7 11 13 17
+
+Naše doterajšie skúsenosti s rekurziou nám zrejme rýchlo naznačia, že sa jedná o chvostovú rekurziu, ktorá sa dá bezbolestne prerobiť na while-cyklus (nezabudneme použiť pomocné pole, aby sme nepokazili obsah parametra ``pole``, hoci to isté sa dalo urobiť aj obyčajným for-cyklom bez pomocného poľa):
+
+ ::
+
+  def vypis(pole):
+      pom = pole[:]
+      while len(pom) != 0:
+          print(pom[0], end=' ')
+          pom = pom[1:]
+      print()
+
+Takéto nerekurzívne riešenie má oproti rekurzii obrovskú výhodu najmä v tom, že dĺžka poľa nie je obmedzená hĺbkou vnorenia rekurzie, čo je okolo 1000. Teda rekurzívna verzia by spadla na pretečení rekurzie už pri 1000-prvkovom poli. Pravdepodobne podobným postupom (zatiaľ bez zásobníka) vieme nahradiť rekurziu while-cyklom aj pri trochu komplikovanejších verziách funkcie ``výpis``, napr.
+
+ ::
+
+  def vypis1(pole):
+      if len(pole) != 0:
+          vypis1(pole[1:])
+          print(pole[0], end=' ')
+
+  def vypis2(pole):
+      if len(pole) != 0:
+          print(pole[0], end=' ')
+          vypis2(pole[1:])
+          print(pole[0], end=' ')
+
+My sa ale budeme zaoberať takými rekurzívnymi funkciami, na ktoré nám takýto while-cyklus stačiť nebude. V 12. prednáške (:doc:`12`) sme sa prvýkrát zoznámili s tým, že programovacie jazyky na zabezpečenie fungovania volania funkcií a teda aj rekurzie používajú **zásobník**: v Pythone si to najlepšie predstavíme tak, že na vrchu zásobníka sa pri každom volaní funkcie vytvorí menný priestor danej funkcie a ňom sa nachádzajú všetky lokálne premenné a teda aj parametre. Zopakujme si tento **mechanizmus volania funkcií**:
+
+* zapamätá sa návratová adresa
+* vytvorí sa nový menný priestor funkcie (v ňom sa vytvárajú lokálne premenné aj parametre)
+* vykoná sa telo funkcie
+* zruší sa menný priestor (aj so všetkými premennými)
+* vykonávanie programu sa vráti na návratovú adresu
+
+Ukážeme, ako si zjednodušíme túto predstavu volania funkcií tak, aby sme vedeli odsimulovať rekurziu len pomocou nejakých cyklov. Skúsme to predviesť na takejto jednoduchej rekurzívnej funkcii:
+
+ ::
+
+  def rekurzia(n):
+      if n == 0:
+          print('.', end=' ')    # trivialny pripad
+      else:
+          rekurzia(n - 1)
+          print(n, end=' ')
+          rekurzia(n - 1)
+
+  rekurzia(3)
+  print('koniec')
+
+Po spustení:
+
+ ::
+
+  . 1 . 2 . 1 . 3 . 1 . 2 . 1 . koniec
+
+Menný priestor v tomto prípade tvorí jediná premenná ``n``, ktorá má hodnotu 3. Takže na vrchu zásobníka sa vytvorí informácia o tejto premennej, ale okrem toho sa musí pre každé volanie funkcie zabezpečiť "zapamätanie návratovej adresy". **Návratová adresa** je to miesto v programe, od ktorého sa bude pokračovať po úspešnom ukončení vykonania funkcie. Zaznačme do nášho ukážkového programu všetky návratové miesta:
+
+ ::
+
+  def rekurzia(n):
+      if n == 0:
+          print('.', end=' ')    # trivialny pripad
+      else:
+          rekurzia(n - 1)      # <--- volanie funkcie
+          # navratove miesto
+          print(n, end=' ')
+          rekurzia(n - 1)      # <--- volanie funkcie
+          # navratove miesto
+
+  rekurzia(3)                  # <--- volanie funkcie
+  # navratove miesto
+  print('koniec')
+
+Keďže samotná rekurzia zakaždým **opakuje** nejaké výpočty ale so zmenenými premennými (menným priestorom), nahrádzať ju budeme **while-cyklom** a na zapamätávanie návratových adries a menného priestoru použijeme **zásobník**. V našom jednoduchom príklade si bude treba na zásobníku vedieť zapamätať dve hodnoty: adresu a premennú ``n``.
+
+Samotnú funkciu ``rekurzia()`` "rozsekneme" na časti presne tam, kde sa nachádzajú rekurzívne volania a návratové miesta:
+
+ ::
+
+  def rekurzia(n):
+
+  # prva casť
+      if n == 0:
+          print('.', end=' ')    # trivialny pripad
+      else:
+          rekurzia(n - 1)      # <--- volanie funkcie
+
+  # druha casť
+          # navratove miesto
+          print(n, end=' ')
+          rekurzia(n - 1)      # <--- volanie funkcie
+
+  # tretia casť
+          # navratove miesto
+
+Tieto tri časti sa budú nejako opakovať pomocou nášho nového while-cyklu a pre každú z nich využijeme zásobník s návratovou adresou a premennou ``n`` (menným priestorom). Ktorá z týchto častí sa bude opakovať, to nám oznámi **adresa** tejto časti a aká bude vtedy hodnota premennej ``n`` sa tiež dozvieme z vrchu zásobníka.
+
+V našej funkcii sa nachádzajú dve volania funkcie, ktoré musíme nahradiť novým mechanizmom. Tento zabezpečí, že sa namiesto každého volania urobí niečo so zásobníkom:
+
+1. zapamätáme si (operácia ``push()``), kam sa bude treba vrátiť a aká bude pritom hodnota ``n``
+2. nastavíme skok na úplný začiatok funkcie s novým ``n`` (zmenšeným o 1) - toto môžeme urobiť takýmto malým vylepšením: na vrch zásobníka vložíme informáciu (operácia ``push()``), že chceme pokračovať od ``# prva cast`` s novým ``n``
+
+Teda namiesto každého volania ``rekurzia(n - 1)`` zapíšeme tieto dve vkladania do zásobníka:
+
+ ::
+
+  stack.push((adresa, n))   # adresa je návratové miesto 2 alebo 3
+  stack.push((1, n - 1))    # 1 je adresa prvej časti, teda začiatku funkcie
+
+Teraz môžeme celú rekurzívnu funkciu prepísať:
+
+ ::
+
+  def rekurzia(n):
+
+  # inicializacia zasobnika
+      stack = Stack()
+      stack.push((1, n))
+
+      while not stack.empty():
+          adresa, n = stack.pop()
+
+          # prva casť
+          if adresa == 1:
+              if n == 0:
+                  print('.', end=' ')    # trivialny pripad
+              else:
+                  #rekurzia(n - 1)      # <--- volanie funkcie
+                  stack.push((2, n))
+                  stack.push((1, n - 1))
+
+          # druha casť
+          elif adresa == 2:
+                  # navratove miesto
+                  print(n, end=' ')
+                  #rekurzia(n - 1)      # <--- volanie funkcie
+                  stack.push((3, n))
+                  stack.push((1, n - 1))
+
+          # tretia casť
+          elif adresa == 3:
+                  # navratove miesto
+                  pass
+
+Po otestovaní dostávame ten istý výsledok, ako pôvodná rekurzívna verzia. Odstráňme komentáre a tiež tretiu časť, ktorú ako vidíme, nerobí nič a preto môžeme odstrániť aj ``stack.push((3, n))``, ktorý spôsobuje návrat na tretiu časť po skončení druhej:
+
+ ::
+
+  def rekurzia(n):
+      stack = Stack()
+      stack.push((1, n))
+      while not stack.empty():
+          adresa, n = stack.pop()
+          if adresa == 1:
+              if n == 0:
+                  print('.', end=' ')    # trivialny pripad
+              else:
+                  stack.push((2, n))
+                  stack.push((1, n - 1))
+          elif adresa == 2:
+                  print(n, end=' ')
+                  #stack.push((3, n))
+                  stack.push((1, n - 1))
+
+  rekurzia(3)
+  print('koniec')
+
+A toto je kompletná nerekurzívna verzia tejto funkcie. Takýto proces **nahrádzania rekurzie** pomocou while-cyklu sa dá zapísať veľa rôznymi spôsobmi, bude to závisieť hlavne od vašich programátorských skúseností. Pozrite si napríklad takýto prepis, ktorý robí presne to isté ako naše predchádzajúce riešenie:
+
+ ::
+
+  def rekurzia(n):
+      stack = Stack()
+      adresa = 1
+      while True:
+          if adresa == 1:
+              if n == 0:
+                  print('.', end=' ')    # trivialny pripad
+                  if stack.empty():
+                      break              # alebo return
+                  adresa, n = stack.pop()
+              else:
+                  stack.push((2, n))
+                  adresa, n = 1, n - 1
+          elif adresa == 2:
+                  print(n, end=' ')
+                  #stack.push((3, n))
+                  adresa, n = 1, n - 1
+
+Rekurzívne funkcie, ktoré vracajú nejakú hodnotu, je "odrekurzívňovať" trochu náročnejšie. Nám by mohlo postačiť také riešenie, v ktorom najprv túto rekurzívnu funkciu prepíšeme na funkciu, ktorá nevracia hodnotu, ale mení nejakú globálnu premennú. Takúto zmenenú rekurzívnu funkciu by sme už mali vedieť nahradiť while-cyklom.
+
+Rekurziu sme doteraz najviac využívali v korytnačej grafike. Pripomeňme si jednu z najznámejších rekurzívnych funkcií s korytnačou grafikou - kreslenie binárneho stromu:
+
+ ::
+
+  import turtle
+
+  def strom(n, d):
+      t.fd(d)
+      if n > 0:
+          t.lt(40)
+          strom(n - 1, d * 0.7)
+          t.rt(75)
+          strom(n - 1, d * .6)
+          t.lt(35)
+      t.bk(d)
+
+  t = turtle.Turtle()
+  t.lt(90)
+  strom(5, 80)
+
+Na jej odrekurzívnenie použijeme rovnaký postup, ako pri funkcii ``rekurzia()``. "Rozsekneme" funkciu na časti v tých miestach, kde sa nachádza rekurzívne volanie. Musíme si pritom dať veľký pozor na triviálny prípad, teda čo sa naozaj vykoná v triviálnom prípade (teda, keď neplatí ``n > 0``):
+
+ ::
+
+  def strom(n, d):
+
+  # prva cast
+      t.fd(d)
+      if n <= 0:
+          t.bk(d)         # trivialny pripad
+      else:
+          t.lt(40)
+          strom(n - 1, d * 0.7)
+
+  # druha cast
+          t.rt(75)
+          strom(n - 1, d * .6)
+
+  # tretia cast
+          t.lt(35)
+          t.bk(d)
+
+Zatiaľ je to rekurzívne, ale pripravené na nahradenie while-cyklom so zásobníkom:
+
+ ::
+
+  def strom(n, d):
+      stack = Stack()
+      stack.push((1, n, d))
+      while not stack.empty():
+          adresa, n, d = stack.pop()
+      # prva cast
+          if adresa == 1:
+              t.fd(d)
+              if n <= 0:
+                  t.bk(d)         # trivialny pripad
+              else:
+                  t.lt(40)
+                  #strom(n - 1, d * 0.7)
+                  stack.push((2, n, d))
+                  stack.push((1, n - 1, d * 0.7))
+
+      # druha cast
+          elif adresa == 2:
+              t.rt(75)
+              #strom(n - 1, d * .6)
+              stack.push((3, n, d))
+              stack.push((1, n - 1, d * 0.7))
+
+      # tretia cast
+          elif adresa == 3:
+              t.lt(35)
+              t.bk(d)
+
+Dostali sme nerekurzívnu verziu kreslenia binárneho stromu. Bude veľmi užitočné, keď si potrénujete takéto nahrádzanie rekurzie, lebo neskoršie témy v tomto semestri budú plné rekurzívnych funkcií, ktoré bude niekedy treba vykonať aj pre veľmi veľký počet rekurzívnych vnorení.
+
+
+Rad
+---
+
+Dátová štruktúra **rad** (budeme používať aj **front** alebo anglické **queue**, ale nie *rada* ani *fronta*) je veľmi podobná dátovej štruktúre zásobník. Na rozdiel od zásobníka ale nevyberá prvky z vrchu (od konca, teda naposledy vložený prvok) ale zo začiatku štruktúry. Tomuto princípu hovoríme **FIFO** z anglického **first-in-first-out**. Na tomto princípe funguje aj náš bežný rad v obchode alebo v jedálni. Keď sa v takomto rade nepredbiehame a obslúžený sme presne v tom poradí, ako sme prišli, hovoríme tomu **spravodlivý rad** (na rozdiel od zásobníka, ktorý je nespravodlivý rad). Počas tohto semestra uvidíme niekoľko veľmi užitočných aplikácií tejto dátovej štruktúry.
+
+Opäť na operácie, ktoré manipulujú s radom, využijeme zaužívané anglické slová:
+
+* **enqueue** vloží na koniec radu nový údaj
+* **dequeue** vyberie prvý údaj z radu; táto hodnota je výsledkom operácie; ak je ale rad prázdny, nie je čo vybrať, operácia vyvolá výnimku ``EmptyError``
+* **front** vráti prvý prvok radu, ale rad pritom nemení; ak je ale rad prázdny, nie je čo vrátiť, operácia vyvolá výnimku ``EmptyError``
+* **empty** zistí, či je rad prázdny; operácia vráti ``True`` alebo ``False``
+
+Rad budeme v Pythone realizovať podobne ako zásobník pomocou typu pole (``list``). Začiatok radu bude zodpovedať prvému prvku poľa (pole[0]) a vkladať budeme na koniec poľa, t.j. operáciou ``append()``. Túto realizáciu pomocou poľa zapíšeme do triedy ``Queue`` a opäť pridáme aj definíciu výnimky ``EmptyError``:
+
+ ::
+
+  class EmptyError(Exception): pass
+
+  class Queue:
+
+      def __init__(self):
+          '''inicializuje pole'''
+          self._pole = []
+
+      def enqueue(self, data):
+          '''na koniec radu vlozi novu hodnotu'''
+          self._pole.append(data)
+
+      def dequeue(self):
+          '''zo zaciatku radu vyberie prvu hodnotu, alebo vyvola EmptyError'''
+          if self.empty():
+              raise EmptyError('prazdny rad')
+          return self._pole.pop(0)
+
+      def front(self):
+          '''zo zaciatku radu vrati prvu hodnotu, alebo vyvola EmptyError'''
+          if self.empty():
+              raise EmptyError('prazdny rad')
+          return self._pole[0]
+
+      def empty(self):
+          '''zisti, ci je rad prazdny'''
+          return self._pole == []
+
+Ak porovnáte túto realizáciu s definíciou triedy ``Stack``, zistíte, že sú medzi nimi minimálne rozdiely. Uvidíte neskôr, že využitie týchto dvoch dátových štruktúr je veľmi rozdielne a často sa využívajú na úplne iné ciele.
+
+Podobne ako sme definíciu triedy ``Stack`` uložili do súboru ``struktury.py``, môžeme sem prekopírovať aj túto definíciu radu. Zrejme triedu ``EmptyError`` vtedy nemá zmysel kopírovať druhý krát - jej jedna definícia pokryje obe tieto štruktúry.
+
+.. rubric:: Otestujme rad
+
+Otestujeme rovnakým testom, ako sme to robili so zásobníkom: do radu najprv vložíme niekoľko slov a potom ich pomocou ``dequeue()`` postupe všetky vyberieme a vypíšeme. V tomto výpise by sa mali všetky prvky vyskytnúť presne v poradí, ako boli vkladané do radu.
+
+ ::
+
+  from struktury import Queue
+
+  queue = Queue()
+  for slovo in 'Anicka dusicka kde si bola'.split():
+      queue.enqueue(slovo)
+  print('prvy v rade:', queue.front())
+  while not queue.empty():
+      print(queue.dequeue())
+  print('rad je prazdny:', queue.empty())
+  print('vyberame:', queue.dequeue())
+
+Po spustení vidíme, že to naozaj funguje:
+
+ ::
+
+  prvy v rade: Anicka
+  Anicka
+  dusicka
+  kde
+  si
+  bola
+  rad je prazdny: True
+  ...
+  struktury.EmptyError: prazdny rad
+
+Ďalší príklad prečíta textový súbor a na jeho koniec vloží celú kópiu samého seba:
+
+ ::
+
+  from struktury import Queue
+
+  def zdvoj_subor(meno_suboru):
+      queue = Queue()
+      with open(meno_suboru) as subor:
+          for riadok in subor:
+              queue.enqueue(riadok)
+      with open(meno_suboru, 'a') as subor:
+          while not queue.empty():
+              subor.write(queue.dequeue())
+
+  zdvoj_subor('text.txt')
+
+Toto isté by sme vedeli zapísať aj bez použitia radu (napríklad najprv celý súbor prečítať pomocou jediného ``subor.read()`` a potom ho jedným ``subor.write()`` celý zapísať), ale príklad ilustruje použitie dátovej štruktúry ``Queue``.
+
+S niektorými operáciami s dátovou štruktúrou rad sa budeme trápiť podobne, ako pri zásobníkoch. Napr. zisťovať počet prvkov v rade, hodnotu posledného prvku a pod. bez toho, aby sme rad poškodili, bude náročnejšie, ale potrénujeme to na cvičeniach.
+
+
+Cvičenie
+--------
+
+Vytvorte súbor ``struktury.py`` a prekopírujte do neho definície tried ``Stack`` a ``Queue``. V nasledovných úlohách používajte ``import`` z tohto súboru.
+
+1. Nasledovné dve funkcie nejako pracujú so zásobníkom:
+
+   * môžete vidieť, že sú veľmi podobné:
+
+    ::
+
+     def test1(slovo):
+         stack = Stack()
+         for znak in slovo:
+             if znak != 'a' or stack.empty():
+                 stack.push(znak)
+             else:
+                 p = stack.pop()
+                 stack.push(znak)
+                 stack.push(p)
+         while not stack.empty():
+             print(stack.pop(), end='')
+         print()
+
+     def test2(slovo):
+         stack = Stack()
+         for znak in slovo:
+             try:
+                 p = stack.pop()
+                 stack.push(znak)
+                 stack.push(p)
+             except EmptyError:
+                 stack.push(znak)
+         while not stack.empty():
+             print(stack.pop(), end='')
+         print()
+
+   * bez toho, aby ste ich spúšťali, zistite, čo sa vypíše:
+
+    ::
+
+     test1('rabaka')
+     test1('abrakadabra')
+     test2('rabaka')
+     test2('abrakadabra')
+
+
+2. Napíšte dve funkcie ``urob(postupnost)`` a ``vyber(stack)``. Prvá z nich dostáva ako parameter postupnosť hodnôt a vráti novo vytvorený **zásobník**, ktorého prvkami sú prvky vstupnej postupnosti, ale v opačnom poradí (na vrchu je prvý prvok postupnosti). Druhá funkcia pracuje naopak: zo vstupného zásobníka vyberie (``pop()``) všetky prvky, vytvorí z nich pole v obrátenom poradí ako boli v zásobníku (na vrchu zásobníka je posledný prvok výsledného poľa).
+
+  * napr.
+
+   ::
+
+    >>> stack = urob(range(3))
+    >>> while not stack.empty():
+            stack.pop()
+    0
+    1
+    2
+    >>> s = [2, 3, 5, 7, 11]
+    >>> vyber(urob(s))
+    [11, 7, 5, 3, 2]
+
+3. Napíšte funkciu ``dno(stack)``, ktorá z daného zásobníka vyberie a vráti prvok z dna tohto zásobníka. Zvyšné prvky v ňom zostanú nezmenené. Použite pomocný zásobník.
+
+  * napr. ak sú v zásobníku ``s`` čísla od 1 do 5, pričom 1 je na dne, potom
+
+   ::
+
+    >>> dno(s)
+    1
+    >>> while not s.empty():
+            print(s.pop(), end=' ')
+    5 4 3 2
+
+4. V prednáške bola funkcia ``palindrom()``, ktorá pomocou zásobníka kontrolovala, či je dané pole palindrom. Lenže pritom každú dvojicu prvkov poľa kontrolovala dvakrát (prvý prvok s posledným, druhý s predposledným, ..., predposledný s druhým, posledný s prvým). Zrejme by na zisťovanie palindromu stačila polovica testov. Opravte túto funkciu tak, aby sa využil zásobník a pritom bolo vo funkcii maximálne polovica porovnaní. Vtedy aj do zásobníka stačí vložiť len polovicu prvkov poľa.
+
+   * funkcia z prednášky:
+
+    ::
+
+     def palindrom(pole):
+         stack = Stack()
+         for prvok in pole:
+             stack.push(prvok)
+         for prvok in pole:
+             if prvok != stack.pop():
+                 return False
+         return True
+
+5. Ručne prepíšte infixové zápisy do prefixu aj postfixu:
+
+   * infix:
+
+    ::
+
+     7 * 6 * 5 * 4 * 3 * 2
+     (1 + 2) * 3 / (4 + 5) * 6
+
+6. Ručne vyhodnoťte tieto zápisy
+
+   * prefix aj postfix:
+
+    ::
+
+     + 8 * / - 14 6 3 - 8 * 2 3
+     1 2 3 * + 4 5 * + 6 7 * +
+
+   * svoje výsledky porovnajte s vyhodnotením pomocou ``pocitaj()`` a ``pocitaj_prefix()``
+
+7. Opravte funkciu ``pocitaj()`` z prednášky, ktorá vyhodnocuje postfix tak, aby správne reagovala na chyby. Na každú chybovú situáciu sa vyvolá výnimka ``ExpressionError`` s príslušným komentárom, napr.
+
+   * delenie nulou
+   * očakávalo sa celé číslo
+   * málo operandov pre operáciu
+   * málo operátorov pre toľko operandov
+
+8. Odrekurzívnite rekurzívnu krivku Sierpiňského trojuholník z 12. prednášky v zimnom semestri.
+
+   * rekurzívna funkcia:
+
+    ::
+
+     import turtle
+
+     def trojuholniky(n, a):
+         if n > 0:
+             for i in range(3):
+                 t.fd(a)
+                 t.rt(120)
+                 trojuholniky(n - 1, a / 2)
+
+     t = turtle.Turtle()
+     trojuholniky(4, 200)
+
+9. Pre dátovú štruktúru ``Queue`` naprogramujte tieto dve funkcie tak, aby sa nepoškodil obsah radu:
+
+   * ``pocet(rad)`` zistí počet prvkov v rade
+   * ``posledny(rad)`` vráti hodnotu posledného prvku radu
+
+   Pre obe funkcie to riešte najprv s pomocným radom (podobne, ako sme to riešili so zásobníkom) a potom aj bez pomocného radu (resp. inej štruktúry). Vyberané prvky totiž nemusíte ukladať niekam inam a potom ich vracať späť, ale ukladáte ich na koniec samotného radu.
+
+10. Naprogramujte dve funkcie ``otoc_zasobnik(stack)`` a ``otoc_rad(queue)``, ktoré obe otočia poradie svojej vstupnej dátovej štruktúry
+
+   * na otáčanie zásobníka použite pomocný rad a naopak na otáčanie radu použite pomocný zásobník
+
+
+Domáce zadanie
+--------------
+
+.. topic:: L.I.S.T.
+
+   * riešenia odovzdávajte na úlohový server http://capek.ii.fmph.uniba.sk/list do **18.marca 2017**
+
+Napíšte modul s menom ``uloha2.py``, ktorý bude obsahovať jedinú triedu s ďalšou vnorenou podtriedou a týmito metódami:
+
+ ::
+
+  class Vyraz:
+      class Stack:
+          def __init__(self):
+              ...
+
+          def push(self, data):
+              ...
+
+          def pop(self):
+              return None
+
+          def top(self):
+              return None
+
+          def empty(self):
+              return True
+
+      def __init__(self):
+          self.tabulka = {}
+
+      def __repr__(self):
+          return ''
+
+      def prirad(self, premenna, vyraz):
+          ...
+
+      def vyhodnot(self, vyraz):
+          return None
+
+      def in2post(self, vyraz):
+          return None
+
+Cieľom týchto metód je udržiavať tabuľku premenných a ich hodnôt (v atribúte ``self.tabulka``)a tiež vyhodnocovať aritmetické výrazy, ktoré obsahujú aj premenné. Tieto aritmetické výrazy môžu byť nielen v bežnom infixovom tvare, ale aj postfixovom alebo prefixovom. Súčasťou riešenia bude aj prevod z infixu do postfixu (metóda ``in2post()``). Samotný zásobnik ``Stack`` realizujte ako **vnorený** v triede ``Vyraz`` (napr. v metóde ``vyhodnot()`` budete vytvárať nový zásobník pomocou ``self.Stack()``). Ešte ho musíte mierne zmodifikovať tak, aby pri chybe nespôsobil výnimku, ale vrátil ``None``.
+
+Metódy triedy ``Vyraz`` by mali mať túto funkčnosť (môžete si dodefinovať aj ďalšie pomocné metódy):
+
+* ``prirad(premenna, vyraz)`` do premennej priradí **hodnotu zadaného výrazu**, priradenie znamená, že sa do tabuľky (asociatívne pole ``self.tabulka``) pre zadaný reťazec (meno premennej) priradí vypočítaná hodnota; oba parametre sú znakové reťazce, napr.
+
+  ::
+
+   >>> v = Vyraz()
+   >>> v.prirad('a','123')
+   >>> v.prirad('abc','a+1')
+   >>> v.prirad('a','abc 4 /')
+   >>> v.prirad('res22','/ 5 0')
+   
+  uvedomte si, že hodnotou výrazu je buď celé číslo alebo ``None``
+
+* ``__repr__()`` vráti reťazec, ktorý obsahuje momentálne obsahy premenných (funkcia nič nevypisuje), predchádzajúce priradenia vytvoria tieto 3 premenné:
+
+  ::
+
+   >>> v
+   a = 31
+   abc = 124
+   res22 = None
+
+* ``vyhodnot(vyraz)``, kde ``vyraz`` je znakový reťazec, ktorý obsahuje aritmetický výraz v infixovom,  postfixovom, alebo prefixovom zápise; funkcia tento výraz vyhodnotí a vráti celočíselnú hodnotu výsledku alebo ``None``; funkcia by mala:
+
+  * rozlíšiť, o ktorý typ zápisu sa jedná, stačí jednoduchý test: ak je prvý znak reťazca operátor (jeden z ``'+-*/%'``), jedná sa o **prefixový** zápis, ak je posledný znak reťazca operátor, bude to **postfixový** zápis, inak je to **infixivý** zápis
+  * v prípade infixu, prevedie reťazec na postfix (metódou ``in2post()``)
+  * vyhodnotí postfixový, resp. prefixový výraz algoritmom z prednášky, pričom využije pomocný zásobník (trieda ``self.Stack``)
+  * pri vyhodnocovaní výrazu premenné (identifikátory) nahradí ich hodnotou z tabuľky premenných (``self.tabulka``)
+  * výrazy sú celočíselné, teda všetky operácie vracajú celé číslo (operácia ``'/'`` zodpovedá pythonovskému ``'//'``, operácia ``'%'`` počíta zvyšok po delení); hoci medzi operátormi a operandami nemusia byť medzery, funkcia aj tak zabezpečí správne rozdelenie výrazu na operátory a operandy (celé čísla a identifikátory premenných)
+  * ak pri vyhodnocovaní vznikne nejaká chyba, napr. delenie nulou, neznámy obsah premennej, chybajúci operand alebo operátor vo výraze, atď. funkcia vráti ``None``
+
+* ``in2post(vyraz)``, kde ``vyraz`` je znakový reťazec, ktorý obsahuje aritmetický výraz v infixovom tvare; funkcia prevedie tento výraz na postfixový zápis; tento zápis vráti ako znakový režazec; môžete použiť tento algoritmus:
+
+  1. rozdelí reťazec na operátory, zátvorky, celočíselné premenné a identifikátory premenných, pripraví si pomocný **zásobník** (budú sa do neho vkladať operácie a zátvorky) a zatiaľ prázdny **výstup**
+  2. postupne prechádza prvky vstupu zľava doprava
+  3. ak je prvkom hodnota (celé číslo alebo premenná), pridá sa na výstup
+  4. ak je prvkom operátor (jeden z ``'+-*/%'``)
+
+   * ak je zásobník prázdny, operátor sa dá na vrch zásobníka (``push()``)
+   * ak zásobník nie je prázdny, postupne z neho vyberá (``pop()``) všetky operátory s vyššou alebo rovnakou prioritou (a tie sa pridávajú na výstup) a až potom sa vloží (``push()``) samotný operátor (ak je na zásobníku zátvorka, táto sa teraz zo zásobnika nevyberá)
+
+  5. ak je prvkom ľavá zátvorka ``'('``, vloží (``push()``) sa do zásobníka
+  6. ak je prvkom pravá zátvorka ``')'``, vyberú sa (``pop()``) všetky prvky, až kým nepríde ``'('`` - tieto prvky (okrem zátvorky) sa pridajú na výstup
+  7. keď sa už takto spracoval celý vstup, všetky prvky zásobníka sa vyberú (``pop()``) a pridajú na výstup
+  8. operátory ``'+', '-'`` majú nižšiu prioritu ako ``'*', '/', '%'``
+  9. ak vo vstupnom výraze nezodpovedajú zátvorky ``'('`` a ``')'``, funkcia vráti prázdny reťazec
+
+Prevod z **infixu** do **postfixu** môžete vidieť na prevode tohto výrazu ``'2+(44+a3*222+1)/pocet'``. Tento výraz najprv rozdelíte na prvky: ``'2','+','(','44','+','a3','*','222','+','1',')','/','pocet'`` a potom spúšťame algoritmus:
+
+ ================================= =========== ========== ===================================== ===================
+ výstup                            zásobník    spracováva prvky vstupu                          komentár
+ ================================= =========== ========== ===================================== ===================
+ \                                 \           \          ``2 + ( 44 + a3 * 222 + 1 ) / pocet`` na začiatku
+ \                                 \           ``2``      ``+ ( 44 + a3 * 222 + 1 ) / pocet``   prvý prvok
+ ``2``                             \                      ``+ ( 44 + a3 * 222 + 1 ) / pocet``   -> výstup
+ ``2``                             \           ``+``      ``( 44 + a3 * 222 + 1 ) / pocet``     ďalší prvok
+ ``2``                             ``+``                  ``( 44 + a3 * 222 + 1 ) / pocet``     -> zásobník
+ ``2``                             ``+``       ``(``      ``44 + a3 * 222 + 1 ) / pocet``       ďalší prvok
+ ``2``                             ``+ (``                ``44 + a3 * 222 + 1 ) / pocet``       -> zásobník
+ ``2``                             ``+ (``     ``44``     ``+ a3 * 222 + 1 ) / pocet``          ďalší prvok
+ ``2 44``                          ``+ (``                ``+ a3 * 222 + 1 ) / pocet``          -> výstup
+ ``2 44``                          ``+ (``     ``+``      ``a3 * 222 + 1 ) / pocet``            ďalší prvok
+ ``2 44``                          ``+ ( +``              ``a3 * 222 + 1 ) / pocet``            -> zásobník
+ ``2 44``                          ``+ ( +``   ``a3``     ``* 222 + 1 ) / pocet``               ďalší prvok
+ ``2 44 a3``                       ``+ ( +``              ``* 222 + 1 ) / pocet``               -> výstup
+ ``2 44 a3``                       ``+ ( +``   ``*``      ``222 + 1 ) / pocet``                 ďalší prvok
+ ``2 44 a3``                       ``+ ( + *``            ``222 + 1 ) / pocet``                 -> zásobník
+ ``2 44 a3``                       ``+ ( + *`` ``222``    ``+ 1 ) / pocet``                     ďalší prvok
+ ``2 44 a3 222``                   ``+ ( + *``            ``+ 1 ) / pocet``                     -> výstup
+ ``2 44 a3 222``                   ``+ ( + *`` ``+``      ``1 ) / pocet``                       ďalší prvok
+ ``2 44 a3 222 * +``               ``+ (``     ``+``      ``1 ) / pocet``                       zasobník -> výstup
+ ``2 44 a3 222 * +``               ``+ ( +``              ``1 ) / pocet``                       -> zásobník
+ ``2 44 a3 222 * +``               ``+ ( +``   ``1``      ``) / pocet``                         ďalší prvok
+ ``2 44 a3 222 * + 1``             ``+ ( +``              ``) / pocet``                         -> výstup
+ ``2 44 a3 222 * + 1``             ``+ ( +``   ``)``      ``/ pocet``                           ďalší prvok
+ ``2 44 a3 222 * + 1 +``           ``+``                  ``/ pocet``                           zasobník -> výstup
+ ``2 44 a3 222 * + 1 +``           ``+``       ``/``      ``pocet``                             ďalší prvok
+ ``2 44 a3 222 * + 1 +``           ``+ /``                ``pocet``                             -> zásobník
+ ``2 44 a3 222 * + 1 +``           ``+ /``     ``pocet``                                        ďalší prvok
+ ``2 44 a3 222 * + 1 + pocet``     ``+ /``                                                      -> výstup
+ ``2 44 a3 222 * + 1 + pocet / +``                                                              zasobník -> výstup
+ ================================= =========== ========== ===================================== ===================
+
+Na výstupe je teraz **postfixový** zápis výrazu.
+
+
+
+.. rubric:: Obmedzenia
+
+* vaše riešenie odovzdajte v súbore ``uloha2.py``, pričom sa v ňom bude nachádzať **len jedna definícia triedy** ``Vyraz``, trieda ``Stack`` bude vnorená v triede ``Vyraz``
+* prvé dva riadky tohto súboru budú obsahovať:
+
+  ::
+
+   # autor: Janko Hrasko
+   # uloha: 2. domace zadanie Vyraz
+
+* zrejme ako autora uvediete svoje meno
+* atribút ``tabulka`` v triede ``Vyraz`` bude obsahovať asociatívne pole so všetkými premennými a ich hodnotami (hodnoty premenných sú buď celé čísla alebo ``None``)
+* váš program by nemal počas testovania testovačom nič vypisovať (žiadne vaše testovacie ``print()``)
+
+.. rubric:: Testovanie
+
+Keď budete spúšťať vaše riešenie na svojom počítači, môžete do súboru ``uloha2.py`` pridať testovacie riadky, ktoré ale testovač vidieť nebude, napr.:
+
+ ::
+
+  if __name__ == '__main__':
+      v = Vyraz()
+      print(v.in2post('2+(44+a3*222+1)/pocet'))
+      v.prirad('x','13')
+      print(v.vyhodnot('x%5'))
+      print(v.vyhodnot('x 5%'))
+      print(v.vyhodnot('%x 5'))
+      print(v.vyhodnot('x 5'))
+      v.prirad('a','123')
+      v.prirad('abc','a+1')
+      v.prirad('a','abc 4 /')
+      v.prirad('res22','/ 5 0')
+      print(v)
+
+Tento test by vám mal vypísať:
+
+ ::
+
+  2 44 a3 222 * + 1 + pocet / +
+  3
+  3
+  3
+  None
+  res22 = None
+  x = 13
+  a = 31
+  abc = 124
+
+

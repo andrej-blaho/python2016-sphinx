@@ -1,0 +1,517 @@
+Animované obrázky
+=================
+
+Pripomeňme si, ako sme kreslili obrázky v ``tkinter``:
+
+ ::
+
+  import tkinter
+
+  canvas = tkinter.Canvas(bg='navy')
+  canvas.pack()
+  tkim = tkinter.PhotoImage(file='python-logo.png')
+  canvas.create_image(200, 150, image=tkim)
+
+Zvolili sme si obrázok `python-logo.png <_static/python-logo.png>`_, ktorý má niektoré časti priesvitné.
+
+Je veľmi dôležité si uvedomiť, že ``tkinter`` si príkazom ``create_image()`` zapamätá referenciu na tento obrázok, ale Pythonu o tom "nedá vedieť". Lenže Python je priveľmi usilovný v upratovaní nepoužívanej pamäti a ak premennej ``tkim`` zmeníme obsah, alebo ju zrušíme, Python z pamäte obrázok vyhodí, lebo za každú cenu chce upratať nepotrebné informácie. Môžete vyskúšať po spustení predchádzajúceho kódu zmeniť obsah premennej:
+
+ ::
+
+  >>> tkim = 0
+
+Väčšinou obrázok zmizne okamžite, niekedy treba ešte niečo nakresliť a až potom sa obrázok stratí, napr.
+
+ ::
+
+  >>> tkim = 0
+  >>> canvas.create_line(0, 0, 300, 300)
+
+Podobný efekt dosiahneme aj vtedy, keď tento program zapíšeme bez pomocnej premennej ``tkim``:
+
+ ::
+
+  import tkinter
+
+  canvas = tkinter.Canvas(bg='navy')
+  canvas.pack()
+  canvas.create_image(200, 150, image=tkinter.PhotoImage(file='python-logo.png'))
+
+Python aj v tomto prípade obrázok najprv prečíta vo formáte ``tkinter.PhotoImage()``, pošle ho ako skutočný parameter do ``create_image()``, lenže, keďže naňho nikto neodkazuje (žiadna premenná neobsahuje referenciu), obrázok okamžite uvoľní. Z tohto dôvodu tento program nezobrazí žiaden obrázok.
+
+ImageTk
+-------
+
+Obrázky vieme načítať a vykresliť aj v ``PIL.Image``, ale tieto dva formáty sú navzájom nekompatibilné. Napr.
+
+ ::
+
+  from PIL import Image
+
+  im = Image.open('python-logo.png')
+  im.show()
+
+Ak budeme chcieť obrázky vytvorené alebo prečítané v ``PIL`` potom v grafickej ploche nielen vykresľovať, ale potom ich aj pomocou ``tkinter`` meniť a posúvať, budeme musieť použiť nejakú konverziu z ``PIL`` do ``tkinter``. V tomto prípade využijeme z knižnice ``PIL`` ďalší podmodul ``ImageTk``. Môžeme to zapísať takto:
+
+ ::
+
+  from PIL import Image, ImageTk
+  import tkinter
+
+  canvas = tkinter.Canvas(bg='navy')
+  canvas.pack()
+  ########################################################
+  tkim = ImageTk.PhotoImage(Image.open('python-logo.png'))
+  ########################################################
+  canvas.create_image(200, 150, image=tkim)
+
+Funkcia ``PhotoImage()`` z knižnice ``ImageTk`` má jeden parameter typu obrázok z ``Image`` a prerobí ho na obrázkový objekt pre ``tkinter``. Tento objekt môžeme ešte pred prekonvertovaní pre ``tkinter`` upraviť najrozličnejšími obrázkovými metódami, s ktorými sme sa naučili pracovať na minulej prednáške. Môžeme napr. zapísať:
+
+ ::
+
+
+  from PIL import Image, ImageTk
+  import tkinter
+
+  canvas = tkinter.Canvas(bg='navy')
+  canvas.pack()
+  ########################################################
+  img = Image.open('python-logo.png')
+  img1 = img.rotate(45, expand=True)
+  tkim = ImageTk.PhotoImage(img1)
+  ########################################################
+  canvas.create_image(200, 150, image=tkim)
+
+Často uvidíte aj veľmi kompaktný zápis, napr. takto:
+
+ ::
+
+  ########################################################
+  tkim = ImageTk.PhotoImage(Image.open('python-logo.png').rotate(45, expand=True))
+  ########################################################
+
+Otáčanie obrázka
+................
+
+Využime tento kompaktný zápis na pomalé otáčanie celého obrázka:
+
+ ::
+
+  from PIL import Image, ImageTk
+  import tkinter
+
+  canvas = tkinter.Canvas(bg='navy')
+  canvas.pack()
+  a = canvas.create_image(200, 150)    # zatial prazdny obrazok
+
+  uhol = 0
+  while True:
+      tkim = ImageTk.PhotoImage(Image.open('python-logo.png').rotate(uhol, expand=True))
+      canvas.itemconfig(a, image=tkim)
+      uhol += 10
+      canvas.update()
+      canvas.after(100)
+
+Všimnite si, že v tomto nekonečnom cykle stále čítame a otáčame ten istý súbor, pričom súbor by sme mohli prečítať len raz a potom ho už len otáčame:
+
+ ::
+
+  from PIL import Image, ImageTk
+  import tkinter
+
+  canvas = tkinter.Canvas(bg='navy')
+  canvas.pack()
+  a = canvas.create_image(200, 150)
+  img = Image.open('python-logo.png')
+  uhol = 0
+  while True:
+      tkim = ImageTk.PhotoImage(img.rotate(uhol, expand=True))
+      canvas.itemconfig(a, image=tkim)
+      uhol += 10
+      canvas.update()
+      canvas.after(100)
+
+V tomto nekonečnom cykle sa po 36 prechodoch znovu opakujú tie isté obrázky. Môžeme to prepísať tak, že tieto obrázky vypočítame len raz ešte pred samotným cyklom a uložíme ich do poľa. V cykle sa už bude len odvolávať na prvky tohto poľa: 
+
+ ::
+
+  from PIL import Image, ImageTk
+  import tkinter
+
+  canvas = tkinter.Canvas(bg='navy')
+  canvas.pack()
+  a = canvas.create_image(200, 150)
+  img = Image.open('python-logo.png')
+  ########################################################
+  pole = [ImageTk.PhotoImage(img.rotate(uhol, expand=True)) for uhol in range(0, 360, 10)]
+  ########################################################
+  i = 0
+  while True:
+      canvas.itemconfig(a, image=pole[i])
+      i = (i + 1) % len(pole)
+      canvas.update()
+      canvas.after(100)
+
+Tento malý testovací program by mohol fungovať aj pre inú postupnosť obrázkov. Do podadresára ``a1`` uložíme týchto `8 obrázkových súborov <_static/vtak.zip>`_
+
+ .. image:: image/22_1.png
+
+Tieto súbory prečítame do poľa a otestujeme:
+
+ ::
+
+  from PIL import Image, ImageTk
+  import tkinter
+
+  canvas = tkinter.Canvas(bg='navy')
+  canvas.pack()
+  a = canvas.create_image(200, 150)
+  ########################################################
+  pole = [tkinter.PhotoImage(file='a1/vtak{}.png'.format(i)) for i in range(8)]
+  ########################################################
+  i = 0
+  while True:
+      canvas.itemconfig(a, image=pole[i])
+      i = (i + 1) % len(pole)
+      canvas.update()
+      canvas.after(100)
+
+Grafická aplikácia
+------------------
+
+Na základe týchto skúseností postupne vytvoríme aplikáciu, v ktorej sa bude naraz animovať viac objektov. Začneme obrázkom, ktorý bude pozadím canvasu. My sme si zvolili obrázok `jazero.png <_static/jazero.png>`_. Našim cieľom bude vytvoriť ``canvas``, ktorý bude presne rovnakých rozmerov ako obrázkový súbor. Zapíšme:
+
+ ::
+
+  import tkinter
+  
+  bg = tkinter.PhotoImage(file='jazero.png')
+  canvas = tkinter.Canvas(width=bg.width(), height=bg.height())
+  canvas.pack()
+  canvas.create_image(0, 0, image=bg)
+
+Žiaľ tento program nefunguje a padne na takejto chybe:
+
+ ::
+ 
+  RuntimeError: Too early to create image
+
+Táto chyba označuje, že sa snažíme vytvoriť objekt ``PhotoImage`` ešte skôr, ako vzniklo grafické okno, v ktorom bude canvas. Teda nemali by sme volať ``PhotoImage()`` skôr ako vytvoríme ``Canvas()`` - toto nám trochu skomplikuje vytvorenie canvasu správneho rozmeru. Ale dá sa to aj inak: keď vytvárame canvas, ``tkinter`` automaticky najprv vytvorí **grafické okno**. A až potom v tomto okne vytvorí canvas. Pridáme na úplný začiatok príkaz na vytvorenie okna:
+
+ ::
+
+  import tkinter
+
+  #########################
+  win = tkinter.Tk()
+  #########################
+  bg = tkinter.PhotoImage(file='jazero.png')
+  canvas = tkinter.Canvas(width=bg.width(), height=bg.height())
+  canvas.pack()
+  canvas.create_image(0, 0, image=bg)
+
+Teraz už vytvorenie grafického okna správnych rozmerov funguje, len samotný obrázok nepokrýva celý canvas, ale len jeho jednu štvrtinu. Samozrejme, že je to tak: v príkaze ``create_image()`` súradnice umiestnenia obrázka určujú, kde sa má umiestniť jeho stred. Správne sme mali zapísať:
+
+ :: 
+ 
+  canvas.create_image(bg.width()//2, bg.height()//2, image=bg)
+  
+Alebo lepšie riešenie bude využiť ďalší parameter príkazu ``create_image()``, ktorým sa dá nastaviť iné určenie umiestnenia obrázka. Parameter ``anchor='center'`` znamená, že ``(x, y)`` je v strede, ``anchor='n'`` označuje, že je v strede hornej strany obrázka (tzv. "sever"), ``anchor='w'`` označuje stred ľavej strany (tzv. "západ") a ``anchor='nw'`` je ľavý horný roh obrázka, t.j. "severozápad", atď. Takže vykreslenie obrázka ako pozadia grafickej plochy bude teraz vyzerať takto:  
+
+ :: 
+ 
+  canvas.create_image(0, 0, image=bg, anchor='nw')
+  
+Pridáme animovanú sériu obrázkov vtáčika:
+
+ ::
+ 
+  import tkinter
+  
+  win = tkinter.Tk()
+  bg = tkinter.PhotoImage(file='jazero.png')
+  canvas = tkinter.Canvas(width=bg.width(), height=bg.height())
+  canvas.pack()
+  canvas.create_image(0, 0, image=bg, anchor='nw')
+   
+  a = canvas.create_image(200, 150)
+  pole = [tkinter.PhotoImage(file='a1/vtak{}.png'.format(i)) for i in range(8)]
+  i = 0
+  while True:
+      canvas.itemconfig(a, image=pole[i])
+      i = (i + 1) % len(pole)
+      canvas.update()
+      canvas.after(100)
+ 
+Objekt Anim
+...........
+
+Aby sa nám lepšie manipulovalo s animovaným obrázkom, zapuzdrime to do triedy ``Anim``:
+
+ ::
+ 
+  import tkinter
+  
+  win = tkinter.Tk()
+  bg = tkinter.PhotoImage(file='jazero.png')
+  canvas = tkinter.Canvas(width=bg.width(), height=bg.height())
+  canvas.pack()
+  canvas.create_image(0, 0, image=bg, anchor='nw')
+  
+  class Anim:
+      canvas = None
+      def __init__(self, x, y, pole):
+          self.id = self.canvas.create_image(x, y)
+          self.pole = pole
+          self.faza = 0
+  
+      def dalsia_faza(self):
+          self.canvas.itemconfig(self.id, image=self.pole[self.faza])
+          self.faza = (self.faza + 1) % len(self.pole)
+  
+  Anim.canvas = canvas        
+  pole = [tkinter.PhotoImage(file='a1/vtak{}.png'.format(i)) for i in range(8)]
+  
+  a1 = Anim(200, 150, pole)
+  while True:
+      a1.dalsia_faza()
+      canvas.update()
+      canvas.after(100)
+   
+Keďže sme túto animačnú triedu vymysleli týmto spôsobom, môžeme veľmi jednoducho pridať niekoľko ďalších rovnakých objektov na rôznych pozíciách:
+
+ ::
+ 
+  ...
+
+  a1 = Anim(200, 150, pole)
+  a2 = Anim(300, 250, pole)
+  a3 = Anim(400, 200, pole)
+  while True:
+      a1.dalsia_faza()
+      a2.dalsia_faza()
+      a3.dalsia_faza()
+      canvas.update()
+      canvas.after(100)
+  
+Prípadne môžeme všetky animované objekty uložiť do poľa:
+
+ ::
+ 
+  ...
+  
+  apole = [Anim(200, 150, pole), Anim(300, 250, pole), Anim(400, 200, pole)]
+  
+  while True:
+      for a in apole:
+          a.dalsia_faza()
+      canvas.update()
+      canvas.after(100)
+ 
+  
+Udalosti
+........  
+  
+Ďalším krokom vylepšovania aplikácie sú udalosti: časovač a klikanie myšou. Časovačom ``timer()`` nahradíme nekonečný while-cyklus. Klikaním myšou budeme definovať nové objekty triedy ``Anim``:
+
+ ::
+ 
+  ...
+  
+  apole = []
+  
+  def klik(event):
+      apole.append(Anim(event.x, event.y, pole))
+  
+  def timer():
+      for a in apole:
+          a.dalsia_faza()
+      canvas.after(100, timer)
+  
+  canvas.bind('<Button-1>', klik)
+  timer()
+ 
+Trieda Plocha
+.............
+
+Zapuzdrime všetky príkazy okrem vytvorenia poľa animovaných obrázkov do triedy ``Plocha``:
+
+ ::
+ 
+  import tkinter
+  
+  class Plocha:
+      def __init__(self, subor, pole):
+          win = tkinter.Tk()
+          self.bg = tkinter.PhotoImage(file=subor)
+          self.canvas = tkinter.Canvas(width=self.bg.width(), height=self.bg.height())
+          self.canvas.pack()
+          self.canvas.create_image(0, 0, image=self.bg, anchor='nw')
+          Anim.canvas = self.canvas        
+          self.apole = []
+          self.pole = pole
+          self.canvas.bind('<Button-1>', self.klik)
+          self.timer()
+  
+      def klik(self, event):
+          self.apole.append(Anim(event.x, event.y, self.pole))
+  
+      def timer(self):
+          for a in self.apole:
+              a.dalsia_faza()
+          self.canvas.after(100, self.timer)
+  
+  class Anim:
+      canvas = None
+      def __init__(self, x, y, pole):
+          self.id = self.canvas.create_image(x, y)
+          self.pole = pole
+          self.faza = 0
+  
+      def dalsia_faza(self):
+          self.canvas.itemconfig(self.id, image=self.pole[self.faza])
+          self.faza = (self.faza + 1) % len(self.pole)
+  
+  pole = [tkinter.PhotoImage(file='a1/vtak{}.png'.format(i)) for i in range(8)]
+  
+  Plocha('jazero.png', pole)
+ 
+Opäť sa objavuje známa chyba:
+
+ ::
+ 
+  RuntimeError: Too early to create image
+  
+Volanie ``PhotoImage()`` je tu skôr ako vzniklo grafické okno pomocou ``tkinter.Tk()``. Preto vytvorenie okna presunieme von z triedy pre vytvorením poľa ``pole``:
+
+ ::
+ 
+  ...   
+
+  win = tkinter.Tk()
+  pole = [tkinter.PhotoImage(file='a1/vtak{}.png'.format(i)) for i in range(8)]
+  
+  Plocha('jazero.png', pole)
+  
+Teraz je to už funkčné. Potrebujeme pridať ďalšie typy animovaných obrázkov. Ďalšia sada obrázkov animuje skákajúceho zajaca:  
+
+ .. image:: image/22_2.png
+
+Týchto `8 obrázkov <_static/zajo.zip>`_ prenesieme do podadresára ``a2`` a pridajme tieto príkazy:
+
+ ::
+ 
+  import tkinter
+  from random import randrange as rr
+  
+  class Plocha:
+      def __init__(self, subor, *pole):
+          self.bg = tkinter.PhotoImage(file=subor)
+          self.canvas = tkinter.Canvas(width=self.bg.width(), height=self.bg.height())
+          self.canvas.pack()
+          self.canvas.create_image(0, 0, image=self.bg, anchor='nw')
+          Anim.canvas = self.canvas        
+          self.apole = []   # pole animovanych objektov
+          self.pole = pole  # pole animovanych serii obrazkov
+          self.canvas.bind('<Button-1>', self.klik)
+          self.timer()
+  
+      def klik(self, event):
+          self.apole.append(Anim(event.x, event.y, self.pole[rr(len(self.pole))]))
+  
+      def timer(self):
+          for a in self.apole:
+              a.dalsia_faza()
+          self.canvas.after(100, self.timer)
+  
+  class Anim:
+      canvas = None
+      def __init__(self, x, y, pole):
+          self.id = self.canvas.create_image(x, y)
+          self.pole = pole
+          self.faza = 0
+  
+      def dalsia_faza(self):
+          self.canvas.itemconfig(self.id, image=self.pole[self.faza])
+          self.faza = (self.faza + 1) % len(self.pole)
+  
+  win = tkinter.Tk()
+  pole1 = [tkinter.PhotoImage(file='a1/vtak{}.png'.format(i)) for i in range(8)]
+  pole2 = [tkinter.PhotoImage(file='a2/zajo{}.png'.format(i)) for i in range(8)]
+  
+  Plocha('jazero.png', pole1, pole2)
+ 
+Podobne môžeme pridať týchto `21 obrázkov zemegule  <_static/zemegula.zip>`_ (presunieme ich do podadresára ``a3``):
+
+ .. image:: image/22_3.png
+ 
+Okrem týchto troch animovaných sérií môžeme pridať preklopené vtáčiky a zajaze:
+
+ ::
+ 
+  from PIL import Image, ImageTk
+  
+  ...
+  
+  win = tkinter.Tk()
+  pole1 = [tkinter.PhotoImage(file='a1/vtak{}.png'.format(i)) for i in range(8)]
+  pole1a = [ImageTk.PhotoImage(Image.open('a1/vtak{}.png'.format(i)).transpose(Image.FLIP_LEFT_RIGHT)) for i in range(8)]
+  pole2 = [tkinter.PhotoImage(file='a2/zajo{}.png'.format(i)) for i in range(8)]
+  pole2a = [ImageTk.PhotoImage(Image.open('a2/zajo{}.png'.format(i)).transpose(Image.FLIP_LEFT_RIGHT)) for i in range(8)]
+  pole3 = [tkinter.PhotoImage(file='a3/z{}.png'.format(i)) for i in range(21)]
+  
+  Plocha('jazero.png', pole1, pole1a, pole2, pole2a, pole3)
+  
+Trieda Program
+..............
+
+Posledným krokom pri vytváraní grafickej aplikácie bude vytvorenie triedy Program, pričom všetky globálne akcie (vytváranie polí s animáciami, volanie ``Plocha()``) presunieme do inicializácie tejto triedy. Zároveň pozmeníme veľkosť animovanej zemegule:
+ 
+ ::
+ 
+  ...
+
+  class Program:
+      def __init__(self):
+
+          def resize(img, pomer):
+              return img.resize((int(img.width*pomer), int(img.height*pomer)))
+
+          win = tkinter.Tk()
+          win.title('moja animovana aplikacia')
+          pole1 = [tkinter.PhotoImage(file='a1/vtak{}.png'.format(i)) for i in range(8)]
+          pole1a = [ImageTk.PhotoImage(Image.open('a1/vtak{}.png'.format(i)).transpose(Image.FLIP_LEFT_RIGHT)) for i in range(8)]
+          pole2 = [tkinter.PhotoImage(file='a2/zajo{}.png'.format(i)) for i in range(8)]
+          pole2a = [ImageTk.PhotoImage(Image.open('a2/zajo{}.png'.format(i)).transpose(Image.FLIP_LEFT_RIGHT)) for i in range(8)]
+          pole3 = [ImageTk.PhotoImage(resize(Image.open('a3/z{}.png'.format(i)), 2)) for i in range(21)]
+          img = resize(Image.open('python-logo.png'), 0.7)
+          pole4 = [ImageTk.PhotoImage(img.rotate(uhol, expand=True)) for uhol in range(0, 360, 10)]
+
+          Plocha('jazero.png', pole1, pole1a, pole2, pole2a, pole3, pole4)
+
+  Program()
+
+
+Cvičenie
+--------
+
+1. Spojazdnite kompletnú aplikáciu z prednášky.
+
+2. Vymeňte v aplikácii pozadie: nájdite na internete vhodný obrázok rozmerov aspoň 800x600, najlepšie vo formáte ``.jpg`` a nahraďte ním ``jazero.png``.
+
+3. Ako pozadie aplikácie zvoľte nejaký menší obrázok, ktorý rozkopírujete vedľa seba a pod seba tak, aby sa zaplnil ``canvas`` veľkosti napr. 800x600. Môžete použiť jednu z bitmáp: `pozadie.zip <_static/pozadie.zip>`_
+
+   * pomocou ``Image`` vytvorte jeden veľký obrázok požadovaných rozmerov a do neho príslušný počet krát opečiatkujte jednu z bitmáp a tento výsledok použite ako pozadie canvasu grafickej aplikácie
+
+4. Všetky obrázky v `obrazky.zip <_static/obrazky.zip>`_ sú vo formáte ``.bmp`` a preto nemajú priesvitné časti. Prečítajte ich a pomocou ``Image`` z nich vyrobte obrázky v móde ``'RGBA'`` a farbu v pixeli na súradnici (0, 0) nahraďte v týchto obrázkoch priesvitnými pixelmi.
+
+   * v grafickú aplikáciu zmeňte tak, aby sa namiesto animovaných obrázkov klikaním pridávali upravené bitmapy z tejto skupiny
+   * pre každú z týchto bitmáp môžete pripraviť 2 fázy animácie: 1. je pôvodný obrázok, 2. je obrázok zmenšený na 90%
+
+5. Všetky obrázky v súbore `animacie.zip <_static/animacie.zip>`_ obsahujú viac fáz. Treba ich správne rozstrihať a vytvoriť z nich polia obrázkov pre ``tkinter`` tak, aby sa dali použiť v našom animačnom programe.
+
+   * všetky tieto obrázky už majú dobre nastavené priesvitné pixely
+
+6. V úlohe (5) ste rozstrihali 3 väčšie obrázky na fázy animácie. Pre dve z nich ``potvorka1.png`` a ``potvorka2.png`` treba pripraviť aj otočené fázy o 90, 180 a 270 stupňov, t.j. každej vyrobíte ďalšie tri animované série obrázkov.
+
+   * otestujte ich vo vašej grafickej aplikácii

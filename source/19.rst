@@ -1,0 +1,858 @@
+Asociatívne polia
+=================
+
+Na 14. cvičení ste riešili úlohu, v ktorej ste zostavovali metódy pre triedu telefónny zoznam. Riešenie úlohy by mohlo vyzerať asi takto:
+
+ ::
+
+  class TelefonnyZoznam:
+      def __init__(self):
+          self.pole = []
+
+      def __str__(self):
+          vysl = []
+          for meno, telefon in self.pole:
+              vysl.append('{}: {}'.format(meno, telefon))
+          return '\n'.join(vysl)
+          
+      def pridaj(self, meno, telefon):
+          for i in range(len(self.pole)):
+              if self.pole[i][0] == meno:
+                  self.pole[i] = meno, telefon
+                  return
+          self.pole.append((meno, telefon))
+
+Vidíte, že do poľa ukladáme dvojice ``(meno, telefon)``.
+
+.. sidebar:: ...
+
+   ::
+
+    Jana: 0999020304
+    Juro: 0911111111
+    Jozo: 0212345678
+
+Jednoduchý test:
+
+ ::
+
+  tz = TelefonnyZoznam()
+  tz.pridaj('Jana', '0901020304')
+  tz.pridaj('Juro', '0911111111')
+  tz.pridaj('Jozo', '0212345678')
+  tz.pridaj('Jana', '0999020304')
+  print(tz)
+
+Hľadanie údajov
+---------------
+
+Do tejto triedy pridajme ešte metódy ``__contains__()`` a ``zisti()``, vďaka ktorým budeme vedieť zistiť, či sa dané meno nachádza v zozname, prípadne pre dané meno zistíme jeho telefónne číslo:
+
+ ::
+ 
+  class TelefonnyZoznam:
+      ...
+
+      def __contains__(self, hladaj_meno):
+          for meno, telefon in self.pole:
+              if meno == hladaj_meno:
+                  return True
+          return False
+
+      def zisti(self, hladaj_meno):
+          for meno, telefon in self.pole:
+              if meno == hladaj_meno:
+                  return telefon
+          raise ValueError('zadane meno nie je v zozname')
+
+.. sidebar:: ...
+
+   ::
+
+    Jana: 0999020304
+    Juro: 0911111111
+    Jozo: 0212345678
+    Juro ma telefon 0911111111
+    Fero je v zozname: False
+    ...
+    ValueError: zadane meno nie je v zozname
+
+Opäť otestujeme:
+
+ ::
+
+  tz = TelefonnyZoznam()
+  tz.pridaj('Jana', '0901020304')
+  tz.pridaj('Juro', '0911111111')
+  tz.pridaj('Jozo', '0212345678')
+  tz.pridaj('Jana', '0999020304')
+  print(tz)
+  print('Juro ma telefon', tz.zisti('Juro'))
+  print('Fero je v zozname:', 'Fero' in tz)       # volanie tz.__contains__('Fero')
+  print('Fero ma telefon', tz.zisti('Fero'))
+
+Zamerajme sa teraz na spôsob hľadania v tomto telefónnom zozname: všetky tri metódy ``pridaj()``, ``__contains__()`` aj ``zisti()`` postupne pomocou for-cyklu prechádzajú celé pole a kontrolujú, či pritom nenašli hľadané meno. Zrejme pre veľký telefónny zoznam (napr. telefónny zoznam New Yorku môže obsahovať viac ako 8 miliónov dvojíc ``(meno, číslo)``) takéto **sekvenčné** prehľadávanie môže trvať už dosť dlho.
+
+Naučme sa jednoduchý spôsob, akým môžeme odmerať čas behu nejakého programu. Hoci takéto meranie vôbec nie je presné, môže nám to dať nejaký obraz o tom, ako dlho trvajú niektoré časti programu. Na meranie použijeme takúto šablónu:
+
+ ::
+
+  import time
+
+  start = time.time()                  # začiatok merania času
+
+  # nejaký výpočet
+
+  print(round(time.time()-start, 3))   # koniec merania času
+
+Volanie funkcie ``time.time()`` vráti momentálny stav nejakého počítadla sekúnd. Keď si tento stav zapamätáme (v premennej ``start``) a o nejaký čas opäť zistíme stav počítadla, rozdiel týchto dvoch hodnôt nám vráti približný počet sekúnd koľko ubehlo medzi týmito dvomi volaniami ``time.time()``. Túto hodnotu sa dozvedáme ako desatinné číslo, takže vidíme aj milisekundy (výsledný rozdiel zaokrúhľujeme na 3 desatinné miesta).
+
+Začnime s meraním tohto jednoduchého programu na výpočet súčtu ``n`` prirodzených čísel:
+
+ ::
+ 
+  import time
+
+  n = int(input('zadaj n: '))
+  start = time.time()                           # začiatok merania času
+  sucet = 0
+  for i in range(1, n+1):
+      sucet += i
+  print('cas =', round(time.time()-start, 3))   # koniec merania času
+  print('sucet =', sucet)
+  
+Tento program spustíme niekoľkokrát s rôzne veľkým ``n``:
+
+  ::
+  
+   zadaj n: 10000
+   cas = 0.002
+   sucet = 50005000
+
+  ::
+
+   zadaj n: 100000
+   cas = 0.021
+   sucet = 5000050000
+
+  ::
+
+   zadaj n: 1000000
+   cas = 0.235
+   sucet = 500000500000
+
+Môžete si všimnúť istú závislosť trvania programu od veľkosti ``n``: keď zadáme 10-krát väčšiu vstupnú hodnotu, výpočet bude trvať približne 10-krát tak dlho. Zrejme je to nejaká lineárna závislosť: čas behu programu závisí od veľkosti ``n`` lineárne.
+
+Teraz namiesto výpočtu sumy budeme merať približný čas hľadania údajov v nejakej tabuľke, pričom použijeme **sekvenčné** prehľadávanie (postupne budeme prechádzať celé pole pomocou for-cyklu). Pre jednoduchosť testovania budeme pracovať len s poľom celých čísel, ktoré najprv vygenerujeme náhodne:
+
+ ::
+
+  import time
+  from random import randrange as rr
+
+  def hladaj(hodnota):
+      for prvok in pole:
+          if prvok == hodnota:
+              return True
+      return False
+
+  n = int(input('zadaj n: '))
+  pole = []
+  for i in range(n):
+      pole.append(rr(2*n))
+  start = time.time()           # začiatok merania času
+  for i in range(0, 2*n, 2):
+      hladaj(i)
+  cas = time.time()-start       # koniec merania času
+  print('cas =', round(cas/n*1000, 3))
+
+Najprv sme vygenerovali ``n``-prvkové pole náhodných čísel z intervalu ``<0, 2n-1>``. Pre toto generovanie poľa sme ešte nemerali čas trvania. Samotný odmeriavaný test teraz ``n``-krát hľadá v tomto poli nejakú hodnotu z intervalu ``<0, 2n-1>`` (zrejme sa poskúša hľadať len párne hodnoty). Na záver vypíše čas ale vydelený počtom hľadaní (počet volaní funkcie ``hladaj()``) a aby to neboli príliš malé čísla, čas ešte vynásobí 1000, teda nedostávame sekundy, ale milisekundy.
+
+Tento test niekoľkokrát spustíme pre rôzne ``n``:
+
+ ::
+ 
+  zadaj n: 100
+  cas = 0.005
+
+ ::
+
+  zadaj n: 1000
+  cas = 0.05
+
+ ::
+
+  zadaj n: 10000
+  cas = 0.496
+
+ ::
+ 
+  zadaj n: 100000
+  cas = 5.921
+
+čo môžeme vyčítať z týchto výsledkov:
+
+* pre 100-prvkové pole trvalo jedno hľadanie približne 0.005 milisekúnd (t.j. 5 milióntin sekundy)
+* pre 1000-prvkové pole trvalo jedno hľadanie približne 0.05 milisekúnd, to znamená, že pre 10-krát väčšie pole aj hľadanie trvá asi 10-krát tak dlho
+* pre 10000-prvkové pole trvalo jedno hľadanie približne 0.5 milisekundy, čo asi potvrdzuje našu hypotézu, že čas hľadania je lineárne závislý od veľkosti poľa
+* pre 10000-prvkové pole jedno hľadanie trvá skoro 6 milisekúnd a môžeme si zatipovať, že v 1000000-prvkovom poli by sme hľadali 100-krát dlhšie, teda asi 600 milisekúnd, čo je viac ako pol sekundy
+
+Asi vidíme, že telefónny zoznam New Yorku s 8 miliónmi mien bude náš program priemerne prehľadávať 5 sekúnd - a to už je dosť veľa.
+
+Zrejme múdre programy používajú nejakú lepšiu stratégiu na prehľadávanie telefónneho zoznamu. V prvom rade sú takéto zoznamy usporiadané podľa mien, vďaka čomu sa bude dať hľadať oveľa rýchlejšie.
+
+Binárne vyhľadávanie
+....................
+
+Použijeme podobnú ideu, ako sme riešili úlohu v 4. prednáške 4.2.1. Zisťovanie druhej odmocniny. V tomto prípade využijeme ten fakt, že v reálnom telefónnom zozname sú všetky mená usporiadané podľa abecedy. Vďaka tomu, ak by sme si vybrali úplne náhodnú pozíciu v takomto zozname, na základe príslušnej hodnoty v tabuľke, sa vieme jednoznačne rozhodnúť, či ďalej budeme pokračovať v hľadaní v časti zoznamu pred touto pozíciou alebo za. Nebudem ale túto pozíciu voliť náhodne, vyberieme pozíciu v strede zoznamu.
+
+Ukážme to na príklade: v poli máme telefónny zoznam, ktorý je usporiadaný podľa mien. Pre lepšie znázornenie použijeme len dvojpísmenové mená, napr. tu je utriedený 13-prvkový zoznam a ideme v ňom hľadať meno ``'hj'`` (možno Hraško Ján):
+
+ +------+------+------+------+------+------+------+------+------+------+------+------+------+
+ |   0  |   1  |   2  |   3  |   4  |   5  |   6  |   7  |   8  |   9  |  10  |  11  |  12  |
+ +------+------+------+------+------+------+------+------+------+------+------+------+------+
+ |**ab**|**ad**|**dd**|**fm**|**hj**|**jj**|**ka**|**kz**|**mo**|**pa**|**rd**|**tz**|**zz**|
+ +------+------+------+------+------+------+------+------+------+------+------+------+------+
+ |  zac |      |      |      |      |      | stred|      |      |      |      |      |  kon |
+ +------+------+------+------+------+------+------+------+------+------+------+------+------+
+
+Označili sme tu začiatok a koniec intervalu zoznamu, v ktorom práve hľadáme: na začiatku je to kompletný zoznam od indexu 0 až po 12. Vypočítame ``stred`` (ako ``(zac+kon)//2``) - to je pozícia, kam sa pozrieme úplne na začiatku. Keďže v strede zoznamu je meno ``'ka'``, tak zrejme všetky mená v zozname za týmto stredom sú v abecede vyššie a teda ``'hj'`` sa medzi nimi určite nenachádza (platí ``'hj'`` < ``'ka'``). Preto odteraz bude stačiť hľadať len v prvej polovici zoznamu teda v intervale od 0 do 5. Opravíme koncovú hranicu intervalu a vypočítame nový ``stred``:
+
+ +------+------+------+------+------+------+------+------+------+------+------+------+------+
+ |   0  |   1  |   2  |   3  |   4  |   5  |   6  |   7  |   8  |   9  |  10  |  11  |  12  |
+ +------+------+------+------+------+------+------+------+------+------+------+------+------+
+ |**ab**|**ad**|**dd**|**fm**|**hj**|**jj**|  ka  |  kz  |  mo  |  pa  |  rd  |  tz  |  zz  |
+ +------+------+------+------+------+------+------+------+------+------+------+------+------+
+ |  zac |      | stred|      |      |  kon |      |      |      |      |      |      |      |
+ +------+------+------+------+------+------+------+------+------+------+------+------+------+
+
+Stredná pozícia v tomto prípade padla na meno ``'dd'``. Keďže ``'hj'`` je v abecede až za ``'dd'`` (platí ``'dd'`` < ``'hj'``), opäť prepočítame hranice sledovaného intervalu a nový stred:
+
+ +------+------+------+------+------+------+------+------+------+------+------+------+------+
+ |   0  |   1  |   2  |   3  |   4  |   5  |   6  |   7  |   8  |   9  |  10  |  11  |  12  |
+ +------+------+------+------+------+------+------+------+------+------+------+------+------+
+ |  ab  |  ad  |  dd  |**fm**|**hj**|**jj**|  ka  |  kz  |  mo  |  pa  |  rd  |  tz  |  zz  |
+ +------+------+------+------+------+------+------+------+------+------+------+------+------+
+ |      |      |      | zac  | stred|  kon |      |      |      |      |      |      |      |
+ +------+------+------+------+------+------+------+------+------+------+------+------+------+
+
+Už pri tomto treťom kroku algoritmu sa nám podarilo objaviť pozíciu hľadaného mena v zozname: ``stred`` teraz odkazuje presne na naše hľadané slovo.
+
+Ak by sa hľadané slovo v tomto telefónnom zozname nenachádzalo (napr. namiesto ``'hj'`` by sme hľadali ``'gr'``), tak by algoritmus pokračoval ďalšími krokmi: opäť porovnáme stredný prvok s našim hľadaným (``'gr'`` < ``'hj'``) a keďže je v abecede pred ním, zmeníme interval tak, že ``zac`` == ``kon`` == ``stred``:
+
+ +------+------+------+------+------+------+------+------+------+------+------+------+------+
+ |   0  |   1  |   2  |   3  |   4  |   5  |   6  |   7  |   8  |   9  |  10  |  11  |  12  |
+ +------+------+------+------+------+------+------+------+------+------+------+------+------+
+ |  ab  |  ad  |  dd  |**fm**|  hj  |  jj  |  ka  |  kz  |  mo  |  pa  |  rd  |  tz  |  zz  |
+ +------+------+------+------+------+------+------+------+------+------+------+------+------+
+ |      |      |      | stred|      |      |      |      |      |      |      |      |      |
+ +------+------+------+------+------+------+------+------+------+------+------+------+------+
+
+A to je teda už definitívny koniec algoritmu (interval je 1-prvkový): keďže tento jediný prvok je rôzny od hľadaného ``'gr'``, je nám jasné, že sme skončili so správou "nenašli".
+
+Zapíšme tento algoritmus do Pythonu:
+
+ ::
+
+  def hladaj(hodnota):
+      zac = 0                            # zaciatok intervalu
+      kon = len(pole)-1                  # koniec intervalu
+      while zac <= kon:
+          stred = (zac + kon) // 2       # stred intervalu
+          if pole[stred] < hodnota:
+              zac = stred + 1
+          elif pole[stred] > hodnota:
+              kon = stred - 1
+          else:
+              return True
+      return False
+
+Ak by sme teraz spustili rovnaké testy ako pred tým so sekvenčným vyhľadávaním, boli by sme milo prekvapení: čas na hľadanie v 1000-prvkovom poli a 1000000-prvkovom poli je skoro stále rovnaký a sú to len tisíciny milisekúnd.
+        
+Štandardný typ dict
+-------------------
+
+**Asociatívne pole** je taká dátová štruktúra, v ktorej k prvkom neprichádzame cez poradové číslo (index) tak ako pri obyčajných poliach a reťazcoch, ale k prvkom prichádzame pomocou **kľúča**. Hovoríme, že k danému kľúču je **asociovaná** nejaká hodnota (niekedy hovoríme, že hodnotu **mapujeme** na daný kľúč).
+
+Zapisujeme to takto:
+
+ ::
+
+    kľúč : hodnota
+
+Samotné asociatívne pole zapisujeme ako takéto dvojice (``kľúč : hodnota``) a celé je to uzavreté v ``'{'`` a ``'}'`` zátvorkách, napr.
+
+ ::
+
+  >>> vek = {'Jan':17, 'Maria':15, 'Ema':18}
+
+Takto sme vytvorili asociatívne pole (pythonovský typ ``dict``), ktoré má tri prvky: ``'Jan'`` má 17 rokov, ``'Maria'`` má 15 a ``'Ema'`` má 18. V priamom režime vidíme, ako toto asociatívne pole vypisuje Python a tiež to, že pre Python to má 3 prvky (3 dvojice):
+
+ ::
+
+  >>> vek
+  {'Jan': 17, 'Maria': 15, 'Ema': 18}
+  >>> len(vek)
+  3
+
+Teraz zápisom, ktorý sa podobá indexovaniu pythonovského poľa:
+
+ ::
+
+  >>> vek['Jan']
+  17
+
+získame asociovanú hodnotu pre kľúč ``'Jan'``.
+
+Ak sa pokúsime zistiť hodnotu pre neexistujúci kľúč:
+
+ ::
+
+  >>> vek['Juraj']
+  ...
+  KeyError: 'Juraj'
+
+Python nám tu oznámi ``KeyError``, čo znamená, že toto asociatívne pole nemá definovaný kľúč ``'Juraj'``.
+
+Rovnako, ako priraďujeme hodnotu do obyčajného poľa, môžeme vytvoriť novú hodnotu pre nový kľúč:
+
+ ::
+
+  >>> vek['Hana'] = 15
+  >>> vek
+  {'Jan': 17, 'Hana': 15, 'Maria': 15, 'Ema': 18}
+
+alebo môžeme zmeniť existujúcu hodnotu:
+
+ ::
+
+  >>> vek['Maria'] = 16
+  >>> vek
+  {'Jan': 17, 'Hana': 15, 'Maria': 16, 'Ema': 18}
+
+Všimnite si, že poradie dvojíc ``kľúč:hodnota`` je v samotnom asociatívnom poli v nejakom neznámom poradí, dokonca, ak spustíme program viackrát, môžeme dostať rôzne poradia prvkov. Podobnú skúsenosť máte možno aj s typom ``set`` z predchádzajúcej prednášky.
+
+Pripomeňme si, ako funguje operácia ``in`` s pythonoským poľom (typ ``list``):
+
+ ::
+
+  >>> pole = [17, 15, 16, 18]
+  >>> 15 in pole
+  True
+
+Operácia ``in`` s takýmto poľom prehľadáva hodnoty a ak takú nájde, vráti ``True``.
+
+S asociatívnym poľom to funguje trochu inak: operácia ``in`` neprehľadáva hodnoty ale kľúče:
+
+ ::
+
+  >>> 17 in vek
+  False
+  >>> 'Hana' in vek
+  True
+
+Vďaka tomuto vieme zabrániť, aby program spadol pri neznámom kľúči:
+
+ ::
+
+  >>> if 'Juraj' in vek:
+          print('Juraj ma', vek['Juraj'], 'rokov')
+      else:
+          print('nepoznám Jurajov vek')
+
+Keďže operácia ``in`` s asociatívnom poli prehľadáva kľúče, tak aj for-cyklus bude fungovať na rovnakom princípe:
+
+ ::
+
+  >>> for i in pole:
+          print(i)
+  17
+  15
+  16
+  18
+  >>> for i in vek:
+          print(i)
+  Jan
+  Hana
+  Maria
+  Ema
+
+Z tohto istého dôvodu funkcia ``list()`` s parametrom asociatívne pole vytvorí pole kľúčov a nie pole hodnôt:
+
+ ::
+
+  >>> list(vek)
+  ['Jan', 'Hana', 'Maria', 'Ema']
+
+Keď chceme vypísať z asociatívneho poľa všetky kľúče aj s ich hodnotami, zapíšeme:
+
+ ::
+
+  >>> for kluc in vek:
+          print(kluc, vek[kluc])
+
+  Jan 17
+  Hana 15
+  Maria 16
+  Ema 18
+
+Zrejme asociatívne pole rovnako ako obyčajné je **meniteľný** typ (**mutable**), keďže môžeme do neho pridávať nové prvky, resp. meniť hodnoty existujúcich prvkov.
+
+Napr. funguje takýto zápis:
+
+ ::
+
+  >>> vek['Jan'] = vek['Jan'] + 1
+  >>> vek
+  {'Jan': 18, 'Hana': 15, 'Maria': 16, 'Ema': 18}
+
+a môžeme to využiť aj v takejto funkcii:
+
+ ::
+
+  def o_1_starsi(vek):
+      for kluc in vek:
+          vek[kluc] = vek[kluc] + 1
+
+Funkcia zvýši hodnotu v každej dvojici asociatívneho poľa o 1:
+
+ ::
+
+  >>> o_1_starsi(vek)
+  >>> vek
+  {'Jan': 19, 'Hana': 16, 'Maria': 17, 'Ema': 19}
+
+Pythonovské funkcie teda môžu meniť (ako vedľajší účinok) nielen obyčajné pole ale aj asociatívne pole.
+
+Ak by sme chceli prejsť kľúče v utriedenom poradí, musíme zoznam kľúčov najprv utriediť:
+
+ ::
+
+  >>> for kluc in sorted(vek):
+          print(kluc, vek[kluc])
+  Ema 19
+  Hana 16
+  Jan 19
+  Maria 17
+
+Asociatívne polia majú definovaných viac zaujímavých metód, my si ukážeme len 3 z nich. Táto skupina troch metód vráti nejaké špeciálne "postupnosti":
+
+* ``keys()`` - postupnosť kľúčov
+* ``values()`` - postupnosť hodnôt
+* ``items()`` - postupnosť prvkov ako dvojice kľúč a hodnota
+
+Napríklad
+
+ ::
+
+  >>> vek.keys()
+  dict_keys(['Jan', 'Hana', 'Maria', 'Ema'])
+  >>> vek.values()
+  dict_values([19, 16, 17, 19])
+  >>> vek.items()
+  dict_items([('Jan', 19), ('Hana', 16), ('Maria', 17), ('Ema', 19)])
+
+Tieto postupnosti môžeme použiť napr. vo for-cykle alebo môžu byť parametrami rôznych funkcií, napr. ``list()``, ``max()`` alebo ``sorted()``:
+
+ ::
+
+  >>> list(vek.values())
+  [19, 16, 17, 19]
+  >>> list(vek.items())
+  [('Jan', 19), ('Hana', 16), ('Maria', 17), ('Ema', 19)]
+
+Metódu ``items()`` najčastejšie využijeme vo for-cykle:
+
+  >>> for prvok in vek.items():
+          kluc, hodnota = prvok
+  	      print(kluc, hodnota)
+
+  Jan 19
+  Hana 16
+  Maria 17
+  Ema 19
+
+Alebo krajšie dvojicou premenných for-cyklu:
+
+ ::
+
+  >>> for kluc, hodnota in vek.items():
+  	      print(kluc, hodnota)
+
+  Jan 19
+  Hana 16
+  Maria 17
+  Ema 19
+
+
+Najpoužívanejšou metódou je ``get()``.
+
+.. topic:: metóda ``get()``
+
+   Táto metóda vráti asociovanú hodnotu k danému kľúču, ale v prípade, že daný kľúč neexistuje, nespadne na chybe, ale vráti nejakú náhradnú hodnotu. Metódu môžeme volať s jedným alebo aj dvoma parametrami:
+
+    ::
+
+     apole.get(kluc)
+     apole.get(kluc, nahrada)
+
+   V prvom prípade, ak daný kľúč neexistuje, funkcia vráti ``None``, ak v druhom prípade neexistuje kľúč, tak funkcia vráti hodnotu ``nahrada``.
+
+Napr.
+
+ ::
+
+  >>> print(vek.get('Maria'))
+  17
+  >>> print(vek.get('Mario'))
+  None
+  >>> print(vek.get('Maria', 20))
+  17
+  >>> print(vek.get('Mario', 20))
+  20
+
+Príkaz ``del`` funguje nielen s obyčajným poľom, ale aj s asociatívnym:
+
+ ::
+
+  >>> pole = [17, 15, 16, 18]
+  >>> del pole[1]
+  >>> pole
+  [17, 16, 18]
+
+
+.. topic:: príkaz ``del`` s asociatívnym poľom
+
+   Príkaz ``del`` vyhodí z asociatívneho poľa príslušný kľúč aj s jeho hodnotou:
+
+    ::
+
+     del apole[kluc]
+
+   Ak daný kľúč v poli neexistuje, príkaz vyhlási ``KeyError``
+
+Napríklad:
+
+ ::
+
+  >>> vek
+  {'Jan': 19, 'Hana': 16, 'Maria': 17, 'Ema': 19}
+  >>> del vek['Jan']
+  >>> vek
+  {'Hana': 16, 'Maria': 17, 'Ema': 19}
+
+---------------
+
+**Zhrňme** všetko, čo sme sa doteraz naučili pre asociatívne pole ``apole``:
+
+``apole = {}``
+       prázdne asociatívne pole
+``apole = {kľúč:hodnota, ...}``
+       priame priradenie celého asociatívneho poľa
+``kľúč in apole``
+       zistí, či v asociatívnom poli existuje daný ``kľúč`` (vráti ``True`` alebo ``False``)
+``len(apole)``
+       zistí počet prvkov (dvojíc ``kľúč:hodnota``) v asociatívnom poli
+``apole[kľúč]``
+       vráti príslušnú hodnotu alebo príkaz spadne na chybe ``KeyError``, ak neexistuje
+``apole[kľúč] = hodnota``
+       vytvorí novú asociáciu ``kľúč:hodnota``
+``del apole[kľúč]``
+       zruší dvojicu ``kľúč:hodnota`` alebo príkaz spadne na chybe ``KeyError``, ak neexistuje
+``for kľúč in apole: ...``
+       prechádzanie všetkých kľúčov
+``for kľúč in apole.values(): ...``
+       prechádzanie všetkých hodnôt
+``for kľúč, hodnota in apole.items(): ...``
+       prechádzanie všetkých dvojíc ``kľúč:hodnota``
+``apole.get(kľúč)``
+       vráti príslušnú hodnotu alebo ``None``, ak kľúč neexistuje
+``apole.get(kľúč, náhradná)``
+       vráti príslušnú hodnotu alebo vráti hodnotu parametra ``náhradná``, ak kľúč neexistuje
+
+---------------
+
+Predstavte si teraz, že máme dané nejaké obyčajné pole dvojíc a chceme z neho urobiť asociatívne pole. Môžeme to urobiť, napr. for-cyklom:
+
+ ::
+
+  >>> pole_dvojic = [('one', 1), ('two', 2), ('three', 3)]
+  >>> apole= {}
+  >>> for k, h in pole_dvojic:
+          apole[k] = h
+  >>> apole
+  {'one': 1, 'two': 2, 'three': 3}
+
+alebo priamo použitím štandardnej funkcie ``dict()``, ktorá takto funguje ako konverzná funkcia:
+
+ ::
+
+  >>> apole = dict(pole_dvojic)
+  >>> apole
+  {'one': 1, 'two': 2, 'three': 3}
+
+Takéto pole dvojíc vieme vytvoriť aj z nejakého asociatívneho poľa pomocou metódy ``items()``:
+
+ ::
+
+  >>> list(apole.items())
+  [('one', 1), ('two', 2), ('three', 3)]
+
+
+Asociatívne pole ako slovník (dictionary)
+.........................................
+
+Anglický názov tohto typu ``dict`` je zo slova **dictionary**, teda slovník. Naozaj je "obyčajný" slovník príkladom pekného využitia asociatívneho poľa. Napr.
+
+ ::
+
+  slovnik = {'cat':'macka', 'dog':'pes', 'my':'moj', 'good':'dobry', 'is':'je'}
+
+  def preklad(veta):
+      vysl = []
+      for slovo in veta.lower().split():
+          vysl.append(slovnik.get(slovo, slovo))
+      return ' '.join(vysl)
+
+ ::
+
+  >>> preklad('my dog is very good')
+  'moj pes je very dobry'
+
+Zrejme, keby sme mali kompletnejší slovník, napr. anglicko-slovenský, vedeli by sme takto veľmi jednoducho realizovať tento "kuchársky" preklad. V skutočnosti by sme asi mali mať slovník, v ktorom jednému anglickému slovu zodpovedá niekoľko (napr. n-tica) slovenských slov.
+
+
+Asociatívne pole ako frekvenčná tabuľka
+.......................................
+
+Frekvenčnou tabuľkou nazývame takú tabuľku, ktorá pre rôzne hodnoty obsahuje informácie o počte výskytov v nejakom zozname hodnôt (napr. súbor, reťazec, pole, ...).
+
+Ukážeme to na zisťovaní počtu výskytov napr. písmen v nejakom texte. Budeme konštruovať asociatívne pole, v ktorom každému prvku vstupného poľa (kľúču) bude zodpovedať jedno celé číslo - počítadlo výskytov tohto prvku:
+
+ ::
+
+  def pocty_vyskytov(pole):
+      vysl = {}
+      for prvok in pole:
+          vysl[prvok] = vysl.get(prvok, 0) + 1
+      return vysl
+
+  pocet = pocty_vyskytov(list('anicka dusicka nekasli, aby ma pri tebe nenasli.'))
+  for k, h in pocet.items():
+      print(k, h)
+
+Všimnite si použitie metódy ``get()``, vďaka ktorej nepotrebujeme pomocou podmieneného príkazu ``if`` zisťovať, či sa príslušný kľúč už v asociatívnom poli nachádza. Zápis ``vysl.get(prvok, 0)`` pre spracovávaný ``prvok`` vráti momentálny počet jeho výskytov, alebo 0, ak sa tento ``prvok`` vyskytol prvýkrát.
+
+Podobne môžeme spracovať aj nejaký celý textový súbor (`dobs.txt <_static/dobs.txt>`_ alebo `twain.txt <_static/twain.txt>`_):
+
+ ::
+
+  with open('dobs.txt') as subor:
+      pocet = pocty_vyskytov(subor.read())
+  for k, h in pocet.items():
+      print(k, h)
+
+Vidíme, že pri väčších súboroch sú aj zistené počty výskytov dosť vysoké. Napr. všetkých spracovaných znakov bolo:
+
+ ::
+
+  >>> sum(pocet.values())
+
+Ak by sme potrebovali zisťovať nie počty písmen, ale počty slov, stačí zapísať:
+
+ ::
+
+  with open('dobs.txt') as subor:
+      pocet = pocty_vyskytov(subor.read().split())
+      
+Takéto asociatívne pole je už dosť veľké a nemá zmysel ho vypisovať celé, veď všetkých rôznych slov a teda veľkosť asociatívneho poľa je
+
+ ::
+ 
+  >>> len(pocet)
+
+10 najčastejších slov vo veľkom texte zistíme tak, že najprv z asociatívneho poľa počtu výskytov (premenná ``pocet``) vytvoríme pole dvojíc ``(hodnota, kľúč)`` (prehodíme poradie v dvojiciach ``(kľúč, hodnota)``). Potom toto pole utriedime. Robíme to preto, lebo Python triedi n-tice tak, že najprv porovnáva prvé prvky (teda počty výskytov) a potom až pri zhode porovná druhé prvky (teda samotné slová). Všimnite si, že metóde ``sort`` (pre obyčajné pole) sme pridali parameter ``reverse=True``, aby sa pole utriedilo zostupne, teda od najväčších po najmenšie:
+
+ ::
+
+  pole = []
+  for k, h in pocet.items():
+      pole.append((h, k))
+
+  pole.sort(reverse=True)
+
+  print(pole[:10])
+
+Ešte si uvedomte, že kľúčmi nemusia byť len slová, resp. písmená. Kľúčmi môže byť ľubovoľný nemeniteľný (immutable) typ, teda okrem ``str`` aj ``int``, ``float`` a ``tuple``. Teda by sme zvládli zisťovať aj počet výskytov prvkov číselných polí, alebo hoci dvojíc čísel (súradníc bodov v rovine) a pod.
+
+
+Pole asociatívnych polí
+.......................
+
+Asociatívne pole môže byť aj hodnotou v inom asociatívnom poli. Zapíšme:
+
+ ::
+
+  student1 = {
+      'meno': 'Janko Hrasko',
+      'adresa': {'ulica': 'Strukova',
+                 'cislo': 13,
+                 'obec': 'Fazulovo'},
+      'narodeny': {'datum': {'den': 1, 'mesiac': 5, 'rok': 1999},
+                   'obec': 'Korytovce'}
+  }
+  student2 = {
+      'meno': 'Juraj Janosik',
+      'adresa': {'ulica': 'Pod sibenicou',
+                 'cislo': 1,
+                 'obec': 'Liptovsky Mikulas'},
+      'narodeny': {'datum': {'den': 25, 'mesiac': 1, 'rok': 1688},
+                   'obec': 'Terchova'}
+  }
+  student3 = {
+      'meno': 'Margita Figuli',
+      'adresa': {'ulica': 'Sturova',
+                 'cislo': 4,
+                 'obec': 'Bratislava'},
+      'narodeny': {'datum': {'den': 2, 'mesiac': 10, 'rok': 1909},
+                   'obec': 'Vysny Kubin'}
+  }
+  student4 = {
+      'meno': 'Ludovit Stur',
+      'adresa': {'ulica': 'Slovenska',
+                 'cislo': 12,
+                 'obec': 'Modra'},
+      'narodeny': {'datum': {'den': 28, 'mesiac': 10, 'rok': 1815},
+                   'obec': 'Uhrovec'}
+  }
+
+  skola = [student1, student2, student3, student4]
+
+Vytvorili sme 4-prvkové obyčajné pole, v ktorom každý prvok je asociatívne pole. V týchto asociatívnych poliach sú po 3 kľúče ``'meno'``, ``'adresa'``, ``'narodeny'``, pričom dva z nich majú hodnoty opäť asociatívne polia. Môžeme zapísať, napr.:
+
+ ::
+
+  >>> for st in skola:
+          print(st['meno'], 'narodeny v', st['narodeny']['obec'])
+
+  Janko Hrasko narodeny v Korytovce
+  Juraj Janosik narodeny v Terchova
+  Margita Figuli narodeny v Vysny Kubin
+  Ludovit Stur narodeny v Uhrovec
+
+Získali sme nielen mená všetkých študentov v tomto poli ale aj ich miesto narodenia.
+
+Textové súbory JSON
+-------------------
+
+Ak pythonovská štruktúra obsahuje iba:
+
+* obyčajné polia ``list``
+* asociatívne polia ``dict`` s kľúčmi, ktoré sú reťazce
+* znakové reťazce ``str``
+* celé alebo desatinné čísla ``int`` a ``float``
+* logické hodnoty ``True`` alebo ``False``
+
+môžeme túto štruktúru (napr. pole ``skola``) zapísať do súboru:
+
+ ::
+
+  import json
+
+  with open('subor.txt', 'w') as f:
+      json.dump(skola, f)
+
+Takto vytvorený súbor je dosť nečitateľný, čo môžeme zmeniť parametrom ``indent``:
+
+ ::
+
+  with open('subor.txt', 'w') as f:
+      json.dump(skola, f, indent=2)
+
+Prečítať takýto súbor a zrekonštruovať z neho celú štruktúru je potom veľmi jednoduché:
+
+ ::
+
+  j = json.load(open('subor.txt'))
+  print(skola==j)
+
+Vytvorila sa nová štruktúra ``j``, ktorá má presne rovnaký obsah, ako zapísané pole ``skola``.
+
+Cvičenie
+--------
+
+1. Odmerajte čas, koľko trvá vygenerovať ``n``-prvkové náhodné pole čísel. Testujte pre rôzne ``n``: 1000, 10000, 100000, 1000000.
+
+2. Funkcia ``nahodne_utriedene(n)`` vygeneruje ``n``-prvkové pole náhodných hodnôt od 0 do ``2*n-1``, pričom toto pole bude vzostupne usporiadané a nebude obsahovať viac rovnakých prvkov. Výsledkom (``return``) funkcie je toto pole. Odmerajte čas, koľko trvá vygenerovať rôzne veľké polia, napr. pre ``n`` 100, 1000, 10000, 100000.
+
+3. Vygenerujte 20-prvkové náhodné pole čísel od 10 do 99, utrieďte ho a spustite na ňom algoritmus **binárneho vyhľadávania** pre nejaké konkrétne hodnoty. Doplňte túto jeho funkciu ``hladaj()`` o kontrolné výpisy:
+
+   * na začiatok ``while``-cyklu za výpočet hodnoty ``stred``, vložte výpis celého poľa do jedného riadka a pod neho vyznačte pozície ``z``, ``s`` a ``k`` pre momentálny začiatok, stred a koniec intervalu, napr. pri hľadaní čísla 50, to môže vyzerať takto:
+
+    ::
+    
+     10 25 30 32 43 45 51 53 58 59 63 65 70 81 82 85 90 97 99 99
+      z                          s                             k
+     10 25 30 32 43 45 51 53 58 59 63 65 70 81 82 85 90 97 99 99
+      z           s           k
+     10 25 30 32 43 45 51 53 58 59 63 65 70 81 82 85 90 97 99 99
+                     z  s     k
+     10 25 30 32 43 45 51 53 58 59 63 65 70 81 82 85 90 97 99 99
+                     z  s  k
+     nenasiel
+
+4. Odmerajte čas, koľko priemerne bude trvať vyhľadanie nejakej hodnoty pomocou **binárneho vyhľadávania**. Použite podobný test, ako sa robil pre sekvenčné hľadanie. Využite funkciu ``nahodne_utriedene(n)`` z úlohy (2).
+
+5. Zadefinujte asociatívne pole ``apole`` tak, že kľúčmi budú mená vašich 10 kolegov (môžete si vymyslieť) a hodnotami ich približné výšky v cm.
+
+   * napr.
+
+    ::
+    
+     >>> apole = {'Igor':197, 'Mariana':160, 'Adam':171, ...}
+     >>> apole
+     
+6. Vypíšte vaše asociatívne pole z úlohy (5) tak, že v každom riadku bude jedno meno a príslušná výška, pričom výpis bude usporiadaný podľa abecedy.
+
+7. Podobne ako v úlohe (6) vypíšete obsah ``apole``, ale výpis bude usporiadaný podľa výšok od najmenšej po najväčšiu.
+
+8. Napíšte funkciu ``priemer(ap)``, ktorá vypočíta priemer všetkých výšok z asociatívneho poľa ``apole`` z úlohy (5).
+
+9. Napíšte funkciu ``vypis(ap)``, ktorá vypíše všetky dvojice (kľúč, hodnota) z daného asociatívneho - každé do jedného riadka, pričom do každého riadka pripíše jedno zo slov ``'priemer'``, ``'podpriemer'`` alebo ``'nadpriemer'``, podľa toho či sa daná výška rovná priemernej, alebo je menšia ako priemer, alebo je väčšia.
+
+10. Napíšte funkciu ``len_od_do(ap, od, do)``, ktorá z daného asociatívneho poľa vytvorí nové (pôvodné nechá bez zmeny), v ktorom budú len tie dvojice (kľúč, hodnota), ktorých výška je z intervalu ``<od, do>``. Napr. ``len_od_do(apole, 170, 179)`` vytvorí nové asociatívne pole, ktoré bude obsahovať len tých kolegov z pôvodného ``apole``, ktorých výška nie je menšia ako 170 a nie je väčšia ako 179 cm.
+
+11. Napíšte funkciu ``prevrat(ap)``, ktorá z ``ap`` skonštruuje nové asociatívne pole. Kľúčmi v tomto poli budú výšky a hodnotami budú polia (alebo množiny, rozhodnite sa) všetkých tých kolegov z ``ap``, ktorí majú túto výšku.
+
+12. Napíšte funkciu ``dve_kocky(n)``, ktorá bude simulovať hody dvoch hracích kociek (s číslami od 1 do 6) a evidovať si, koľkokrát padol ktorý súčet. Zrejme súčty budú čísla od 2 do 12. Funkcia bude simulovať ``n`` takýchto hodov dvomi kockami a vráti frekvenčnú tabuľku. Funkcia nemusí nič vypisovať.
+
+13. Napíšte funkciu ``farba(reťazec)``, ktorá z daného reťazca - mena farby v slovenčine vráti správny názov farby pre ``tkinter``. Ak danú farbu nerozpozná, vráti farbu ``pink``. Funkcia by mala akceptovať tieto slovenské mená farieb: 'biela', 'cierna', 'cervena', 'modra', 'zlta', 'zelena' (môžete si podľa vlastného uváženia doplniť ďalšie). Vo funkcii nepoužite príkaz ``if``.
+
+14. Napíšte funkciu ``pretypuj(nazov, hodnota)``, ktorá na základe názvu typu pretypuje danú hodnotu. Vo funkcii nepoužite príkaz ``if``. Ak sa dané pretypovanie urobiť nedá, funkcia by mala spadnúť na zodpovedajúcej chybe. Funkcia by mala akceptovať tieto názvy typov: ``'int'``, ``'float'``, ``'list'``, ``'tuple'``, ``'str'``, ``'set'``. Pre neznámy názov typu by funkcia mala spadnúť na chybe ``KeyError``.
+
+   * napr.
+
+    ::
+    
+     >>> pretypuj('str', 3.14)
+     '3.14'
+     >>> pretypuj('set', 'Python')
+     {'t', 'y', 'P', 'h', 'o', 'n'}
+     >>> pretypuj('float', '1e5')
+     100000.0
+     
+15. Napíšte funkciu ``opakuju(meno_suboru)``, ktorá vypíše všetky tie riadky daného textového súboru, ktoré sa v tomto súbore vyskytujú aspoň trikrát. Každý takýto opakujúci sa riadok vypíšte len raz.
+
+16. Na prednáške sa zisťovala frekvenčná tabuľka písmen, resp. slov vo vete. Napíšte funkciu ``dvojice(meno_suboru)``, ktorá z daného súboru slov zistí počet výskytov všetkých za sebou idúcich dvojíc písmen, napr. pre slova 'laska' bude akceptovať tieto štyri dvojice 'la', 'as', 'sk' a 'ka'. Funkcia vráti frekvenčnú tabuľku ako asociatívne pole. Otestujte na súboroch `dobs.txt <_static/dobs.txt>`_ alebo `twain.txt <_static/twain.txt>`_ a zistite 10 najčastejších dvojíc písmen.
+
+17. Uložte asociatívne pole, ktoré je výsledkom úlohy (11) - prevrátené asociatívne pole s výškami kolegov do textového súboru vo formáte ``json``. Potom tento súbor otvorte v nejakom textovom editore, cez clipboard preneste jeho obsah do Pythonu a priraďte hodnotu do nejakej premennej. Porovnajte jej obsah.
+
+   * napr.
+
+    ::
+    
+     >>> a = prevrat(...)
+     >>> ... ulož do json súboru ...
+     >>> b = ... prenesený obsah json súboru ...
+     >>> a == b
+     ???

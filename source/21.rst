@@ -1,0 +1,434 @@
+Práca s obrázkami
+=================
+
+Python Image Library
+--------------------
+
+Aby ste mohli pracovať s knižnicou **PIL**, musíte mať nainštalovaný modul **pillow**. Základné info o inštalácii nájdete na stránke `Inštalácia Pillow <http://pillow.readthedocs.io/en/3.4.x/installation.html>`_. Do Pythonu pod operačným systémom Windows treba v príkazovom okne ``cmd`` spustiť príkaz
+
+ ::
+ 
+  > pip install pillow
+  
+Je možné, že bude od vás požadovať administrátorské práva, resp. spustiť ``cmd`` ako správca.
+
+Po úspešnej inštalácii musíme v samotnom Pythone na začiatok našich programov zadať:
+
+ ::
+ 
+  from PIL import Image
+  
+Teraz je Python pripravený pracovať s obrázkovými objektmi.
+
+Vytvorenie obrázkového objektu
+..............................
+
+Obrázkový objekt vytvoríme buď prečítaním obrázkového súboru na disku alebo vytvorením prázdneho obrázku v pamäti. Príkaz na prečítanie súboru:
+
+ ::
+ 
+  >>> obr = Image.open('meno súboru')
+  
+Obrázkový súbor môže byť skoro ľubovoľného grafického typu, napr. **png**, **bmp**, **jpg**, **gif**, ... Aby tento súbor príkaz ``Image.open()`` mal šancu nájsť, buď sa bude nachádza v tom istom priečinku na disku, alebo mu zadáme kompletnú cestu, napr.
+
+ ::
+ 
+  >>> obr1 = Image.open('tiger.bmp')
+  >>> obr2 = Image.open('obrazky/slon.jpg')
+  >>> obr3 = Image.open('d:/user/data/python.png')
+
+Po prečítaní súbor môžeme zistiť niektoré jeho parametre, napr.
+
+ ::
+ 
+  >>> obr1
+  <PIL.BmpImagePlugin.BmpImageFile image mode=RGB size=384x256 at 0x2C4F710>
+  >>> obr1.size
+  (384, 256)
+  >>> obr1.width
+  384
+  >>> obr1.height
+  256
+  >>> obr1.mode
+  'RGB'
+
+Obrázky môžu byť uložené v niekoľkých rôznych **módoch**: pre nás budú zaujímavé len dva z nich ``'RGB'`` a  ``'RGBA'`` pre "obyčajné" **rgb** a **rgb**, ktoré si pamätá aj priesvitnosť, tzv. **alfa-kanál**, teda **rgba**.
+
+Veľmi často používaným príkazom bude:
+
+ ::
+ 
+  >>> obr1.show()
+  
+ktorý zobrazí momentálny obsah nami pripravovaného obrázku v nejakom externom programe - toto závisí od nastavení vo vašom operačnom systéme.
+
+Obrázkový objekt môžeme vytvoriť aj pomocou funkcie ``new()``, ktorej zadáme "mód" (t.j. ``'RGB'`` alebo  ``'RGBA'``), veľkosť obrázka v pixeloch ako dvojica ``(šírka, výška)`` a prípadne farbu, ktorou sa tento obrázok zafarbí (inak bude čierny):
+
+ ::
+ 
+  >>> obr4 = Image.new('RGB', (300, 200), 'white')
+  
+Vytvorí nový objekt ``obr4`` - obrázok veľkosti 300x200 pixelov (šírka 300, výška 200), ktorý bude celý biely. Ako farbu pixelov tu môžeme okrem mena farby uviesť aj reťazec známy z ``tkinter``, ktorý obsahuje cifry v 16-ovej sústave, napr. ``'#12a4ff'``, alebo trojicu **rgb** (teda ``tuple``) v tvare, napr. ``(120, 198, 255)``. Neskôr tu uvidíme aj štvoricu pre **rgba**.
+
+Ak by sme chceli vytvoriť nový obrázok rovnakej veľkosti ako nejaký už existujúci iný, môžeme využiť jeho atribút ``size``, napr.
+
+ ::
+
+  >>> obr4 = Image.new('RGB', obr1.size, '#ffffff')
+
+
+Uloženie obrázka do súboru
+..........................
+
+Metóda ``save('meno súboru')`` uloží obrázok do súboru s ľubovoľnou príponou, teda takto ľahko zmeníme grafický formát obrázku. Napr.
+
+ ::
+ 
+  >>> obr1.save('tiger.png')
+  >>> obr4.save('temp/prazdny.jpg')
+  
+Uvedomte si, že ak nejaký obrázok prečítame, hneď ho aj ukladáme do súboru a nepotrebujeme ho mať uložený ako obrázkový objekt v nejakej premennej, môžeme priamo zapísať:
+
+ ::
+ 
+  >>> Image.open('obrazok.jpg').save('obrazok.png')
+  
+Oblasť v obrázku
+................
+
+Z obrázka môže odkopírovať ľubovoľnú obdĺžnikovú oblasť a uložiť ju do iného obrázka. Oblasť definujeme ako štvoricu (``tuple``) štyroch celých čísel ``(x, y, x+šírka, y+výška)``, kde ``(x, y)`` je poloha ľavého horného pixela oblasti (riadky aj stĺpce indexujeme od 0) a ``šírka`` a ``výška`` sú rozmery oblasti v pixeloch, t.j. počet stĺpcov a riadkov pixelov.
+
+Na vykopírovanie oblasti slúži príkaz:
+
+ ::
+ 
+  >>> novy_obr = obr1.crop(oblasť)
+  
+Touto metódou vzniká nový obrázok zadaných rozmerov s vykopírovaným obsahom. Pôvodný obrázok ostáva bez zmeny. Ak je časť oblasti mimo pôvodného obrázka, v novom obrázku tu budú doplnené čierne (resp. pre **rgba** priesvitné) pixely.
+
+Napr.
+
+ ::
+ 
+  >>> obr1a = obr1.crop((50, 50, 150, 120))
+  >>> obr1a.size
+  (100, 70)
+  
+Ak vieme pozíciu ``(x, y)`` ľavého horného pixelu oblasti a jej šírku ``sir`` a výšku ``vys``, môžeme kopírovanie zapísať aj takto:
+
+ ::
+ 
+  >>> x, y, sir, vys = 50, 50, 100, 70
+  >>> obr1a = obr1.crop((x, y, x+sir, y+vys))
+  
+niekedy môžete vidieť aj takýto zápis:
+
+ ::
+
+  >>> oblast = 50, 50, 100, 70
+  >>> obr1a = obr1.crop(oblast)
+
+Opačným príkazom pre vykopírovanie oblasti je vloženie obrázka na nejaké miesto iného obrázka. Zabezpečí to príkaz ``paste()``:
+
+ ::
+ 
+  >>> obr1.paste(obr2, kam)
+
+Tento príkaz **modifikuje** pôvodný obsah obrázka ``obr1``. Obrázok ``obr2`` sa "opečiatkuje" do ``obr1``, pričom parameter ``kam`` určí pozíciu. Najvhodnejšie je sem písať dvojicu ``(x, y)`` t.j. pozícia v ``obr1``, kam sa umiestni ``obr2``, t.j. jeho ľavý horný pixel. Uvedomte si, že táto metóda nevracia žiadnu hodnotu (teda vráti ``None``) a preto nemá zmysel jej výsledok niekam priraďovať.
+
+.. topic:: Pozor na "lazy" vyhodnocovanie
+
+   Príkaz ``crop()``, ktorý vykopíruje časť obrázka a vytvorí z neho nový obrázok má tzv. **lazy vyhodnocovanie**. To znamená, že hoci samotná operácia ešte neskončila, Python začne vyhodnocovať ďalší príkaz programu. Väčšinou to nevadí, ale niekedy, ak v ďalšom príkaze potrebujeme pracovať s obrázkovou premennou s vykopírovaným obsahom (napr. v ``paste()``), samotný ``crop()`` ešte nemusel dobehnúť. Z tohto dôvodu sa odporúča ešte pred ``paste()`` presvedčiť ešte nedobehnutý ``crop()``, aby už skončil. Na to slúži príkaz ``obr.load()``, napr.
+   
+    ::
+    
+     maly = velky.crop(oblast)
+     maly.load()                 # tu sa počká na dokončenie crop()
+     velky.paste(maly, (x, y))
+
+Príkaz ``paste()`` má aj iné využitie:
+
+ ::
+ 
+  >>> obr1.paste(pixel, oblasť)
+  
+V tomto prípade je ``pixel`` nejakou farbou a táto sa vyleje do špecifikovanej oblasti (nakreslí zafarbený obdĺžnik). Napr.
+
+ ::
+ 
+  img = Image.new('RGB', (300, 200), 'gray')
+  img.paste('red', (20, 20, 80, 180))
+  img.paste((0, 0, 255), (100, 20, 160, 180))
+  img.paste('#bf00bf', (180, 20, 240, 180))
+
+Keď budete s príkazom ``paste()`` experimentovať, môžete si pomocou príkazu ``copy()`` vytvárať kópiu pôvodného obrázka, keďže ``paste()`` ho modifikuje. Napr.
+
+ ::
+ 
+  >>> zaloha = obr1.copy()
+  >>> obr1.paste(obr1a, (100, 100))
+  >>> obr1.paste('yellow', (50, 50, 150, 120))
+  >>> obr1.show()     # alebo obr1.save(...)
+  >>> obr1 = zaloha
+  
+Zmeny obrázka
+.............
+
+Obrázku vieme zmeniť veľkosť, napr.
+
+ ::
+ 
+  >>> obr2 = obr1.resize((nova_sirka, nova_vyska))
+  
+Vytvorí sa nový obrázok so zadanými rozmermi, pôvodný ostáva bez zmeny. Napr.
+
+ ::
+ 
+  >>> obr3 = obr1.resize((obr1.width*3, obr1.height*3))
+  >>> obr1 = obr1.resize((obr1.width//2, obr1.height//2))
+  
+Obrázok ``obr3`` má trojnásobné rozmery pôvodného obrázka, pričom ``obr1`` sa zmenší na polovičné rozmery.
+
+Obrázok môžeme otáčať, resp. preklápať pomocou ``transpose()``:
+
+ ::
+ 
+  >>> novy_obr = obr1.transpose(Image.FLIP_LEFT_RIGHT)     # preklopí
+  >>> novy_obr = obr1.transpose(Image.FLIP_TOP_BOTTOM)     # preklopí
+  >>> novy_obr = obr1.transpose(Image.ROTATE_90)           # otočí
+  >>> novy_obr = obr1.transpose(Image.ROTATE_180)          # otočí
+  >>> novy_obr = obr1.transpose(Image.ROTATE_270)          # otočí
+  
+Zrejme pri tomto sa niekedy zmenia rozmery výsledného obrázka.
+
+Otáčať môžeme o ľubovoľný uhol:
+
+ ::
+ 
+  >>> novy_obr = obr1.rotate(uhol)
+
+Uhol zadávame v stupňoch v protismere otáčania hodinových ručičiek.
+
+Výsledný obrázok bude mať pôvodné rozmery ``obr1``, teda nejaké otočené časti sa pritom stratia. Ak ale zadáme:
+
+ ::
+
+  >>> novy_obr = obr1.rotate(uhol, expand=True)
+
+Nový obrázok sa zväčší tak, aby sa do neho zmestil celý otočený pôvodný obrázok.
+
+Práca s jednotlivými pixelmi
+............................
+
+Metóda ``getpixel()`` vráti farbu konkrétneho pixelu, napr.
+
+ ::
+ 
+  >>> obr1.getpixel((108, 154))
+  (255, 253, 248)
+  
+Metóda ``putpixel()`` zmení konkrétny pixel v obrázku. Napr.
+
+
+ ::
+
+  >> obr1.putpixel((108, 154), (255, 0, 0))
+
+Zafarbí daný pixel na červeno. V tomto prípade musí byť farba zadaná ako trojica (resp. pre **rgba** ako štvorica) čísel od 0 do 255.
+
+Takýto zápis zistí **množinu** všetkých farieb v obrázku:
+
+ ::
+
+  >>> mn = {obr1.getpixel((x, y)) for x in range(obr1.width) for y in range(obr1.height)}
+  >>> len(mn)
+  50325
+
+Priesvitnosť
+............
+
+Obrázok musí byť v móde ``'RGBA'``, t.j. každý pixel obsahuje ešte jednu číselnú informáciu o priesvitnosti (tzv. alfa-kanál). Pre toto číslo **255** označuje **nepriesvitný** pixel, **0** označuje úplne **priesvitný** pixel (vtedy na farbe **rgb** nezáleží), a hodnoty medzi tým označujú mieru priesvitnosti.
+
+Pomocou metódy ``convert()`` môžeme prekonvertovať mód obrázka, napr.
+
+ ::
+ 
+  >>> im = Image.open('obrazok.bmp')
+  >>> im1 = im.convert('RGBA')
+  >>> im2 = Image.open('obrazok2.png').convert('RGBA')
+  
+Obrázok ``im`` má zachovaný mód zo súboru, obrázky ``im1`` aj ``im2`` majú zmenený mód na ``'RGBA'``. Od teraz musíme pre tieto obrázky pixely zadávať ako štvorice (r, g, b, a), operácie ``crop()`` aj ``rotate()`` môžu vytvoriť priesvitné pixely za hranicou pôvodných obrázkov. Operácia ``paste()`` ale správne nezlučuje priesvitné pixely s pôvodným obrázkom, tak ako by sme očakávali. Na to potrebujeme iný mechanizmus:
+
+* funkcia ``alpha_composite()`` dokáže na seba položiť dva obrázky, ktoré majú priesvitnosť (polopriesvitnosť)
+* jej formát je ``Image.alpha_composite(obr1, obr2)``, kde oba obrázky musia mať rovnaké rozmery a mód ``'RGBA'``, výsledkom je nový obrázok, v ktorom na ``obr1`` je položený ``obr2``, pričom cez priesvitné časti ``obr2`` sú vidieť pixely z ``obr1``
+
+Tento mechanizmus môžete vidieť použitý v tejto funkcii ``poloz()``
+
+ ::
+ 
+  def poloz(obr_kam, obr_co, xy):
+      w, h = obr_co.size
+      x, y = xy
+      box = (x, y, x+w, y+h)
+      obr_kam.paste(Image.alpha_composite(obr_kam.crop(box), obr_co), box)
+
+Funkcia do obrázka ``obr_kam`` položí ``obr_co`` na pozíciu ``xy`` (čo je dvojica ``(x, y)``), ``xy`` je pozícia, kam sa dostane ľavý horný pixel ``obr2`` v ``obr1``. Táto pozícia ``xy`` sa môže nachádzať aj mimo ``obr1``
+
+
+Rozoberanie animovaných gif
+...........................
+
+Animovaný **gif** súbor sa skladá zo série za sebou idúcich obrázkov. Načítanie takéhoto súboru pomocou ``Image.open()`` nám automaticky sprístupní prvú fázu (má poradové číslo 0). Ak potrebujeme pracovať s ``i``-tou fázou animácie (``i``-tym obrázkom série), použijeme metódu ``obr.seek(i)``.
+
+Nasledujúca časť programu otvorí obrázkový súbor s animáciou ``'strom.gif'``, ktorý sa skladá z neznámeho počtu obrázkov. Postupne všetky tieto fázy uloží do samostatných obrázkových súborov vo formáte ``'png'``:
+
+ ::
+ 
+  gif = Image.open('strom.gif')
+  i = 0
+  while True:
+      gif.save('strom/strom{}.png'.format(i))
+      try:
+          i += 1
+          gif.seek(i)
+      except EOFError:
+          break
+
+Manipulácia naraz s celým obrázkom
+..................................
+
+Pomocou príkazov:
+
+* ``obr1 = obr.point(funkcia)``
+* ``r, g, b = obr.split()``
+* ``Image.merge(mod, (r, g, b))``
+
+Vypĺňanie oblasti farbou
+........................
+
+Na vypĺňanie farbou nejakej oblasti, ktorá je ohraničená nejakým obrysom, slúži funkcia ``floodfill()`` z modulu ``ImageDraw``. Funkcia má tieto parametre (dva varianty volania):
+
+ ::
+
+  from PIL import ImageDraw
+  
+  ImageDraw.floodfill(obr, xy, farba)
+  ImageDraw.floodfill(obr, xy, farba, hraničná_farba)
+
+kde
+
+* ``obr`` je obrázok, v ktorom sa bude vyfarbovať nejaká oblasť
+* ``xy`` je dvojica ``(x, y)`` pozície v obrázku, kde sa naštartuje "vylievanie" farby
+* ``farba`` je tá farba, ktorou sa bude vyfarbovať
+* ``hraničná_farba`` - ak nie je zadaná, tak sa farba vylieva do celej súvislej oblasti, ktorá má rovnakú farbu ako bod na pozícii ``xy``; ak je tento 4 parameter zadaný, tak hranicu súvislej oblasti určujú pixely tejto farby
+
+Nasledovná ukážka demonštruje použitie tejto funkcie:
+
+ ::
+ 
+  from PIL import Image, ImageDraw
+  from random import randrange as rr
+
+  f = Image.open('fill.png')
+  for i in range(100):
+      xy = rr(f.width), rr(f.height)
+      if f.getpixel(xy) == (255, 255, 255):
+          ImageDraw.floodfill(f, xy, (rr(256), rr(256), rr(256)))
+
+  f.show()
+
+V pôvodnom obrázku ``'fill.png'`` sú niektoré plochy biele. Tento program stokrát náhodne zvolí nejakú pozíciu a ak je tento pixel biely, tak vyplní celú súvislú oblasť s náhodnou farbou.
+
+..
+  dostávame takýto obrázok: ...
+
+
+Cvičenie
+--------
+
+1. Napíšte funkciu ``novy(sir, vys, meno_suboru=None)``, ktorá vytvorí biely obrázok veľkosti ``sir``x``vys`` a ak je zadané aj ``meno_suboru``, uloží ho do tohto súboru, inak vráti obrázok ako výsledok funkcie. Pomocou tejto funkcie potom vytvorte súbor ``'biely.bmp'`` s bitmapou veľkosti 100x100. Skontrolujte to na disku.
+
+   * napr.
+
+    ::
+    
+     >>> novy(600, 100).show()
+
+2. Napíšte funkciu ``konvertuj(meno_suboru1, meno_suboru2)``, ktorá prekonvertuje súbor ``meno_suboru1`` na súbor ``meno_suboru2``.  Nájdite na internete obrázok vo formáte ``'.bmp'``, uložte ho na disk a potom pomocou funkcie ``konvertuj()`` ho prekonvertujte na ``'.png'`` formát.
+
+    * napr.
+
+     ::
+     
+      >>> konvertuj('obrazok.bmp', 'obrazok.png')
+      
+3. Vytvorte biely obrázok veľkosti 400x400, do ktorého vložíte 16 farebných štvorcov veľkosti 80x80 (medzi štvorcami je medzera 20 pixelov). Farby štvorcov si zvoľte ľubovoľne (napr. všetky sú rovnaké, alebo sa nejaké striedajú, alebo sú náhodné). Obrázok uložte do súboru.
+
+4. Napíšte funkciu ``zmensi(obrazok)``, ktorá zmenší daný obrázok tak, že jeho šírka bude 128 a výška sa prepočíta tak, aby bol zachovaný pomer strán. Funkcia ako výsledok vráti tento zmenšený obrázok. Prečítajte nejaký obrázok zo súboru a pomocou ``zmensi()`` ho zmenšite a uložte do súboru s pozmeneným menom. Skontrolujte výsledný súbor.
+
+   * napr.
+
+    ::
+    
+     >>> zmensi(Image.open('subor1.png')).save('subor1.png')
+
+5. Napíšte funkciu ``vymen(obrázok)``, ktorá navzájom v obrázku vymení ľavú a pravú polovicu obrázku. Funkcia nemodifikuje pôvodný obrázok, ale vráti nový s vymenenými polovicami. Prečítajte nejaký obrázok zo súboru a pomocou ``vymen()`` vytvorte nový a ten uložte do súboru. Výsledok skontrolujte.
+
+   * napr.
+
+    ::
+    
+     >>> obr2 = vymen(obr1)
+     >>> obr2.show()
+
+6. Napíšte funkciu ``kopia(obrazok)``, ktorá vyrobí kópiu pôvodného obrázka, ale ho kopíruje po jednom pixeli. Zrejme si najprv vytvoríte prázdny obrázok rovnakých rozmerov a sem budete kopírovať pixely (pomocou ``getpixel()`` a ``putpixel()``). Funkcia vráti tento nový obrázok ako svoj výsledok. Teraz prečítajte nejaký malý obrázok zo súboru a vyrobte z neho pomocou ``kopia()`` kópiu.  Výsledok uložte do súboru a skontrolujte.
+
+   * napr.
+
+    >>> kopia(obr1).show()
+
+7. Napíšte funkciu ``prevrat(obrazok)``, ktorá vyrobí **prevrátenú** kópiu pôvodného obrázka (obrázok je hore nohami), ale ho kopíruje po jednom pixeli. Funkcia vráti tento nový obrázok ako svoj výsledok. Teraz prečítajte nejaký malý obrázok zo súboru a vyrobte z neho nový pomocou ``prevrat()``.  Výsledok uložte do súboru a skontrolujte.
+
+   * napr.
+
+    >>> prevrat(obr1).show()
+
+8. Napíšte funkciu ``sedy(obrazok)``, ktorá vyrobí **čierno-bielu** kópiu pôvodného obrázka (vypočítate priemer ``(r, g, b)`` (nech je to ``p``) a z toho vznikne nová farba ``(p, p, p)``). Funkcia vráti tento nový obrázok ako svoj výsledok. Teraz prečítajte nejaký malý obrázok zo súboru a vyrobte z neho čiernobiely pomocou ``sedy()``.  Výsledok uložte do súboru a skontrolujte.
+
+   * napr.
+
+    >>> sedy(obr1).show()
+
+9. Napíšte funkciu ``strihaj1(obr, n)``, ktorá rozstrihá zadaný obrázok na ``n`` rovnako-širokých častí (po stĺpcoch) a všetky takto rozstrihané časti vráti ako pole obrázkov.
+
+10. Napíšte funkciu ``strihaj2(obr, n)``, ktorá rozstrihá zadaný obrázok na ``n`` rovnako-vysokých častí (po riadkoch) a všetky takto rozstrihané časti vráti ako pole obrázkov.
+
+11. Napíšte funkciu ``zlep1(pole)``, ktorá zlepí vedľa seba obrázky zadané v poli (napr. sú výsledkom ``strihaj1()``). Výsledný obrázok vráti ako výsledok funkcie.
+
+   * otestujte
+
+    ::
+    
+     >>> zlep1(strihaj1(obr1, 5)[::-1]).show()
+
+12. Napíšte funkciu ``zlep2(pole)``, ktorá zlepí pod seba obrázky zadané v poli (napr. sú výsledkom ``strihaj2()``). Výsledný obrázok vráti ako výsledok funkcie.
+
+13. Napíšte funkciu ``zapis(pole, meno, pripona)``, ktorá v parametri ``pole`` dostáva postupnosť obrázkov a všetky tieto obrázky uloží do súborov s menami 'meno0.pripona', 'meno1.pripona', 'meno2.pripona', ...
+
+14. Napíšte funkciu ``citaj(*pole)``, ktorá ako parameter dostáva postupnosť mien grafických súborov, tieto súbory prečíta, uloží do poľa a toto pole vráti ako výsledok funkcie.
+
+   * napr.
+
+    ::
+    
+     >>> pole = citaj('tiger.bmp', 'image0.png', 'image1.png')
+     
+   * vytvorí trojprvkové pole prečítaných obrázkov
+   * napr. potom
+
+    ::
+    
+     >>> zapis(citaj('tiger.bmp', 'image0.png', 'image1.png'), 'temp/obrazok', 'jpg')
+     
+   * vytvorí kópie 3 zadaných súborov s novými menami vo formáte ``'jpg'``
+

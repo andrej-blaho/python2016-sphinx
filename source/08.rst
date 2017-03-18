@@ -1,0 +1,892 @@
+n-tice (tuple)
+==============
+
+Aké typy premenných už poznáme:
+
+   * jednoduché typy:
+
+     * ``int`` - celé čísla
+     * ``float`` - desatinné čísla
+     * ``bool`` - logické hodnoty
+
+   * postupnosti:
+
+     * ``str`` - znakové reťazce sú postupnosti znakov
+     * pomocou ``open()`` - textové súbory sú postupnosti riadkov
+     * pomocou ``range()`` - vytvorí postupnosť celých čísel
+
+   * okrem toho sme sa stretli s typmi ako **funkcia** a **modul**, ale to teraz neriešime
+
+Naučíme sa pracovať s novým typom, tzv. **n-tice** (v Pythone **tuple**), ktorý je tiež postupnosťou a je veľmi podobný znakovým reťazcom. Na rozdiel od reťazcov, sú to postupnosti hodnôt ľubovoľných typov. Uvidíme, že sa s nimi pracuje veľmi podobne ako so znakovými reťazcami, a preto si najprv pripomeňme, čo vieme o znakových reťazcoch:
+
+* postupnosť znakov
+* vieme zistiť dĺžku: funkcia ``len()``
+* operácia ``+`` vytvorí sa nový reťazec, ktorý na začiatku obsahuje kópiu prvého reťazca, a za tým nasleduje kópia druhého
+* operácia ``*`` n-krát zreťazí 1 reťazec - výsledný reťazec obsahuje n-krát zreťazenú kópiu pôvodného reťazca
+* prvky postupnosti môžeme indexovať pomocou ``[]`` (od 0 až po počet prvkov-1) - výsledkom je jednoznakový reťazec
+* vieme indexovať časť reťazca (vytvoriť podreťazec) ``[:]`` - tzv. rez (slice)
+* operácia ``in`` vie zistiť, či sa nejaký podreťazec nachádza v inom reťazci
+* funkcia ``str()`` z iného typu (napr. ``int``, ``float``, ...) vytvorí reťazec
+* for-cyklom vieme postupne prechádzať všetky znaky reťazca - hovoríme, že reťazce sú **iterovateľné** (iterable)
+* reťazce môžeme porovnávať na rovnosť ``==``, ``!=`` aj usporiadanie ``<``, ``<=``, ``>``, ``>=``
+
+  * lexikografické usporiadanie
+  * postupne porovnáva znaky oboch reťazcov a keď nájdeme prvý rôzny znak, tak výsledok porovnania týchto dvoch znakov (porovnajú sa ich unicode) je výsledkom celkového porovnania
+
+
+.. rubric:: S reťazcami fungujú aj nejaké metódy
+
+Metódy sú špeciálne funkcie, ktoré sú definované len pre konkrétny typ, v našom prípade pre reťazce. Zapisujeme ich ako ``reťazec.metóda(parametre)``. Existuje ich dosť veľa a my sme sa zoznámili len s niekoľkými:
+
+* ``reťazec.find(podreťazec)`` - vráti index prvého výskytu podreťazca
+* ``reťazec.count(podreťazec)`` - vráti počet výskytov podreťazca
+* ``reťazec.lower()`` - vráti kópiu malými písmenami
+* ``reťazec.upper()`` - vráti kópiu veľkými písmenami
+* ``reťazec.replace(dva podreťazce)`` - vráti kópiu s nahradenými všetkými výskytmi prvého podreťazca druhým
+* ``reťazec.strip()`` - vráti kópiu bez medzier na začiatku a na konci
+* ``reťazec.format(hodnoty)`` - vráti kópiu, v ktorej nahradí ``{}``  nejakými hodnotami
+
+Uvidíme, že pre n-tice sú definované len dve metódy.
+
+
+n-tice
+------
+
+Podobne ako reťazce je to **štruktúrovaný typ**, t.j. je to typ, ktorý obsahuje hodnoty nejakých (možno iných) typov:
+
+* postupnosť ľubovoľných hodnôt (nielen znakov ako pri reťazcoch)
+* konštanty n-tíc uzatvárame do okrúhlych zátvoriek a oddeľujeme čiarkami
+* funkcia ``len()`` vráti počet prvkov n-tice, napr.
+
+ ::
+
+  >>> stred = (150, 100)
+  >>> zviera = ('slon', 2013, 'gray')
+  >>> print(stred)
+  (150, 100)
+  >>> print(zviera)
+  ('slon', 2013, 'gray')
+  >>> nic = ()
+  >>> print(nic)
+  ()
+  >>> len(stred)
+  2
+  >>> len(zviera)
+  3
+  >>> len(nic)
+  0
+  >>> type(stred)
+  <class 'tuple'>
+
+Vidíme, že n-tica môže byť aj prázdna, označujeme ju ``()`` a vtedy má počet prvkov 0 (teda ``len(())`` je 0). Ak n-tica nie je prázdna, hodnoty sú oddelené čiarkami.
+
+
+n-tica s jednou hodnotou
+........................
+
+n-ticu s jednou hodnotou nemôžeme zapísať takto:
+
+ ::
+
+  >>> p = (12)
+  >>> print(p)
+  12
+  >>> type(p)
+  <class 'int'>
+  >>>
+
+Ak zapíšeme ľubovoľnú hodnotu do zátvoriek, nie je to n-tica (v našom prípade je to len jedno celé číslo). Pre jednoprvkovú n-ticu musíme do zátvoriek zapísať aj čiarku:
+
+ ::
+
+  >>> p = (12,)
+  >>> print(p)
+  (12,)
+  >>> len(p)
+  1
+  >>> type(p)
+  <class 'tuple'>
+  >>>
+
+Pre Python sú dôležitejšie čiarky ako zátvorky. V mnohých prípadoch si Python zátvorky domyslí:
+
+ ::
+
+  >>> stred = 150, 100
+  >>> zviera = 'slon', 2013, 'gray'
+  >>> p = 12,
+  >>> print(stred)
+  (150, 100)
+  >>> print(zviera)
+  ('slon', 2013, 'gray')
+  >>> print(p)
+  (12,)
+
+Uvedomte si rozdiel medzi týmito dvoma priradeniami:
+
+ ::
+
+  >>> a = 3.14
+  >>> b = 3,14
+  >>> print(a, type(a))
+  3.14 <class 'float'>
+  >>> print(b, type(b))
+  (3, 14) <class 'tuple'>
+
+
+Operácie s n-ticami
+...................
+
+Operácie fungujú presne rovnako ako fungovali s reťazcami:
+
+ * operácia ``+`` **zreťazí** 2 n-tice, to znamená, že **výrobí novú n-ticu**, ktorá obsahuje najprv všetky prvky prvej n-tice a za tým všetky prvky druhej n-tice; zrejme oba operandy musia byť n-tice: nemôžeme zreťazovať n-ticu s hodnotou iného typu
+ * operácia ``*`` zadané číslo-krát zreťazí 1 n-ticu, to znamená, že **výrobí novú n-ticu**, ktorá požadovaný-krát obsahuje všetky prvky zadanej n-tice; operácia viacnásobného zreťazovania má jeden operand typu n-tica a druhý musí byť celé číslo
+ * operácia ``in`` vie zistiť, či sa nejaký prvok nachádza v n-tici
+
+Napríklad:
+
+ ::
+
+  >>> stred = (150, 100)
+  >>> zviera = ('slon', 2013, 'gray')
+  >>> stred + zviera
+  (150, 100, 'slon', 2013, 'gray')
+  >>> zviera + stred
+  ('slon', 2013, 'gray', 150, 100)
+  >>> stred * 5
+  (150, 100, 150, 100, 150, 100, 150, 100, 150, 100)
+  >>> 50 * (1)
+  50
+  >>> 50 * (1,)
+  (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+  >>> 50 * (1, 2)
+  (1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1,
+  2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2,
+  1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1,
+  2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2)
+
+n-tica môže obsahovať ako svoje prvky aj iné n-tice:
+
+ ::
+
+  >>> stred = (150, 100)
+  >>> p = ('stred', stred)
+  >>> p
+  ('stred', (150, 100))
+  >>> len(p)
+  2
+  >>> p = (stred, stred, stred, stred)
+  >>> p
+  ((150, 100), (150, 100), (150, 100), (150, 100))
+  >>> (stred,) * 4
+  ((150, 100), (150, 100), (150, 100), (150, 100))
+  >>> (stred) * 4                                     # čo je to isté ako stred*4
+  (150, 100, 150, 100, 150, 100, 150, 100)
+
+Operátorom ``in`` vieme zistiť, či sa nejaká hodnota nachádza v n-tici ako jeden jeho prvok. Takže
+
+ ::
+
+  >>> p = (stred, stred, stred, stred)
+  >>> p
+  ((150, 100), (150, 100), (150, 100), (150, 100))
+  >>> stred in p
+  True
+  >>> 150 in p
+  False
+  >>> 150 in stred
+  True
+  >>> zviera = ('slon', 2013, 'gray')
+  >>> 2013 in zviera
+  True
+  >>> (2013, 'gray') in zviera
+  False
+
+
+Funkcia tuple()
+...............
+
+Vyrobí n-ticu z ľubovoľnej postupnosti (iterovateľného objektu, t.j. taký objekt, ktorý sa dá prechádzať for-cyklom), napr. zo znakového reťazca, vygenerovanej postupnosti celých čísel pomocou ``range()``, ale iterovateľný je aj otvorený textový súbor. Znakový reťazec funkcia ``tuple()`` rozoberie na znaky:
+
+ ::
+
+  >>> tuple('Python')
+  ('P', 'y', 't', 'h', 'o', 'n')
+
+Vytvorenie n-tice pomocou ``range()``:
+
+ ::
+
+  >>> tuple(range(1, 16))
+  (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
+  >>> a = tuple(range(1000000))
+  >>> len(a)
+  1000000
+
+Podobne môžeme skonštruovať n-ticu z textového súboru. Predpokladajme, že súbor obsahuje tieto 4 riadky:
+
+ ::
+
+  prvy
+  druhy
+  treti
+  stvrty
+
+potom
+
+ ::
+
+  >>> with open('abc.txt') as t:
+          obsah = tuple(t)
+
+  >>> obsah
+  ('prvy\n', 'druhy\n', 'treti\n', 'stvrty\n')
+
+Postupne sa riadky súboru stanú prvkami n-tice.
+
+
+for-cyklus s n-ticami
+.....................
+
+for-cyklus je programová konštrukcia, ktorá postupne prechádza všetky prvky nejakého "iterovateľného" objektu. Doteraz sme sa stretli s iterovaním pomocou funkcie ``range()``, prechádzaním prvkov reťazca ``str``, aj celých riadkov textového súboru. Už od 2. prednášky sme používali aj takýto zápis:
+
+ ::
+
+  for i in 2, 3, 5, 7, 11, 13:
+      print('prvocislo', i)
+
+V tomto zápise vidíme n-ticu (tuple) ``2, 3, 5, 7, 11, 13``. Len sme tomu nemuseli dávať zátvorky. Keďže aj n-tica je iterovateľný objekt, Môžeme ju používať vo for-cykle rovnako ako iné iterovateľné typy. To isté, ako predchádzajúci príklad, by sme zapísali napr. aj takto:
+
+ ::
+
+  cisla = (2, 3, 5, 7, 11, 13)
+  for i in cisla:
+      print('prvocislo', i)
+
+Keďže teraz už vieme manipulovať s n-ticami, môžeme zapísať napr.
+
+ ::
+
+  >>> rozne = ('retazec', (100, 200), 3.14, len)
+  >>> for prvok in rozne:
+          print(prvok, type(prvok))
+
+  retazec <class 'str'>
+  (100, 200) <class 'tuple'>
+  3.14 <class 'float'>
+  <built-in function len> <class 'builtin_function_or_method'>
+
+Tu vidíme, že prvkami n-tice môžu byť najrôznejšie objekty, hoci aj funkcie (tu je to štandardná funkcia ``len``).
+
+Pomocou operácií s n-ticami vieme zapísať aj zaujímavejšie postupnosti čísel, napr.
+
+ ::
+
+  >>> for i in 10 * (1,):
+          print(i, end=' ')
+          
+  1 1 1 1 1 1 1 1 1 1
+  >>> for i in 10 * (1, 2):
+           print(i, end=' ')
+
+  1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 2
+  >>> for i in 10 * tuple(range(10)):
+           print(i, end=' ')
+
+  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0
+  1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+  2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
+  3 4 5 6 7 8 9
+
+Pomocou for-cyklu vieme n-tice skladať podobne, ako sme to robili so znakovými reťazcami. V nasledovnom príklade vytvoríme n-ticu zo všetkých deliteľov nejakého čísla:
+
+ ::
+
+  cislo = int(input('zadaj cislo: '))
+  delitele = ()
+  for i in range(1, cislo+1):
+      if cislo % i == 0:
+          delitele = delitele + (i,)
+  print('delitele', cislo, 'su', delitele)
+
+po spustení:
+
+ ::
+
+  zadaj cislo: 124
+  delitele 124 su (1, 2, 4, 31, 62, 124)
+
+Všimnite si, ako sme pridali jeden prvok na koniec n-tice: ``delitele = delitele + (i,)``. Museli, sme vytvoriť jednoprvkovú n-ticu ``(i,)`` a tú sme zreťazili s pôvodnou n-ticou ``delitele``. Mohli sme to zapísať aj takto: ``delitele += (i,)``.
+
+
+Indexovanie
+...........
+
+n-tice indexujeme rovnako ako sme indexovali reťazce:
+
+* prvky postupnosti môžeme indexovať v ``[]`` zátvorkách, pričom index musí byť od 0 až po počet prvkov-1
+* pomocou rezu (slice) vieme indexovať časť n-tice (niečo ako podreťazec) tak, že ``[]`` zátvoriek zapíšeme aj dvojbodku:
+
+  * ``ntica[od:do]`` n-tica z prvkov s indexmi ``od`` až po ``do-1``
+  * ``ntica[:do]`` n-tica z prvkov od začiatku až po prvok s indexom ``do-1``
+  * ``ntica[od:]`` n-tica z prvkov s indexmi ``od`` až po koniec n-tice
+  * ``ntica[od:do:krok]`` n-tica z prvkov s indexmi ``od`` až po ``do-1``, pričom berieme každý ``krok`` prvok
+
+Niekoľko príkladov
+
+ ::
+
+  >>> prvo = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29)
+  >>> prvo[2]
+  5
+  >>> prvo[2:5]
+  (5, 7, 11)
+  >>> prvo[4:5]
+  (11,)
+  >>> prvo[:5]
+  (2, 3, 5, 7, 11)
+  >>> prvo[5:]
+  (13, 17, 19, 23, 29)
+  >>> prvo[::2]
+  (2, 5, 11, 17, 23)
+  >>> prvo[::-1]
+  (29, 23, 19, 17, 13, 11, 7, 5, 3, 2)
+
+Vidíme, že s n-ticami pracujeme veľmi podobne ako sme pracovali so znakovými reťazcami. Keď sme do znakového reťazca chceli pridať jeden znak (alebo aj viac), museli sme to robiť rozoberaním a potom skladaním:
+
+ ::
+
+  >>> retazec = 'Pyton'
+  >>> retazec = retazec[:3] + 'h' + retazec[3:]
+  >>> retazec
+  'Python'
+
+Úplne rovnako to spravíme aj s n-ticami:
+
+ ::
+
+  >>> prvo = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29)
+  >>> prvo = prvo[:5] + ('fuj',) + prvo[5:]
+  >>> prvo
+  (2, 3, 5, 7, 11, 'fuj', 13, 17, 19, 23, 29)
+
+Pred 5-ty prvok vloží nejaký znakový reťazec.
+
+Rovnako ako nemôžeme zmeniť hodnotu nejakého znaku reťazca obyčajným priradením:
+
+ ::
+
+  >>> ret = 'Python'
+  >>> ret[2] = 'X'
+  ...
+  TypeError: 'str' object does not support item assignment
+  >>> ret = ret[:2] + 'X' + ret[3:]
+  >>> ret
+  'PyXhon'
+  >>> ntica = (2, 3, 5, 7, 11, 13)
+  >>> ntica[2] = 'haha'
+  ...
+  TypeError: 'tuple' object does not support item assignment
+  >>> ntica = ntica[:2] + ('haha',) + ntica[3:]
+  >>> ntica
+  (2, 3, 'haha', 7, 11, 13)
+
+Všimnite si, že Python vyhlásil rovnakú chybu pre ``tuple`` ako pre ``str``. Hovoríme, že ani reťazce ani n-tice nie sú meniteľné (teda sú **immutable**).
+
+
+Porovnávanie n-tíc
+..................
+
+Porovnávanie n-tíc je veľmi podobné ako porovnávanie reťazcov. Pripomeňme si, ako je to pri reťazcoch:
+
+* postupne porovnáva i-te prvky oboch reťazcov, kým sú rovnaké; pri prvej nerovnosti je výsledkom porovnanie týchto dvoch hodnôt
+* ak je pri prvej nezhode v prvom reťazci menšia hodnota ako v druhom (porovnávajú sa ich unicode), tak prvý reťazec je menší ako druhý (napr. v reťazcoch ``'abcde'`` a ``'abced'`` je prvá nezhoda na prvku s indexom 3 a keďže ``ord('d')<ord('e')``, platí ``'abcde'<'abced'``)
+* ak je prvý reťazec kratší ako druhý a zodpovedajúce prvky sa zhodujú, tak prvý reťazec je menší ako druhý (napr. ``'abc'<'abcd'``)
+
+Hovoríme tomu **lexikografické** porovnávanie.
+
+Teda aj pri porovnávaní n-tíc sa budú postupne porovnávať zodpovedajúce si prvky a pri prvej nerovnosti sa skontroluje, ktorý z týchto prvkov je menší. Treba tu ale dodržiavať jedno veľmi dôležité pravidlo: porovnávať hodnoty napr. na menší môžeme len keď sú zhodného typu:
+
+ ::
+
+  >>> 5 < 'a'
+  ...
+  TypeError: unorderable types: int() < str()
+  >>> (1, 5, 10) < (1, 'a', 10)
+  ...
+  TypeError: unorderable types: int() < str()
+  >>> (1, 5, 10) != (1, 'a', 10)
+  True
+
+Najlepšie je porovnávať také n-tice, ktoré majú prvky rovnakého typu. Pri n-ticiach, ktoré majú zmiešané typy si musíme dávať väčší pozor
+
+ ::
+
+  >>> ('Janko', 'Hrasko', 'Zilina') < ('Janko', 'Jesensky', 'Martin')
+  True
+  >>> (1, 2, 3, 4, 5, 5, 6, 7, 8) < tuple(range(1, 9))
+  True
+  >>> ('Janko', 'Hrasko', 2008) < ('Janko', 'Hrasko', 2007)
+  False
+
+
+Viacnásobné priradenie
+......................
+
+Tu len pripomenieme, ako funguje viacnásobné priradenie: ak je pred znakom priradenia ``=`` viac premenných, ktoré sú oddelené čiarkami, tak za znakom priradenia musí byť iterovateľný objekt, ktorý má presne toľko hodnôt, ako počet premenných. Iterovateľným objektom môže byť n-tica (``tuple``), znakový reťazec (``str``), generovaná postupnosť čísel (``range``) ale aj otvorený textový súbor (``open``), ktorý má presne toľko riadkov, koľko je premenných v priradení.
+
+* ak do premennej priraďujeme viac hodnôt oddelených čiarkou, Python to chápe ako priradenie n-tice, nasledovné priradenia sú rovnaké
+
+Priradíme n-ticu:
+
+ ::
+
+  >>> a1, a2, a3, a4 = 3.14, 'joj', len, (1, 3, 5)
+  >>> print(a1, a2, a3, a4)
+  3.14 joj <built-in function len> (1, 3, 5)
+
+Priradíme vygenerovanú postupnosť 4 čísel:
+
+ ::
+
+  >>> a, b, c, d = range(2, 6)
+  >>> print(a, b, c, d)
+  2 3 4 5
+
+Priradíme znakový reťazec:
+
+ ::
+
+  >>> d, e, f, g, h, i = 'Python'
+  >>> print(d, e, f, g, h, i)
+  P y t h o n
+
+Priradíme riadky textového súboru:
+
+ ::
+
+  >>> with open('dva.txt', 'w') as f:
+          f.write('first\nsecond\n')
+
+  >>> with open('dva.txt') as subor:
+          prvy, druhy = subor
+
+  >>> prvy
+  'first\n'
+  >>> druhy
+  'second\n'
+
+Tento posledný príklad je veľmi umelý a v praxi sa asi priamo do premenných takto čítať nebude.
+
+Viacnásobné priradenie používame napr. aj na výmenu obsahu dvoch (aj viac) premenných:
+
+ ::
+
+  >>> x, y = y, x
+
+Aj v tomto príklade je na pravej strane priradenia (za ``=``) n-tica: ``(y, x)``.
+
+
+
+n-tica ako návratová hodnota funkcie
+....................................
+
+V Pythone sa dosť využíva to, že návratovou hodnotou funkcie môže byť n-tica, t.j. výsledkom funkcie je naraz niekoľko návratových hodnôt. Napr. nasledovný príklad počíta celočíselné delenie a súčasne zvyšok po delení:
+
+ ::
+
+  def zisti(a, b):
+      return a // b, a % b
+
+a použiť ju môžeme napr. takto:
+
+ ::
+
+  >>> podiel, zvysok = zisti(153, 33)
+  >>> print('podiel =', podiel, 'zvysok =', zvysok)
+  podiel = 4 zvysok = 21
+
+Ďalšia funkcia vráti postupnosť všetkých deliteľov nejakého čísla:
+
+ ::
+
+  def delitele(cislo):
+      vysl = ()
+      for i in range(1, cislo+1):
+          if cislo % i == 0:
+              vysl = vysl + (i,)
+      return vysl
+
+Otestujeme:
+
+ ::
+
+  >>> deli = delitele(24)
+  >>> print(deli)
+  (1, 2, 3, 4, 6, 8, 12, 24)
+  >>> if 2 in deli:
+          print('parne')
+
+  parne
+  >>> sucet = 0
+  >>> for i in deli:
+          sucet += i
+
+  >>> print(sucet)
+  60
+
+Príklad ukazuje, že keď je výsledkom n-tica, môžeme ju ďalej spracovať napr. for-cyklom, resp. ďalej testovať.
+
+
+Ďalšie funkcie a metódy
+.......................
+
+S n-ticami vedia pracovať nasledovné štandardné funkcie:
+
+* ``len(ntica)`` - vráti počet prvkov n-tice
+* ``sum(ntica)`` - vypočíta súčet prvkov n-tice (všetky musia byť čísla)
+* ``min(ntica)`` - zistí najmenší prvok n-tice (prvky sa musia dať navzájom porovnať, nemôžeme tu miešať rôzne typy)
+* ``max(ntica)`` - zistí najväčší prvok n-tice (ako pri ``min()`` ani tu sa nemôžu typy prvkov miešať)
+
+Na rozdiel od znakových reťazcov, ktoré majú veľké množstvo metód, n-tice majú len dve:
+
+* ``ntica.count(hodnota)`` - zistí počet výskytov nejakej hodnoty v n-tici
+* ``ntica.index(hodnota)`` - vráti index (poradie) v n-tici prvého (najľavejšieho) výskytu danej hodnoty, ak sa hodnota v n-tici nenachádza, metóda spôsobí spadnutie na chybe (``ValueError: tuple.index(x): x not in tuple``)
+
+Ukážme tieto funkcie na malom príklade. V n-tici uložíme niekoľko nameraných teplôt a potom vypíšeme priemernú, minimálnu aj maximálnu teplotu:
+
+ ::
+
+  >>> teploty = (14, 22, 19.5, 17.1, 20, 20.4, 18)
+  >>> print('počet nameraných teplôt: ', len(teploty))
+  počet nameraných teplôt:  7
+  >>> print('minimálna teplota: ', min(teploty))
+  minimálna teplota:  14
+  >>> print('maximálna teplota: ', max(teploty))
+  maximálna teplota:  22
+  >>> print('priemerná teplota: ', round(sum(teploty) / len(teploty), 2))
+  priemerná teplota:  18.71
+
+Ďalej môžeme zistiť, kedy bola nameraná konkrétna hodnota:
+
+ ::
+
+  >>> teploty.index(20)
+  4
+  >>> teploty.index(20.1)
+  ...
+  ValueError: tuple.index(x): x not in tuple
+
+Môžeme zistiť, koľko-krát sa nejaká konkrétna teplota vyskytla v našich meraniach:
+
+ ::
+
+  >>> teploty.count(20)
+  1
+  >>> teploty.count(20.1)
+  0
+
+
+n-tice a grafika
+................
+
+Nasledovný príklad predvedie použitie n-tíc v grafickom režime. Zadefinujeme niekoľko bodov v rovine a potom pomocou nich kreslíme nejaké farebné polygóny. Začnime takto:
+
+ ::
+
+  a = (70, 150)
+  b = (200, 200)
+  c = (150, 250)
+  d = (120, 70)
+  e = (50, 220)
+
+  canvas = tkinter.Canvas()
+  canvas.pack()
+  canvas.create_polygon(a, b, c, d, fill='red')
+
+Ak by sme chceli jedným priradením priradiť dva body do premenných ``a`` aj ``b``, zapíšeme:
+
+ ::
+
+  a, b = (100, 150), (180, 200)
+
+čo je vlastne:
+
+ ::
+
+  a, b = ((100, 150), (180, 200))
+
+Polygónov môžeme nakresliť aj viac (zrejme väčšinou záleží na poradí ich kreslenia):
+
+ ::
+
+  canvas.create_polygon(e, a, c, fill='green')
+  canvas.create_polygon(e, d, b, fill='yellow')
+  canvas.create_polygon(a, b, c, d, fill='red')
+  canvas.create_polygon(a, c, d, b, fill='blue')
+
+Vidíme, že niektoré postupnosti bodov tvoria jednotlivé útvary, preto zapíšme::
+
+ utvar1 = e, a, c
+ utvar2 = e, d, b
+ utvar3 = a, b, c, d
+ utvar4 = a, c, d, b
+
+ canvas.create_polygon(utvar1, fill='green')
+ canvas.create_polygon(utvar2, fill='yellow')
+ canvas.create_polygon(utvar3, fill='red')
+ canvas.create_polygon(utvar4, fill='blue')
+
+Volanie funkcie ``canvas.create_polygon()`` sa tu vyskytuje 4-krát, ale s rôznymi parametrami. Prepíšme to do for-cyklu:
+
+ ::
+
+  utvar1 = e, a, c
+  utvar2 = e, d, b
+  utvar3 = a, b, c, d
+  utvar4 = a, c, d, b
+
+  for param in (utvar1, 'green'), (utvar2, 'yellow'), (utvar3, 'red'), (utvar4, 'blue'):
+      utvar, farba = param                   
+      canvas.create_polygon(utvar, fill=farba)
+
+Dostávame to isté. Vo for-cykle sa najprv do premennej ``param`` priradí dvojica s dvoma prvkami: útvar a farba, a v tele cyklu sa táto premenná s dvojicou priradí do dvoch premenných ``utvar`` a ``farba``. Potom sa zavolá funkcia ``canvas.create_polygon()`` s týmito parametrami.
+
+Pre for-cyklus existuje jedno vylepšenie: ak sa do premennej cyklu postupne priraďujú nejaké dvojice hodnôt a tieto by sa na začiatku tela rozdelili do dvoch premenných, môžeme priamo tieto dve premenné použiť ako premenné cykly (akokeby viacnásobné priradenie). Predchádzajúci príklad prepíšeme:
+
+ ::
+
+  utvar1 = e, a, c
+  utvar2 = e, d, b
+  utvar3 = a, b, c, d
+  utvar4 = a, c, d, b
+
+  for utvar, farba in (utvar1, 'green'), (utvar2, 'yellow'), (utvar3, 'red'),(utvar4, 'blue'):
+      canvas.create_polygon(utvar, fill=farba)
+
+Pozrime sa na n-ticu, ktorá sa prechádza týmto for-cyklom:
+
+ ::
+
+  >>> cyklus = (utvar1, 'green'), (utvar2, 'yellow'), (utvar3, 'red'), (utvar4, 'blue')
+  >>> cyklus
+  ((((50, 220), (70, 150), (150, 250)), 'green') (((50, 220), (120, 70),
+  (200, 200)), 'yellow') (((70, 150), (200, 200), (150, 250), (120, 70)),
+  'red') (((70, 150), (150, 250), (120, 70), (200, 200)), 'blue'))
+
+Vidíme, že n-tica v takomto tvare je dosť ťažko čitateľná, ale for-cyklus jej normálne rozumie.
+
+
+
+Cvičenie
+--------
+
+
+1. Napíšte funkciu ``priemer(n_tica)``, ktorá pre danú n-tica čísel (celých a desatinných) vráti ich priemer. Ak bola n_tica prázdna, funkcia vráti 0.
+
+  * napr.
+
+   ::
+
+    >>> cisla = (3.5, 8, 1, 2.5)
+    >>> priemer(cisla)
+    3.75
+    >>> priemer(0 * (1, 2, 3))
+    0
+
+2. Napíšte funkciu ``kruh(r)``, ktorá pre zadaný polomer kruhu vypočíta jeho obvod a obsah. Funkcia tieto dve hodnoty vráti ako dvojicu desatinných čísel (dvojprvkovú n-ticu)
+
+  * napr.
+
+   ::
+   
+    >>> kruh(7)
+    (43.982297150257104, 153.93804002589985)
+    >>> kruh(1)
+    (6.283185307179586, 3.141592653589793)
+
+3. Napíšte funkciu ``sucet(n_tica)``, ktorá vráti súčet prvkov n-tice. Predpokladajte, že prvkami n_tice môžu byť celé alebo desatinné čísla. Nepoužite žiadne štandardné funkcie.
+
+  * napr.
+
+   ::
+
+    >>> cisla = (7, 2, 9, 5, 3.14, 6, 1)
+    >>> vysl = sucet(cisla)
+    >>> vysl
+    33.14
+    >>> sucet(())
+    0
+
+4. Napíšte funkciu ``sucin(n_tica)``, ktorá vráti súčin prvkov n-tice (obsahuje len čísla).
+
+  * napr.
+
+   ::
+
+    >>> c = (2, 3, 5, 7, 11)
+    >>> sucin(c)                      # co je 2*3*5*7*11
+    2310
+    >>> sucin(tuple(range(1, 11)))    # co je 10 faktorial
+    3628800
+    >>> sucin((2,) * 20)              # co je 2 ** 20
+    1048576
+
+5. Napíšte funkciu ``najvacsi(n_tica)``, ktorá vráti maximálny prvok n-tice (bez použitia štandarných funkcií)
+
+  * napr.
+
+   ::
+
+    >>> cisla = (7, 2, 9, 5, 3, 6, 1)
+    >>> naj = najvacsi(cisla)
+    >>> naj
+    9
+    >>> najvacsi(('krava', 'pes', 'macka', 'lev'))
+    'pes'
+
+6. Napíšte funkciu ``vymen(dvojica)``, ktorá dostane dvojicu (dvojprvkovú n-ticu) a vráti novú n-ticu, ktorá má tieto prvky vymenené
+
+  * napr.
+
+   >>> dvoj = ('ahoj', 123)
+   >>> nova = vymen(dvoj)
+   >>> nova
+   (123, 'ahoj')
+
+7. Napíšte funkciu ``prevrat(n_tica)``, ktorá vráti novú n_ticu s prevráteným poradím prvkov
+
+  * napr.
+
+   ::
+
+    >>> a = (7, 11, 13)
+    >>> b = prevrat(a)
+    >>> b
+    (13, 11, 7)
+    >>> prevrat(tuple('Python'))
+    ('n', 'o', 'h', 't', 'y', 'P')
+
+8. Napíšte funkciu ``mocniny(n)``, ktorá vráti n-ticu druhých mocnín celých čísel (1, 4, 9, 16, 25, ..., n**2)
+
+  * napr.
+
+   ::
+
+    >>> x = mocniny(7)
+    >>> x
+    (1, 4, 9, 16, 25, 36, 49)
+
+9. Napíšte funkciu ``len_parne(n_tica)``, ktorá z danej je n-tica celých čísel, vyrobí novú, ale ponechá v nej len párne hodnoty
+
+  * napr.
+
+   ::
+
+    >>> print(len_parne((2, 5, 7, 10, 13)))
+    (2, 10)
+    >>> print(len_parne((1, 3, 5, 7, 9)))
+    ()
+
+10. Napíšte funkciu ``spoj(n_tica)``, ktorá pre danú n-ticu slov (znakových reťazcov) vytvorí znakový reťazec zlepením všetkých slov v n-tici. Slová v tomto výslednom reťazci budú oddelené medzerami.
+
+  * napr.
+
+   ::
+   
+    >>> slova = ('nepi', 'Jano', 'nepi', 'vodu')
+    >>> veta = spoj(slova)
+    >>> veta
+    'nepi Jano nepi vodu'
+
+11. Napíšte funkciu ``vyhod(n_tica, index)``, ktorá vytvorí novú n-ticu ale už bez prvku s daným indexom. Teda nová n-tica obsahuje všetky prvky ako pôvodná ``n_tica`` okrem prvku so zadaným indexom (indexujeme od 0)
+
+  * napr.
+
+   ::
+   
+    >>> ntica = (37, 'hello', -7, 3.14)
+    >>> nova = vyhod(ntica, 2)
+    >>> nova
+    (37, 'hello', 3.14)
+
+12. Napíšte funkciu ``zmen(n_tica, index, hodnota)``, ktorá vytvorí novú n-ticu ale so zmeneným zadaným prvkom. Teda nová n-tica obsahuje všetky prvky ako pôvodná ``n_tica``, len prvok so zadaným indexom má novú hodnotu
+
+  * napr.
+
+   ::
+
+    >>> ntica = (37, 'hello', -7, 3.14)
+    >>> nova = zmen(ntica, 2, 'Python')
+    >>> nova
+    (37, 'hello', 'Python', 3.14)
+
+
+13. Predpokladáme, že nejaká n-tica obsahuje ako svoje prvky niekoľko n-tíc celých čísel. Napíšte funkciu ``rozloz(n_tica)``, ktorá z takejto n-tice vytvorí novú, ktorá bude obsahovať všetky prvky z n-tíc pôvodnej n-tice
+
+  * napr.
+
+   ::
+
+    >>> a = ((1, 2, 3), (2,), (1, 1, 1))
+    >>> b = rozloz(a)
+    >>> b
+    (1, 2, 3, 2, 1, 1, 1)
+    
+14. Predpokladáme, že nejaký textový súbor má v každom riadku 1 alebo 2 celé čísla. Napíšte funkciu ``zo_suboru(meno_suboru)``, ktorá prečíta tento súbor a vráti takúto n-ticu: z každého riadku súboru vytvorí jeden prvok výslednej n-tice, príčom, ak bolo v riadku jedno číslo, toto bude priamo prvkom n-tice, ak tam boli dve čísla, vytvorí dvojicu (n-ticu) čísel
+
+  * napr. ak súbor ``'subor.txt'`` obsahuje
+
+   ::
+   
+    100 200
+    300
+    400
+    500 600
+    
+  * dostaneme
+
+   ::
+   
+    >>> vysl = zo_suboru('subor.txt')
+    >>> vysl
+    ((100, 200), 300, 400, (500, 600))
+
+15. Napíšte funkciu ``do_suboru(meno_suboru, n_tica)``, ktorá zapíše do súboru danú n-ticu. Každý prvok n-tice bude zapísaný do samostatného riadku. Predpokladáme, že prvkami n-tice môžu byť buď čísla, alebo dvojice (dvojprvkové n-tice) čísel. Ak je prvkom číslo, v riadku súboru bude priamo toto číslo inak bude riadok obsahovať dve čísla oddelené medzerou (rovnaký formát súboru ako bol v predchádzajúcom príklade)
+
+  * napr.
+
+   ::
+   
+    >>> xy = ((100, 200), 300, 400, (500, 600))
+    >>> do_suboru('subor1.txt', xy)
+   
+  * vytvorí súbor
+
+   ::
+
+    100 200
+    300
+    400
+    500 600
+
+16. Pri písaní textu do grafickej plochy môže mať parameter ``font`` hodnotu nielen reťazec, napr. ``'arial 30 bold'``, ale aj n-ticu, napr. ``('arial', 30, 'bold')``. V tomto prípade sa meno fontu môže skladať aj z viacerých slov, napr. ``('courier new', 20)``. Napíšte funkciu ``vypis(text, font='arial')``, ktorá vypíšte zadaný reťazec daným fontom ale v rôznych veľkostiach pod sebou. Text môžete vypisovať napr. na súradnice (150, 30), (150, 70), (150, 130), (150, 200) s veľkosťami postupne 30, 40, 50, 60
+
+  * napr. volanie
+
+   ::
+   
+    >>> import tkinter
+    >>> canvas = tkinter.Canvas()
+    >>> canvas.pack()
+    >>> vypis('Python', 'Times New Roman')
+
+..
+  x. metóda canvas.coords(id) vráti n-ticu (desatinných) čísel, napr. z lomenej čiary alebo polygónu
+     ... funkcia pridaj(id, x, y) pridá ku grafickému objektu ďalší bod
+
+  x. funkcia zapis_krivku(id, meno_suboru) z existujúceho grafického objektu zistí súradnice a zapíše ich do súboru (do každého riadku súboru po dve celé čísla)
+
+  x. funkcia kresli_krivku(meno_suboru) zo súboru, ktorý má v každom riadku 2 celé čísla (teda x a y), funkcia vráti id grafického objektu
+

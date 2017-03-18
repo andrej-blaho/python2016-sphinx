@@ -1,0 +1,1253 @@
+Polia (list)
+============
+
+Poznáme jednoduché dátové typy:
+
+* ``int``, ``float``, ``bool`` - nedajú sa iterovať
+
+A zložené typy - sú nejako zložené z prvkov a preto sú iterovateľné (dajú sa prechádzať for-cyklom):
+
+* znakové reťazce - postupnosti znakov (``str``)
+* textové súbory - postupnosti riadkov (otvorené pomocou ``open(meno, 'r')``)
+* generátor číselných postupností (``range()``)
+* n-tice - postupnosti rôznych hodnôt (``tuple``)
+
+Znakový reťazec aj n-tica sú postupnosti hodnôt, ktoré ale nemôžeme v pamäti meniť (sú tzv. **nemeniteľné**, teda **immutable** typy):
+
+* keď zostavíme reťazec alebo n-ticu, tak táto sa už v pamäti nikdy nezmení, t. j. ak máme na ňu referenciu (premennú), tak máme istotu, že ak sa nezmení referencia, nezmení sa ani hodnota
+* aj všetky jednoduché typy sú nemeniteľné
+* existujú **meniteľné** teda **mutable** typy, pre ktoré platí, že ak máme na nejakú meniteľnú hodnotu referenciu, tak v priebehu výpočtu sa táto hodnota môže meniť
+* najzaujímavejším dôsledkom bude pre takýto meniteľný typ to, keď na jednu meniteľnú hodnotu budeme mať viac referencií (bude na ňu odkazovať viac premenných), potom zmenou hodnoty jednej premennej sa tým budú meniť aj všetky zvyšné premenná s touto referenciou
+
+Typ pole
+--------
+
+Základným meniteľným typom v Pythone je **pole** (teda pythonovský ``list``). V porovnaní s poľami v iných programovacích jazykoch, pythonovské pole je v skutočnosti **dynamické pole**, keďže mu môžeme meniť jeho veľkosť (môžeme ho zväčšovať alebo zmenšovať). Niekedy sa pythonovskému poľu hovorí aj **zoznam**, ale tento pojem sa môže mýliť s dátovou štruktúrou **spájaný zoznam** (s ktorým sa zoznámime v letnom semestri). Niekedy budeme pole zobrazovať ako tabuľku hodnôt, pre ktorú je v každom políčku tabuľky jeden prvok.
+
+S typom **pole** pracujeme úplne rovnako ako s n-ticami (typ ``tuple``) z predchádzajúcej prednášky, ale vďaka ďalším vlastnostiam, v ktorých sa polia líšia od n-tíc, získavame obrovskú programátorskú silu. Takže najprv ukážme, čo je úplne rovnaké (resp. analogické) ako pre n-tice:
+
+* pole je postupnosť hodnôt rôznych typov oddelených čiarkami, táto postupnosť je uzavretá v ``[]`` hranatých zátvorkách
+
+  * prvkami polí môžu byť ľubovoľné typy: aj n-tice, znakové reťazce ale aj iné polia
+  * na rozdiel od n-tíc hranaté zátvorky písať musíme (Python si veľakrát okrúhle zátvorky pre n-tice domyslí)
+  * jednoprvkové pole nemusí mať pri zápise navyše čiarku, ako sme to robili pre n-tice (napr. n-tica ``(1,)`` a pole ``[1]``)
+  * pole môžeme skonštruovať aj pomocou špeciálnej funkcie ``list()`` - táto z ľubovoľného iterovateľného objektu vyrobí pole (napr. z reťazca, z ``range()``, z n-tice, zo súboru)
+
+* pre polia fungujú operácie:
+
+  * ``+`` zreťazenia
+  * ``*`` viacnásobného zreťazenia
+  * ``in`` zisťovanie príslušnosti prvku
+
+* polia môžeme prechádzať for-cyklom (keďže je to tiež iterovateľný typ)
+* štandardné funkcie:
+
+  * ``len()`` pre počet prvkov
+  * ``sum()`` pre súčet prvkov (funguje len pre číselné polia)
+  * ``min()`` a ``max()`` pre najmenší a najväčší prvok (len pre polia s porovnávateľnými prvkami)
+
+* k prvkom pristupujeme pomocou indexovania a z poľa môžeme pomocou rezov (slice) vybrať ľubovoľné "podpole" (vyrobia sa pritom kópie prvkov)
+* porovnávanie pomocou relácií ``==``, ``!=``, ``<``, ``<=``, ``>``, ``>=`` funguje na rovnakom princípe ako pre n-tice, t. j. lexikografické porovnávanie
+
+Ak tieto operácie a funkcie použijeme v našich programoch, hodnoty priradené do premenných budú v pamäti "nemenené", keďže sme zatiaľ s poľami pracovali rovnako ako s n-ticami. Teda žiadna z týchto operácií a funkcií nemení hodnotu už priradenej premennej.
+
+Niekoľko príkladov práce s poľami:
+
+ ::
+
+  >>> pole = [1, 'a'] * 10
+  >>> pole
+  [1, 'a', 1, 'a', 1, 'a', 1, 'a', 1, 'a', 1, 'a', 1, 'a', 1, 'a', 1, 'a', 1, 'a']
+  >>> sum(pole[::2])
+  10
+  >>> nove = pole[3:10]
+  >>> for i in nove:
+          print(i, end=', ')
+
+  a, 1, a, 1, a, 1, a,
+  >>> len(nove)
+  7
+  >>> list(range(1, 10)) + list(range(10, 20, 2))
+  [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18]
+  >>> [2, 3, 5, 7, 11, 13][2:][::-1]
+  [13, 11, 7, 5]
+
+Posledný príklad naznačuje, že s hranatými zátvorkami si ešte užijeme veľa programátorských potešení.
+
+Zadefinujme ešte niekoľko funkcií s poľami (všimnite si dokumentačné reťazce v definíciách funkcií):
+
+ ::
+
+  def sucet(pole):
+      '''vráti súčet prvkov postupnosti
+
+         predpokladajú sa číselné prvky
+      '''
+      vysl = 0
+      for prvok in pole:
+          vysl += prvok
+      return vysl
+
+ ::
+
+  def najmensi(pole):
+      '''vráti najmenší prvok postupnosti
+
+         predpokladá sa neprázdna postupnosť,
+         prvky sa musia dať porovnávať na reláciu <
+      '''
+      vysl = pole[0]
+      for prvok in pole:
+          if prvok < vysl:
+              vysl = prvok
+      return vysl
+
+ ::
+
+  def usporiadane(pole):
+      '''vráti True, ak je postupnosť usporiadaná vzostupne
+
+         prvky sa musia dať porovnávať na reláciu <
+      '''
+      for ix in range(len(pole)-1):
+          if pole[ix+1] < pole[ix]:    # porovnáva dva susedné prvky
+              return False
+      return True
+
+ ::
+
+  import random
+
+  def nahodny(pole):
+      '''vráti náhodne vybraný prvok postupnosti'''
+      return pole[random.randrange(len(pole))]
+
+* funkcia ``sucet()`` vráti súčet prvkov postupnosti (táto funkcia funguje pre n-ticu čísel aj pre pole čísel) - už vieme, že v Pythone rovnako funguje štandardná funkcia ``sum()``
+* funkcia ``najmensi()`` vráti najmenší prvok postupnosti (pre parameter typu reťazec, n-tica, pole) - v Pythone fungujú štandardné funkcie ``min()`` a ``max()``
+* funkcia ``usporiadane()`` vráti ``True``, ak sú prvky postupnosti (reťazec, n-tica, pole) usporiadané vzostupne, skúste napr. ``usporiadane('amor')``
+* funkcia ``nahodny()`` najprv vygeneruje náhodné číslo z intervalu ``<0, len(pole)-1>`` ako index do zadanej postupnosti (parameter ``pole`` môže byť reťazec, n-tica, pole) a vráti príslušný prvok
+
+  * v module ``random`` je definovaná funkcia, ktorá robí to isté: ``random.choice()``
+
+V každom programovacom jazyku existuje konštrukcia, pomocou ktorej vyhradíme (možno aj inicializujeme) pole nejakej počiatočnej veľkosti. V Pythone najčastejšie využívame viacnásobné zreťazenie (násobenie) jednoprvkového poľa nejakým celým číslom, napr.
+
+ ::
+
+  >>> pole1 = 1000 * [0]
+  >>> pole2 = ['a'] * 2000
+  >>> pole3 = [None] * 30000
+
+Vyhradili sme 3 rôzne polia:
+
+* ``pole1`` je pole 1000 nulových hodnôt
+* ``pole2`` je pole 2000 jednoznakových reťazcov ``'a'``
+* ``pole3`` je pole 30000 špeciálnych hodnôt ``None``, ktoré označujú **prázdnu hodnotu** (napr. výsledok funkcií, ktoré nevracajú žiadnu hodnotu)
+
+Môžeme si na to vytvoriť pomocnú funkciu:
+
+ ::
+
+  def vyrob_pole(dlzka, hodnota=0):
+      return [hodnota] * dlzka
+
+a potom zapíšeme
+
+ ::
+
+  >>> pole1 = vyrob_pole(1000)
+  >>> pole2 = vyrob_pole(2000, 'a')
+  >>> pole3 = vyrob_pole(30000, None)
+
+
+Pole je meniteľný typ
+.....................
+
+..
+  tu by sa zislo niekolko obrázkov
+
+Už vieme, že znakový reťazec ani n-ticu (sú to nemeniteľné typy) nám Python nedovolí zmeniť takýmto priradením:
+
+ ::
+
+  >>> ret = 'Python'
+  >>> ret[3] = 'X'
+  ...
+  TypeError: 'str' object does not support item assignment
+  >>> ntica = tuple('Python')
+  >>> ntica
+  ('P', 'y', 't', 'h', 'o', 'n')
+  >>> ntica[3] = 'X'
+  ...
+  TypeError: 'tuple' object does not support item assignment
+
+Pozrime, ako je to s poľom. Vyrobme 6-prvkové pole, napr.
+
+ ::
+
+  >>> pole = list('Python')
+  >>> pole
+  ['P', 'y', 't', 'h', 'o', 'n']
+
+Takéto pole môžeme meniť zmenou ľubovoľného prvku, napr.
+
+ ::
+
+  >>> pole[3] = 'X'
+  >>> pole
+  ['P', 'y', 't', 'X', 'o', 'n']
+
+Samozrejme, že to funguje nielen pre pole znakov, ale pre pole hodnôt ľubovoľných typov.
+
+Všetko, čo sme doteraz vedeli robiť s obyčajnými premennými, teraz vieme robiť aj s prvkami poľa, napr.
+
+ ::
+ 
+  >>> cisla = list(range(0, 100, 10))
+  >>> cisla
+  [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
+  >>> cisla[4] += 1
+  >>> cisla[-1] -= 5
+  >>> cisla
+  [0, 10, 20, 30, 41, 50, 60, 70, 80, 85]
+
+ale môžeme navzájom vymeniť aj hodnoty dvoch rôznych prvkov poľa:
+
+ ::
+
+  [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
+  >>> cisla[3], cisla[6] = cisla[6], cisla[3]
+  >>> cisla
+  [0, 10, 20, 60, 41, 50, 30, 70, 80, 85]
+
+
+.. rubric:: Rezy (slice)
+
+Pole môžeme meniť aj zmenou rezu (teda nejakého intervalu indexov):
+
+ ::
+
+  >>> prvo = [2, 3, 5, 7, 11, 13, 17, 19, 23]
+  >>> prvo[3:5]        # vytvorí dvojprvkové pole z 3. a 4. prvku
+  [7, 11]
+  >>> prvo[3:5] = []   # úsek poľa s 3. a 4. prvkom nahraď prázdnym poľom
+  >>> prvo
+  [2, 3, 5, 13, 17, 19, 23]
+  >>> prvo[4]
+  17
+  >>> prvo[4:4] = [100, 101, 102]
+  >>> prvo
+  [2, 3, 5, 13, 100, 101, 102, 17, 19, 23]
+
+Na tomto príklade si všimnite:
+
+* keď priraďujeme nejakú hodnotu do rezu, táto hodnota **musí** byť opäť **pole** (alebo nejaká iterovateľná hodnota) a toto pole nahradí všetky prvky v reze
+* ak má rez nulovú dĺžku (napr. ``pole[0:0]``, ``pole[4:4]``, ``pole[len(pole):len(pole)]``), vkladané pole do takéhoto rezu sa vloží pred štartový index rezu
+
+Videli sme, že priradením prázdneho poľa do rezu sa všetky prvky v reze vyhodia, to isté sa dá dosiahnuť aj príkazom ``del``, ktorý vyhodí nielen niektorý konkrétny prvok, ale aj ľubovoľnú časť poľa, napr.
+
+ ::
+
+  >>> pole = [2, 3, 5, 7, 11, 13, 17, 19, 23]
+  >>> del pole[3:5]          # vyhodí hodnoty 7 a 11
+  >>> pole
+  [2, 3, 5, 13, 17, 19, 23]
+  >>> del pole[4]            # vyhodí hodnotu 17
+  >>> pole
+  [2, 3, 5, 13, 19, 23]
+  >>>
+
+
+.. rubric:: Dve premenné s tým istým poľom
+
+Ak sme doteraz v Pythone do jednej premennej priradili obsah inej (napr. číslo alebo reťazec), nemuseli sme sa obávať, žiadnych "vedľajších účinkov": obsah takejto premennej sa zmenil, len ak sme do nej priradili inú hodnotu.
+
+S poľami je to iné: ak je obsahom premennej pole (t. j. referencia na pole v pamäti) a túto hodnotu priradíme aj do inej premennej, obe premenné sú teraz referenciou na tú istú hodnotu. Lenže túto hodnotu môžeme meniť priamo v pamäti a teda sa zmenia hodnoty oboch premenných. Napr.
+
+ ::
+
+  >>> a = [2, 3, 5, 7, 11, 13, 17]
+  >>> b = a
+  >>> b[3] = 'kuk'
+  >>> a
+  [2, 3, 5, 'kuk', 11, 13, 17]
+  >>> del a[4:]                # vyhodí všetky prvky od 4-tého do konca
+  >>> len(b)                   # tým sa zmení dĺžka poľa
+  4
+
+teda, kým do jednej z týchto premenných nepriradíme (priraďovacím príkazom) inú hodnotu, budú stále odkazovať (referencovať) na to isté pole, napr.
+
+ ::
+
+  >>> b = b + [99]             # do b sme priradili už inú hodnotu
+  >>> a
+  [2, 3, 5, 'kuk']
+  >>> b
+  [2, 3, 5, 'kuk', 99]
+ 
+Pri práci s poľami si budeme musieť dávať veľký pozor na to, ktoré operácie a funkcie kedy použijeme. Priradenie do premennej v každom prípade mení referenciu (niekedy aj na tu istú, aká tam už bola). Ak máme dve premenné, ktoré referencujú na to isté pole, tak kým s nimi budeme robiť tieto operácie, tak sa referencie stále udržujú (obe premenné budú stále referencovať to isté pole):
+
+* priradenie do prvku poľa (indexovanie)
+* priradenie do rezu
+* vyhadzovanie prvku alebo rezu z poľa (pomocou príkazu ``del``)
+* volanie metód a štandardných funkcií
+
+Rovnaké referencie môžeme mať nielen na celé polia, ale aj na prvky poľa, ak sú prvkami opäť polia. Nasledovný príklad ukazuje situáciu, keď všetkými prvkami poľa sú tie isté hodnoty a to polia:
+
+ ::
+ 
+  >>> pole1 = [1]
+  >>> pole2 = [pole1, pole1, pole1, pole1, pole1]
+  >>> pole2
+  [[1], [1], [1], [1], [1]]
+  >>> pole1[0] = 'kuk'
+  >>> pole2
+  [['kuk'], ['kuk'], ['kuk'], ['kuk'], ['kuk']]
+
+Pole ``pole2`` obsahuje 5 referencií na ``pole1``.
+
+Podobne zadefinujme pole ``c`` tak, že jeho prvkami budú iné dve rôzne polia ``a`` a ``b``:
+
+ ::
+
+  >>> a = [1]
+  >>> b = [2]
+  >>> c = [a, b, a, b, a, b]
+ 
+Pole ``c`` obsahuje 6 referencií na iné polia: 3 z nich sú referencie na jednoprvkové pole, na ktoré odkazuje ``a``, ďalšie tri sú referencie na pole ``b``. Pole ``c`` vypíšeme:
+
+ ::
+
+  >>> c
+  [[1], [2], [1], [2], [1], [2]]
+ 
+Ak si uvedomíme, že hodnota ``[1]`` je tu obsahom premennej ``a``, tak zmenou hodnoty ``a`` (ale bez zmeny referencie!) zmeníme aj obsah poľa ``c``:
+
+ ::
+
+  >>> a[0] = 'kuk'
+  >>> c
+  [['kuk'], [2], ['kuk'], [2], ['kuk'], [2]]
+ 
+Pomocou rezu môžeme meniť počet prvkov poľa. Napr. pridáme ďalší prvok do poľa ``b``:
+
+ ::
+
+  >>> b[1:1] = [2014]
+  >>> b
+  [2, 2014]
+  >>> c
+  [['kuk'], [2, 2014], ['kuk'], [2, 2014], ['kuk'], [2, 2014]]
+
+Odteraz si bude treba dávať pozor aj na funkcie, ktoré pracujú s parametrom typu pole. Ak takáto funkcia zmení obsah parametra (typu pole), mali by sme o tom dopredu vedieť. Väčšinou by sme sa mali v dokumentačnom reťazci dozvedieť, čo funkcia robí s **mutable** (meniteľnými) parametrami funkcie, t. j. či funkcia robí nejaký **vedľajší účinok**.
+
+Zapíšme funkciu, ktorá priamo modifikujú parameter pole, napr.
+
+ ::
+
+  def zmen(pole):
+      '''pridá nový prvok (reťazec 'begin') na úplný začiatok poľa, t. j. ešte pred nultý
+
+         funkcia nič nevracia len modifikuje parameter pole
+      '''
+      pole[0:0] = ['begin']
+
+Otestujeme:
+
+ ::
+
+  >>> pole = ['jeden', [2, 'dva'], 3]
+  >>> druhy = pole[1]
+  >>> zmen(pole)
+  >>> zmen(druhy)                        # mohli sme zapísať aj zmen(pole[1])
+  >>> pole
+  ['begin', 'jeden', ['begin', 2, 'dva'], 3]
+
+V tomto príklade vidíme, že premenná ``druhy`` má rovnakú hodnotu ako tretí prvok poľa ``pole[2]``, t. j. zrejme platí:
+
+ ::
+
+  >>> druhy == pole[2]
+  True
+
+Ale to, že nejaké premenné majú tú istú hodnotu ešte nemusí znamenať, že obsahujú tú istú referenciu. V niektorých situáciách môže byť užitočné vedieť, či sú dve rovnaké hodnoty tou istou referenciou. Vtedy využijeme novú operáciu ``is``, ktorá vráti ``True`` len vtedy, keď je to identická referencia a nestačí, že je to tá istá hodnota. Napr.
+
+ ::
+
+  >>> druhy == pole[2]
+  True
+  >>> druhy is pole[2]
+  True
+  >>> iny = ['begin', 2, 'dva']
+  >>> druhy == iny
+  True
+  >>> druhy is iny
+  False
+  >>> iny is pole[2]
+  False
+
+Kým si zvyknete na takúto prácu s pythonovskými typmi, treba si referencie na hodnoty kresliť, alebo využiť http://pythontutor.com/, v ktorom sa treba prepnúť na 3.3 verziu Pythonu.
+
+
+Metódy pre polia
+----------------
+
+Podobne ako pri reťazcoch a n-ticiach aj pri poliach sú preddefinované niektoré metódy.
+
+* syntax volania metódy je ``pole.metóda(parametre)``
+* tieto metódy sú funkcie, niektoré z nich vracajú hodnotu, iné nie
+* niektoré metódy modifikujú hodnotu samotného poľa - teda majú **vedľajšie účinky** (často vtedy nevracajú žiadnu hodnotu)
+
+
+.. rubric:: Niektoré metódy pre polia (list)
+
+* ``pole.count(hodnota)`` vráti počet výskytov hodnoty v poli (alebo v n-tici)
+* ``pole.index(hodnota)`` vráti index prvého výskytu hodnoty v poli (alebo v n-tici)
+* ``pole.append(hodnota)`` pridá novú hodnotu na koniec pôvodného poľa
+* ``pole.insert(index, hodnota)`` vloží hodnotu do pôvodného poľa pred zadaný index
+* ``pole.pop()`` odstráni posledný prvok pôvodného poľa a vráti tento prvok ako hodnotu
+* ``pole.pop(0)`` odstráni prvý prvok pôvodného poľa a vráti tento prvok ako hodnotu
+* ``pole.pop(index)`` odstráni prvok na zadanom indexe a vráti tento prvok ako hodnotu
+* ``pole.remove(hodnota)`` vyhodí z pôvodného poľa prvý výskyt hodnoty
+* ``pole.sort()`` vzostupne utriedi pôvodné pole (priamo v pamäti), prvky poľa sa musia dať porovnávať
+
+
+metóda append()
+...............
+
+
+.. topic:: metóda ``append()``
+
+   Je najčastejšie používanou metódou a využíva sa najmä pri konštruovaní poľa. Metóda pridá na koniec pôvodného poľa nový prvok. Jej tvar je:
+
+   ::
+   
+    pole.append(prvok)
+
+   Funguje ako **vedľajší účinok**, t. j. modifikuje hodnotu v pamäti a nič nevracia.
+
+Napr.
+
+ ::
+ 
+  pole = []                 # zatiaľ prázdne pole
+  for i in range(100):
+      if i % 7 < 3:
+          pole.append(i)
+          
+V tomto príklade postupne konštruujeme prvky poľa tak, že pridávame tie hodnoty, ktorých zvyšok po delení 7 je menší ako 3, t. j. do poľa sa postupne dostávajú hodnoty: 0, 1, 2, 7, 8, 9, 14, 15, 16, 21, ...
+
+Ďalšie štyri funkcie robia to isté, ale zakaždým trochu inak: vytvárajú pole, ktoré je kópiou už existujúceho, pritom každý prvok násobia 2. Vidíme, že nemodifikujú pôvodné pole, ale konštruujú nové, teda **nemajú vedľajší účinok**:
+
+ ::
+
+  def kopia2(pole):
+      vysl = []                 # zatiaľ prázdne pole
+      for prvok in pole:
+          vysl.append(prvok * 2)
+      return vysl
+
+  def kopia2(pole):
+      vysl = []                 # zatiaľ prázdne pole
+      for prvok in pole:
+          vysl += [prvok * 2]
+      return vysl
+
+  def kopia2(pole):
+      vysl = [0] * len(pole)    # rovnako veľké pole núl
+      for ix in range(len(pole)):
+          vysl[ix] = pole[ix] * 2
+      return vysl
+
+  def kopia2(pole):
+      vysl = pole[:]            # presná kópia poľa
+      for ix in range(len(vysl)):
+          vysl[ix] *= 2
+      return vysl
+
+Prvá verzia tejto funkcie ilustruje použitie metódy ``append()`` a pre takýto typ úloh sa používa najčastejšie.
+
+Častou začiatočníckou chybou pri práci s metódami býva to, že výsledok volania tejto funkcie priradíme do samotného poľa, napr.
+
+ ::
+
+  >>> a = [1, 2, 3, 4]
+  >>> a = a.append(5)
+  >>> print(a)
+  None
+
+Metóda ``append()`` modifikuje samotné pole a nič nevracia, teda vlastne vracia hodnotu ``None``. V príklade, hoci do poľa ``a`` na koniec pridáme nový prvok s hodnotou 5, hneď aj zmeníme hodnotu tejto premennej, a priradíme do nej výsledok ``append()``, t. j. ``None``.
+
+metóda pop()
+............
+
+.. topic:: metóda ``pop()``
+
+   Vyhadzuje z poľa buď posledný prvok (ak je volaná bez parametrov), alebo prvok na zadanom indexe:
+   
+   ::
+   
+    pole.pop()
+    
+    pole.pop(index)
+
+   Metóda vždy vráti vyhadzovaný prvok ako výsledok volania funkcie. Takže táto funkcia nielen modifikuje pole (má **vedľajší účinok**), ale aj vracia hodnotu vyhadzovaného prvku poľa. Indexom je celé číslo od ``0`` do ``len(pole)-1`` alebo od ``-1`` do ``-len(pole)``.
+
+Napr. môžeme ju použiť takto:
+
+ ::
+
+  pole = [5, 10, 15, 20, 25]
+  while pole:                     # kým nie je pole prázdne
+      print(pole.pop(), end=' ')
+  print()
+
+vypíše:
+
+ ::
+
+  25 20 15 10 5
+
+Alebo skoro to isté, ale budeme vyhadzovať zo začiatku poľa:
+
+ ::
+
+  pole = [5, 10, 15, 20, 25]
+  while pole:              # kým pole nie je prázdne
+      print(pole.pop(0), end=' ')
+  print()
+
+vypíše:
+
+ ::
+
+  5 10 15 20 25
+
+metóda insert()
+...............
+
+.. topic:: metóda ``insert()``
+
+   Vkladá do poľa jednu hodnotu na pozíciu pred zadaný index:
+
+   ::
+   
+    pole.insert(index, prvok)
+
+   Ak je index == 0, vloží na úplný začiatok, ak je index == dĺžka poľa (ale môže byť aj väčší), zadanú hodnotu pridá na koniec poľa (teda urobí vlastne ``append()``). Rovnako ako ``append()`` aj táto metóda "iba" modifikuje pole a nič nevracia (teda vracia hodnotu ``None``).
+
+Napr.
+
+ ::
+
+  >>> pole = [1, 2, 3]
+  >>> pole.insert(0, -99)
+  >>> pole
+  [-99, 1, 2, 3]
+  >>> pole.insert(2, 98)
+  >>> pole
+  [-99, 1, 98, 2, 3]
+  >>> pole.insert(5, 97)
+  >>> pole
+  [-99, 1, 98, 2, 3, 97]
+  >>> pole.insert(-1, 'koniec')
+  >>> pole
+  [-99, 1, 98, 2, 3, 'koniec', 97]
+
+Všimnite si, že záporný index -1 označuje posledný prvok poľa, ale keďže ``insert()`` vkladá pred zadaný prvok, tak s ``-1`` vkladá pred posledný prvok.
+
+Ak by sme chceli túto metódu využiť na to, aby sme pred každý jeho prvok vložili reťazec ``'a'``, tak to nemôžeme zapísať takto:
+
+ ::
+
+  >>> pole = [1, 2, 3]
+  >>> for i in range(len(pole)):
+          pole.insert(i, 'a')
+
+  >>> pole
+  ['a', 'a', 'a', 1, 2, 3]
+
+buď poopravíme index miesta, kam treba vložiť 'a':
+
+ ::
+
+  >>> pole = [1, 2, 3]
+  >>> for i in range(len(pole)):
+          pole.insert(2 * i, 'a')
+
+  >>> pole
+  ['a', 1, 'a', 2, 'a', 3]
+
+alebo vkladať môžeme nie od prvého po posledný prvok, ale naopak od konca:
+
+ ::
+
+  >>> pole = [1, 2, 3]
+  >>> for i in range(len(pole)-1, -1, -1):
+          pole.insert(i, 'a')
+
+  >>> pole
+  ['a', 1, 'a', 2, 'a', 3]
+
+metóda remove()
+...............
+
+.. topic:: metóda ``remove()``
+
+   Táto metóda najprv nájde prvý (najľavejší) výskyt danej hodnoty v poli a potom tento prvok z poľa vyhodí. Jej tvar:
+
+   ::
+   
+    pole.remove(hodnota)
+
+   Ak sa ale v poli zadaná hodnota nenachádza, program spadne s chybovou správou.
+
+Napr.
+
+ ::
+
+  >>> pole = ['a', 'b', 'c']
+  >>> pole.remove('b')
+  >>> pole
+  ['a', 'c']
+  >>> pole.remove('b')
+  ...
+  ValueError: list.remove(x): x not in list
+
+Ak by sme chceli vyhodiť všetky výskyty nejakej hodnoty v poli, môžeme to urobiť napr. takýmto cyklom:
+
+ ::
+
+  >>> pole = list('programovanie pre radost')
+  >>> pole
+  ['p', 'r', 'o', 'g', 'r', 'a', 'm', 'o', 'v', 'a', 'n', 'i', 'e', ' ',
+  'p', 'r', 'e', ' ', 'r', 'a', 'd', 'o', 's', 't']
+  >>> while 'r' in pole:
+          pole.remove('r')
+
+  >>> pole
+  ['p', 'o', 'g', 'a', 'm', 'o', 'v', 'a', 'n', 'i', 'e', ' ', 'p', 'e',
+  ' ', 'a', 'd', 'o', 's', 't']
+
+metóda sort()
+.............
+
+.. topic:: metóda ``sort()``
+
+   Metódu ``sort()`` sa zatiaľ naučíme používať bez parametrov, neskôr budeme využívať aj parametre. Táto metóda preusporiada prvky poľa tak, že budú nasledovať usporiadané vzostupne (od najmenšieho po najväčší, resp. od prvého podľa abecedy po posledného). Tvar volania:
+
+   ::
+   
+    pole.sort()
+
+   Metóda nič nevracia (iba hodnotu ``None``).
+
+Napr.
+
+ ::
+
+  >>> a = [15, 22, 7, 17, 4, 29, 1, 7, 11, 10]
+  >>> a.sort()
+  >>> a
+  [1, 4, 7, 7, 10, 11, 15, 17, 22, 29]
+  >>> b = ['emil', 'fero', 'hana', 'cyril', 'dasa', 'adam', 'gita', 'beta']
+  >>> b.sort()
+  >>> b
+  ['adam', 'beta', 'cyril', 'dasa', 'emil', 'fero', 'gita', 'hana']
+
+Pre prvky poľa musí platiť rovnaké pravidlo ako pre štandardné funkcie ``min()`` a ``max()``: prvky sa musia dať navzájom porovnávať a teda nie je dovolené miešanie typov, napr.
+
+ ::
+
+  >>> c = [15, 'adam', 17]
+  >>> c.sort()
+  ...
+  TypeError: unorderable types: str() < int()
+
+Metóda ``sort()`` funguje iba pre polia. Existuje ešte variant tejto funkcie:
+
+.. topic:: funkcia ``sorted()``
+
+   Je to štandardná funkcia (nie metóda), ktorá dostáva ako parameter ľubovoľný iterovateľný objekt (napr. pole, n-ticu, reťazec, súbor, ale aj ``range()``) a vytvorí z neho **pole** utriedených hodnôt, ktoré sú z daného iterovateľného objektu. Jej tvar:
+   
+   ::
+   
+    premenná = sorted(postupnosť)
+    
+   Funkcia vracia hodnotu a nemodifikuje (nemá vedľajší účinok). Teda funkcia vždy skonštruuje nové pole a to je výsledkom funkcie. Aj táto funkcia môže mať ďalšie parametre rovnako ako metóda ``sort()``, ale to ukážeme neskôr.
+
+Napr.
+
+ ::
+
+  >>> sorted('python')
+  ['h', 'n', 'o', 'p', 't', 'y']
+  >>> sorted((5, 1, 4, 2, 3))
+  [1, 2, 3, 4, 5]
+  >>> sorted([(10,30), (20,10), (10,20)])
+  [(10, 20), (10, 30), (20, 10)]
+
+Zhrňme
+......
+
+.. rubric:: Vkladanie do poľa
+
+Videli sme viac rôznych spôsobov, ako môžeme pridať jednu hodnotu do poľa. Vkladanie nejakej ``hodnoty`` pred prvok s indexom ``i``:
+
+* pomocou rezu:
+
+  ::
+
+   pole[i:i] = [hodnota]
+
+* pomocou metódy ``insert()``:
+
+  ::
+
+   pole.insert(i, hodnota)
+
+* ak ``i`` = ``len(pole)``, pridávame na koniec, môžeme použiť metódu ``append()``:
+
+  ::
+
+   pole.append(hodnota)
+
+Vo vašich programoch použijete ten zápis, ktorý sa vám bude najlepšie hodiť, ale zápis s rezom ``pole[i:i]`` je najmenej čitateľný a používa sa veľmi zriedkavo.
+
+Zrejme funguje aj:
+
+ ::
+ 
+  pole = pole[:i] + [hodnota] + [i:]
+  
+resp.
+
+ ::
+ 
+  pole += [hodnota]
+
+Tieto dve priradenia nemodifikujú pôvodné pole, ale vytvárajú nové s pridanou hodnotou.
+
+.. rubric:: Vyhadzovanie z poľa
+
+
+Aj vyhadzovanie prvku z poľa môžeme robiť viacerými spôsobmi. Ak vyhadzujeme prvok na indexe ``i``, môžeme zapísať:
+
+* pomocou rezu:
+
+  ::
+
+   pole[i:i+1] = []
+
+* pomocou príkazu ``del``:
+
+  ::
+
+   del pole[i]
+
+* pomocou metódy ``pop()``, ktorá nám aj vráti vyhadzovanú hodnotu:
+
+  ::
+
+   hodnota = pole.pop(i)
+
+* veľmi neefektívne pomocou metódy ``remove()``, ktorá ako parameter očakáva nie index ale vyhadzovanú hodnotu:
+
+  ::
+
+   pole.remove(pole[i])
+
+  tento spôsob je veľmi neefektívny (zbytočne sa hľadá prvok v poli) a okrem toho niekedy môže vyhodiť nie ``i``-ty prvok, ale prvok s rovnakou hodnotou, ktorý sa v poli nachádza skôr ako na indexe ``i``.
+
+
+.. rubric:: Vyhodenie všetkých prvkov z poľa
+
+Najjednoduchší spôsob:
+
+ ::
+ 
+  pole = []
+  
+môžeme použiť len vtedy, keď nepotrebujeme uchovať referenciu na pole - toto priradenie nahradí momentálnu referenciu na pole referenciou na úplne nové pole; ak to použijeme vo vnútri funkcie, stratí sa tým referencia na pôvodné pole.
+
+Ďalšie spôsoby uchovávajú referenciu na pole:
+
+* pomocou cyklu postupne vyhodíme všetky prvky:
+
+  ::
+  
+   while pole:
+       pole.pop()
+       
+  toto je zbytočne veľmi neefektívne riešenie
+
+* priradením do rezu:
+
+  ::
+  
+   pole[:] = []
+   
+  je ťažšie čitateľné a menej pochopiteľné riešenie
+  
+* metódou ``clear()``:
+
+  ::
+  
+   pole.clear()
+   
+  je asi najčitateľnejší zápis
+
+.. rubric:: Vytvorenie kópie poľa
+
+Ak potrbujeme vyrobiť kópiu celého poľa, dá sa to urobiť v cykle:
+
+ ::
+ 
+  kopia = []
+  for prvok in pole:
+      kopia.append(prvok)
+
+Môžeme využiť aj rez:
+
+ ::
+ 
+  kopia = pole[:]
+  
+Ale ``list`` funguje aj ako funkcia, ktorá z iterovateľného parametra vytvorí pole, a teda (aj pole je iterovateľné):
+
+ ::
+ 
+  kopia = list(pole)
+  
+
+Polia a reťazce
+---------------
+
+Už sme videli niekoľko prípadov, keď polia spolupracovali s reťazcami, napr.
+
+ ::
+
+  >>> pole = [2, 4, 6, 8, 10]
+  >>> pole[2:4] = 'ahoj'
+  >>> pole
+  [2, 4, 'a', 'h', 'o', 'j', 10]
+  >>> pole2 = list('python')
+  >>> pole2
+  ['p', 'y', 't', 'h', 'o', 'n']
+
+Všade tam, kde sa očakáva zadanie postupnosti (iterovateľný objekt) a objaví sa reťazec, tak tento sa automaticky prerobí na pole znakov (prvky reťazca sa iterujú - prechádzajú cyklom, a postupne sa z nich stávajú prvky poľa).
+
+Existujú dve metódy, ktoré uľahčujú prevod medzi poľami reťazcov a jedným reťazcom:
+
+metóda split()
+..............
+
+.. topic:: metóda ``split()``
+
+   Keďže je to reťazcová metóda, má tvar:
+   
+   ::
+   
+    reťazec.split()
+    
+   Metóda rozbije jeden reťazec na samostatné reťazce a uloží ich do poľa (teda vracia pole reťazcov).
+   
+Najlepšie to pochopíme na niekoľkých príkladoch. Metóda ``split()`` sa často využíva pri rozdelení prečítaného reťazca zo vstupu (``input()`` alebo ``subor.readline()``) na viac častí, napr.
+
+ ::
+
+  >>> ret = input('zadaj 2 čísla: ')
+  zadaj 2 čísla: 15 999
+  >>> pole = ret.split()
+  >>> pole
+  ['15', '999']
+  >>> a, b = pole
+  >>> ai, bi = int(pole[0]), int(pole[1])
+  >>> a, b, ai, bi
+  ('15', '999', 15, 999)
+
+Niekedy môžeme vidieť aj takýto zápis:
+
+ ::
+
+  >>> meno, priezvisko = input('zadaj meno a priezvisko: ').split()
+  zadaj meno a priezvisko: Janko Hraško
+  >>> meno
+  'Janko'
+  >>> priezvisko
+  'Hraško'
+
+Metóda ``split()`` môže dostať ako parameter oddeľovač, napr. ak sme prečítali čísla oddelené čiarkami:
+
+ ::
+
+  sucet = 0
+  for prvok in input('zadaj čísla: ').split(','):
+      sucet += int(prvok)
+  print('ich súčet je', sucet)
+
+ ::
+
+  zadaj čísla: 10,20,30,40
+  ich súčet je 100
+
+metóda join()
+.............   
+   
+.. topic::  metóda ``join()``
+
+   Opäť je to reťazcová metóda. Má tvar:
+
+   ::
+
+    oddeľovač.join(postupnosť_reťazcov)
+
+   Metóda zlepí všetky reťazce z danej postupnosti (môže to byť n-tica alebo pole) reťazcov do jedného, pričom ich navzájom oddelí uvedeným ``oddeľovačom``, t. j. nejakým zadaným reťazcom.
+
+Ukážme to na príklade:
+
+ ::
+
+  >>> pole = ['prvý', 'druhý', 'tretí']
+  >>> pole
+  ['prvý', 'druhý', 'tretí']
+  >>> ''.join(pole)
+  'prvýdruhýtretí'
+  >>> '...'.join(pole)
+  'prvý...druhý...tretí'
+  >>> list(str(2013))
+  ['2', '0', '1', '3']
+  >>> '.'.join(list(str(2013)))
+  '2.0.1.3'
+
+Preštudujte:
+
+ ::
+
+  >>> veta = 'kto druhemu jamu kope'
+  >>> ' '.join(veta[::-1].split()[::-1])
+  'otk umehurd umaj epok'
+  >>> ' '.join(sorted(input('?').split()))
+  ?anicka dusicka kde si bola ked si si cizmicky zarosila
+  'anicka bola cizmicky dusicka kde ked si si si zarosila'
+
+
+Polia a grafika
+...............
+
+Väčšina grafických príkazov, napr. ``create_line()``, ``create_polygon()``, ... akceptujú ako parametre nielen čísla, ale aj polia (ale aj n-tice) čísel, resp. polia dvojíc čísel, napr.
+
+ ::
+
+  import tkinter
+
+  canvas = tkinter.Canvas()
+  canvas.pack()
+  utvar = ((100, 50), (200, 120))
+  canvas.create_rectangle(utvar, fill='blue')
+  canvas.create_oval(utvar, fill='yellow')
+  utvar2 = list(utvar)                # z n-tice sa vyrobí pole
+  utvar2.append((170, 20))
+  canvas.create_polygon(utvar2, fill='red')
+
+alebo môžeme generovať náhodnú krivku:
+
+ ::
+
+  import tkinter, random
+
+  canvas = tkinter.Canvas(bg='white')
+  canvas.pack()
+  krivka = []
+  for i in range(30):
+      krivka.append([random.randrange(350), random.randrange(250)])
+  canvas.create_line(krivka)
+
+Ak by sme chceli využiť grafickú funkciu ``coords()``, ktorá modifikuje súradnice nakreslenej krivky, nemôžeme jej poslať pole súradníc (dvojíc), ale vyžaduje pole čísel. Predchádzajúci príklad mierne zmeníme:
+
+ ::
+ 
+  import tkinter, random
+
+  canvas = tkinter.Canvas(bg='white')
+  canvas.pack()
+  poly = canvas.create_polygon(0, 0, 0, 0, fill='yellow', outline='blue')
+  krivka = []
+  for i in range(100):
+      krivka.append(random.randrange(350))    # x-ová súradnica
+      krivka.append(random.randrange(250))    # y-ová súradnica
+      canvas.coords(poly, krivka)
+      canvas.update()
+      canvas.after(300)
+
+
+Cvičenie
+--------
+
+
+1. Funkcia ``zisti(pole)`` zistí počet celých čísel v zadanom poli, ktoré sú deliteľné 7
+
+  * napr.    
+    
+   ::
+   
+    >>> print('pocet =', zisti([4, 7.0, 14, '7', 0]))
+    pocet = 2
+    
+2. Funkcia ``pole2(n, hodn1, hodn2)`` vytvorí ``n`` prvkové pole (predpokladajte, že ``n`` je párne), ktoré bude obsahovať striedajúce sa hodnoty ``hodn1`` a ``hodn2``
+
+  * napr.
+  
+   ::
+   
+    >>> s = pole2(10, 7, 'w')
+    >>> s
+    [7, 'w', 7, 'w', 7, 'w', 7, 'w', 7, 'w']
+    
+3. Funkcia ``na_parnych(pole)`` z daného poľa vytvorí nové, ktoré obsahuje len prvky na párnych indexoch (funkcia nemodifikuje vstupné pole)
+
+  * napr.
+  
+   ::
+   
+    >>> a = list('programovanie')
+    >>> b = na_parnych(a)
+    >>> b
+    ['p', 'o', 'r', 'm', 'v', 'n', 'e']
+
+4. Funkcia ``zostupne(pole)`` zistí, či je dané ``pole`` utriedené zostupne - funkcia vráti ``True`` alebo ``False`` (funkcia nemodifikuje vstupné pole)
+
+  * napr.
+  
+   ::
+   
+    >>> zostupne([5, 3, 3, 2, 0, 0])
+    True
+    >>> p = [1, 2, 3]
+    >>> zostupne(p)
+    False
+    >>> p
+    [1, 2, 3]
+
+5. Funkcia ``krat2(pole)`` vynásobí každý prvok poľa číslom 2; funkcia nič nevracia len mení obsah poľa
+
+  * napr.
+  
+   ::
+   
+    >>> z = [5, 3.14, (1, 2), -4, 'ab']
+    >>> krat2(z)
+    >>> z
+    [10, 6.28, (1, 2, 1, 2), -8, 'abab']
+
+6. Funkcia ``vyrob1(pole)`` vyrobí (vráti) kópiu celočíselného poľa, ale každé párne číslo pritom zväčší o 1 (funkcia nemodifikuje vstupné pole)
+
+  * napr.
+  
+   ::
+   
+    >>> pole1 = [3, 5, 6, 8, 9, 10, 11, 13]
+    >>> pole2 = vyrob1(pole1)
+    >>> pole2
+    [3, 5, 7, 9, 9, 11, 11, 13]
+    >>> pole1
+    [3, 5, 6, 8, 9, 10, 11, 13]
+
+7. Funkcia ``vyrob2(pole)`` vyrobí kópiu vstupného poľa ale v kópii ponechá len tie prvky, ktoré sú znakové reťazce (funkcia nemodifikuje vstupné pole)
+
+  * napr.
+  
+   ::
+   
+    >>> pole1 = [1, 2.2, ('a', 'b'), 'tri', 4, '']
+    >>> pole2 = vyrob2(pole1)
+    >>> pole2
+    ['tri', '']
+    >>> pole1
+    [1, 2.2, ('a', 'b'), 'tri', 4, '']
+
+8. Funkcia ``pole_cifier(cislo)`` z daného nezáporného celého čísla vytvorí (vráti) pole cifier
+
+  * napr.
+  
+   ::
+   
+    >>> c = pole_cifier(123789)
+    >>> c
+    [1, 2, 3, 7, 8, 9]
+    >>> pole_cifier(0)
+    [0]
+    
+9. Funkcia ``gener(a, b, c=1)`` vytvorí (vráti) pole, ktorého prvky sú celočíselné hodnoty od ``a`` do ``b-1`` krokom ``c`` (rovnako ako ``range(a, b, c)``)
+
+  * napr.
+
+   ::
+   
+    >>> aa = gener(1, 11)
+    >>> aa
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    >>> gener(5, 20, 3)
+    [5, 8, 11, 14, 17]
+    >>> gener(4, 0, -1)
+    [4, 3, 2, 1]
+
+10. Funkcia ``cele(pole)`` z poľa desatinných čísel vyrobí (vráti) pole celých čísel = ich celých častí (volaním funkcie ``int()``), (funkcia nemodifikuje vstupné pole)
+
+  * napr.
+  
+   ::
+   
+    >>> d = [3.14, -7.0, 0.99]
+    >>> a = cele(d)
+    >>> a
+    [3, -7, 0]
+    >>> d
+    [3.14, -7.0, 0.99]
+    
+11. Funkcia ``zdvoj(pole)`` do daného poľa pridá nové hodnoty tak, že každý prvok z pôvodného obsahu sa tu objaví dvakrát za sebou, funkcia nič nevracia, len modifikuje dané pole
+
+  * napr.
+   
+   ::
+   
+    >>> pole = [1, 'Python', 2, 'Java', 3, 'C#']
+    >>> zdvoj(pole) 
+    >>> pole
+    [1, 1, 'Python', 'Python', 2, 2, 'Java', 'Java', 3, 3, 'C#', 'C#']  
+    
+12. Prvkami poľa sú čísla 0, 1 alebo 2 (v ľubovoľnom poradí). Napíšte funkciu ``uprac(pole)``, ktorá preusporiada prvky poľa tak, že na začiatku poľa budú všetky 2, za tým 0 a na koniec 1, funkcia nič nevracia, len modifikuje dané pole
+
+  * napr.
+  
+   ::
+   
+    >>> f = [0, 1, 2, 0, 0, 2]
+    >>> uprac(f)
+    >>> f
+    [2, 2, 0, 0, 0, 1]
+    
+13. Funkcia ``ocisluj(pole)`` vytvorí (vráti) nové pole, ktoré obsahuje dvojice (dvojprvkové n-tice), pričom prvým prvkom dvojice je poradové číslo a druhým je príslušná hodnota poľa (funkcia nemodifikuje vstupné pole)
+
+ * napr. 
+
+  ::
+  
+   >>> ppp = [3, 'tri', 3.14, False]
+   >>> dvoj = ocisluj(ppp)
+   >>> dvoj
+   [(0, 3), (1, 'tri'), (2, 3.14), (3, False)]
+   >>> ppp
+   [3, 'tri', 3.14, False]
+    
+14. Pole súradníc obsahuje dvojice celých čísel. Napíšte funkciu ``prerob1(pole)``, ktorá prerobí toto pole tak, že každú dvojicu rozloží na 2 prvky. Funkcia nič nevracia, len mení obsah poľa.
+
+  * napr.    
+   
+   ::
+   
+    >>> xy = [(100, 50), (0, -20), (350, 200)]
+    >>> prerob1(xy)
+    >>> xy
+    [100, 50, 0, -20, 350, 200]
+    
+15. Funkcia ``prerob2(pole)`` predpokladá, že ``pole`` obsahuje párny počet celých čísel; funkcia prerobí toto ``pole`` tak, že z každých dvoch za sebou idúcich prvkov (0. a 1., potom 2. a 3., potom 4. a 5., ...) vyrobí dvojice (dvojprvkové n-tice) celých čísel. Funkcia nič nevracia, len mení obsah poľa.
+
+  * napr.    
+
+   ::
+   
+    >>> pole = [100, 50, 0, -20, 350, 200]
+    >>> prerob2(pole)
+    >>> pole
+    [(100, 50), (0, -20), (350, 200)]
+
+16. Dopíšte funkciu ``prevrat(pole)``, tak aby z pôvodného poľa vyrobila pole s rovnakými hodnotami, ale v opačnom poradí. V dopisovanej časti funkcie použite len metódy ``append()`` a ``pop()`` ale nepoužite ``[ ]`` zátvorky 
+
+  * dopíšte:
+  
+   ::
+   
+    def prevrat(pole):
+        vysl = list()   # prazdne pole
+        
+        
+        
+        return vysl
+        
+  * napr.
+  
+   ::
+   
+    >>> a = ['raz', 2, 'tri', 4]
+    >>> b = prevrat(a)
+    >>> b
+    [4, 'tri', 2, 'raz']
+    >>> a
+    ['raz', 2, 'tri', 4]
+    
+17. Funkcia ``nahodne_pole(n, vyber)`` vyrobí (vráti) ``n`` prvkové pole, ktorého prvky sú náhodne vybrané hdnoty z poľa ``vyber``
+
+  * napr.
+  
+   ::
+   
+    >>> m = nahodne_pole(8, [7, 'red', None])
+    >>> m
+    ['red', 7, 'red', 7, 'red', None, None, 'red']
+    >>> nahodne_pole(13, [2, 3])
+    [2, 3, 2, 2, 3, 2, 3, 3, 3, 2, 3, 2, 3]
+    
+18. Funkcia ``rozdel(pole)`` zo vstupného poľa celých čísel vráti dve polia: prvé obsahuje všetky prvky s nepárnou hodnotou a druhé všetky prvky s hodnotou deliteľnou 3 (funkcia nemodifikuje vstupné pole)
+
+  * napr.
+  
+   ::
+   
+    >>> cisla = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    >>> a, b = rozdel(cisla)
+    >>> a
+    [3, 5, 7, 9, 11]
+    >>> b
+    [3, 6, 9, 12]
+    
+19. Funkcia ``vymen(veta)`` predpokladá, že ``veta`` je znakový reťazec, v ktorom sú slová oddelené medzerou; funkcia vymení druhé slovo vo vete s posledným a takúto vetu vráti ako výsledok (využite metódy ``split()`` a ``join()``)
+
+  * napr.
+    
+   ::
+   
+    >>> novy = vymen('prvy druhy treti stvrty piaty')
+    >>> novy
+    'prvy piaty treti stvrty druhy' 
+    
+20. Napíšte funkciu ``sucet(subor)``, ktorá otvorí zadaný textový súbor (tento súbor obsahuje len celé čísla) a vypočíta (vráti) súčet všetkých týchto čísel; použite metódu ``split()``
+
+  * napr. pre súbor ``'subor.txt'``    
+    
+   ::
+   
+    13  9
+      -7 1 2
+    4  
+    
+   vypočíta
+   
+   ::
+   
+    >>> print('sucet =', sucet('subor.txt'))
+    sucet = 22 
+    
+..
+  x. funkcia vráti pole indexov všetkých maximálnych prvkov
+  
+  x. vložiť novú hodnotu do vzostupne utriedeného poľa - použiť metódu ``insert()``
+  
+  x. funkcia zistí počet rôznych prvkov v poli
+  
+  x. zistí, koľko majú dve polia na rovnakých indexov rovnaké hodnoty
+
+  x. funkcia ``xxx(n)`` vytvorí (vráti) ``n`` prvkové pole, ktoré
+  
+  x. funkcia ``xxx(pole1, pole2)`` z dvoch polí vytvorí
+
+    

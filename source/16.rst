@@ -1,0 +1,788 @@
+Triedy a dedičnosť
+==================
+
+Čo už vieme o triedach a ich inštanciách:
+
+* triedy sú kontajnery atribútov:
+
+ * atribúty sú väčšinou funkcie, hovoríme im metódy
+ * niekedy sú to premenné, hovoríme im triedne atribúty
+ * niektoré metódy sú "magické": začínajú aj končia dvomi znakmi '__' a každá z nich má pre Python svoje špeciálne využitie
+
+* triedy sú vzormi na vytvárame inštancií (niečo ako formičky na vyrábanie nejakých výrobkov)
+* aj inštancie sú kontajnery atribútov:
+
+ * väčšinou sú to súkromné premenné inštancií
+
+* ak nejaký atribút nie je v inštancii definovaný, tak Python zabezpečí, že sa použije atribút z triedy (inštancia automaticky "vidí" triedne atribúty) - samozrejme, len ak tam existuje, inak sa o tom vyhlási chyba
+
+Objektové programovanie
+-----------------------
+
+je v programovacom jazyku charakterizované týmito tromi vlastnosťami:
+
+.. rubric:: 1. Zapuzdrenie
+
+Zapuzdrenie (enkapsulácia, encapsulation) označuje:
+
+* v objekte sa nachádzajú premenné aj metódy, ktoré s týmito premennými pracujú (hovoríme, že údaje a funkcie sú zapuzdrené v jednom celku)
+* vďaka metódam môžeme premenné v objekte ukryť, takže zvonku sa s údajmi pracuje len pomocou týchto metód
+* pripomeňme si triedu ``Cas``: v atribútoch ``hodiny`` a ``minuty`` (prípadne ``sekundy``) sa tieto hodnoty nachádzajú vždy v správnom tvare, t.j. sú to kladné čísla, pričom atribút ``minuty`` je vždy menší ako 60, predpokladáme, že s týmito atribútmi nepracujeme priamo, ale len pomocou metód ``__init__()``, ``__str__()``, ``sucet()``, ...
+* z tohto dôvodu, by sme niekedy potrebovali dáta skryť a preto doplniť funkcie, tzv. **getter** a **setter** pre tie atribúty, ktoré chceme nejako ochrániť, neskôr uvidíme ďalší pojem, ktorý s týmto súvisí, tzv. **vlastnosť** (property), napr.
+
+ ::
+ 
+  class Cas:
+
+      def __init__(self, hodiny=0, minuty=0, sekundy=0):
+          cas = abs(3600*hodiny + 60*minuty + sekundy)
+          self.hod = cas // 3600
+          self.min = cas // 60 % 60
+          self.sek = cas % 60
+
+      def __str__(self):
+          return '{}:{:02}:{:02}'.format(self.hod, self.min, self.sek)
+
+      def sucet(self, iny):
+          return Cas(self.hod+iny.hod, self.min+iny.min, self.sek+iny.sek)
+
+      def rozdiel(self, iny):
+          return Cas(sekundy = self.pocet_sekund() - iny.pocet_sekund())
+
+      def pocet_sekund(self):
+          return 3600 * self.hod + 60 * self.min + self.sek
+
+      def vacsi(self, iny):
+          return self.pocet_sekund() > iny.pocet_sekund()
+
+      def hodiny(self):                    # getter
+          return self.hod
+
+      def zmen_hodiny(self, hodiny):       # setter
+          self.hod = abs(hodiny)
+          
+      def minuty(self):                    # getter
+          return self.min
+
+      def zmen_minuty(self, minuty):       # setter
+          self.min = minuty % 60
+          self.hod += minuty // 60
+          
+      ...
+
+* podobne by sme zrealizovali ``sekundy()`` aj ``zmen_sekundy()``
+* vieme to zapísať aj pre vylepšenú verziu s jediným apribútom premennou ``sek``:
+  
+ ::
+  
+  class Cas:
+
+      def __init__(self, hodiny=0, minuty=0, sekundy=0):
+          self.sek = abs(3600*hodiny + 60*minuty + sekundy)
+
+      def __str__(self):
+          return '{}:{:02}:{:02}'.format(self.sek//3600, self.sek//60%60, self.sek%60)
+
+      def sucet(self, iny):
+          return Cas(sekundy=self.sek+iny.sek)
+
+      def rozdiel(self, iny):
+          return Cas(sekundy=self.sek-iny.sek)
+
+      def vacsi(self, iny):
+          return self.sek > iny.sek
+          
+      def hodiny(self):                    # getter
+          return self.sek // 3600
+          
+      def zmen_hodiny(self, hodiny):       # setter
+          self.sek = 3600 * abs(hodiny) + self.sek % 3600
+          
+      ...
+
+.. rubric:: 2. Dedičnosť
+
+Dedičnosť (inheritance) označuje, že
+
+* novú triedu nevytvárame z nuly, ale využijeme už existujúcu triedu
+* tejto vlastnosti sa budeme venovať v tejto prednáške
+
+.. rubric:: 3. Polymorfizmus
+
+Tejto vlastnosti objektového programovania sa budeme venovať v ďalších prednáškach.
+
+
+Dedičnosť
+---------
+
+Začneme definíciou jednoduchej triedy:
+
+ ::
+
+  class Bod:
+      def __init__(self, x, y):
+          self.x, self.y = x, y
+
+      def __str__(self):
+          return 'Bod({},{})'.format(self.x, self.y)
+
+      def posun(self, dx=0, dy=0):
+          self.x += dx
+          self.y += dy
+
+  bod = Bod(100, 50)
+  bod.posun(-10, 40)
+  print('bod =', bod)
+
+Toto by nemalo byť pre nás nič nové. Tiež sme sa už stretli s tým, že:
+
+ ::
+
+  >>> dir(Bod)
+  ['__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__',
+   '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__', '__le__', '__lt__',
+   '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__',
+   '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', 'posun']
+
+V tomto výpise všetkých atribútov triedy ``Bod`` vidíme nielen nami definované tri metódy: ``__init__()``, ``__str__()`` a ``posun()``, ale aj veľké množstvo neznámych identifikátorov, o ktorých asi netušíme odkiaľ sa tu nabrali a na čo slúžia.
+
+V Pythone, keď vytvárame novú triedu, tak sa táto "nenarodí" úplne prázdna, ale získava niektoré dôležité atribúty od základnej Pythonovskej triedy ``object``. Keď pri definovaní triedy zapíšeme:
+
+ ::
+
+   class Bod:
+       ...
+
+v skutočnosti to znamená:
+
+ ::
+
+   class Bod(object):
+       ...
+
+Do okrúhlych zátvoriek píšeme triedu (v tomto prípade triedu ``object``), z ktorej sa vytvára naša nová trieda ``Bod``. Vďaka tomuto naša nová trieda už pri "narodení" pozná základnú množinu atribútov a my našimi definíciami metód tieto atribúty buď prepisujeme alebo pridávame nové. Tomuto mechanizmu sa hovorí **dedičnosť** a znamená to, že z jednej triedy vytvárame nejakú inú:
+
+* triede, z ktorej vytvárame nejakú novú, sa hovorí **základná trieda**, alebo **bázová trieda**, alebo **super trieda** (base class, super class)
+* triede, ktorá vznikne dedením z inej triedy, hovoríme **odvodená trieda**, alebo **podtrieda** (derived class, subclass)
+
+Niekedy sa vzťahu základná trieda a odvodená trieda hovorí aj terminológiou **rodič** a **potomok** (potomok zdedil nejaké vlastnosti od svojho rodiča).
+
+
+Odvodená trieda
+...............
+
+Vytvorme nový typ (triedu) z triedy, ktorú sme definovali my, napr. z triedy ``Bod`` vytvoríme novú triedu ``FarebnyBod``:
+
+ ::
+
+  class FarebnyBod(Bod):
+      def zmen_farbu(self, farba):
+          self.farba = farba
+
+Vďaka takémuto zápisu trieda ``FarebnyBod`` získava už pri narodení metódy ``__init__()``, ``__str__()`` a ``posun()``, pritom metódu ``zmen_farbu()`` sme jej dodefinovali teraz. Teda môžeme využívať všetko z definície triedy, z ktorej sme **odvodili** novú triedu (t.j. všetky atribúty, ktoré sme **zdedili**). Môžeme teda zapísať:
+
+ ::
+
+  fbod = FarebnyBod(200, 50)         # volá __init__() z triedy Bod
+  fbod.zmen_farbu('red')             # volá zmen_farbu() z triedy FarebnyBod
+  fbod.posun(dy=50)                  # volá posun() z triedy Bod
+  print('fbod =', fbod)              # volá __str__() z triedy Bod
+
+Zdedené metódy môžeme v novej triede nielen využívať, ale aj predefinovať - napr. môžeme zmeniť inicializáciu ``__init__()``:
+
+ ::
+
+  class FarebnyBod(Bod):
+      def __init__(self, x, y, farba='black'):
+          self.x = x
+          self.y = y
+          self.farba = farba
+
+      def zmen_farbu(self, farba):
+          self.farba = farba
+
+  fbod = FarebnyBod(200, 50, 'green')
+  fbod.posun(dy=50)
+  print('fbod =', fbod)
+
+Pôvodná verzia inicializačnej metódy ``__init__()`` z triedy ``Bod`` sa teraz prekryla novou verziou tejto metódy, ktorá má teraz už tri parametre. Ak by sme v metóde ``__init__()`` chceli využiť pôvodnú verziu tejto metódy zo základnej triedy ``Bod``, môžeme ju z tejto metódy zavolať, ale **nesmieme** to urobiť takto:
+
+ ::
+
+  class FarebnyBod(Bod):
+      def __init__(self, x, y, farba='black'):
+          self.__init__(x, y)
+          self.farba = farba
+      ...
+
+Toto je totiž rekurzívne volanie, ktoré spôsobí spadnutie programu ``RecursionError: maximum recursion depth exceeded``. Musíme to zapísať takto:
+
+ ::
+
+  class FarebnyBod(Bod):
+      def __init__(self, x, y, farba='black'):
+          Bod.__init__(self, x, y)             # inicializácia zo základnej triedy
+          self.farba = farba
+      ...
+
+T.j. pri inicializácii inštancie triedy ``FarebnyBod`` najprv použi inicializáciu ako keby to bola inicializácia základnej triedy ``Bod`` (inicializuje atribúty ``x`` a ``y``) a potom ešte inicializuj niečo navyše - t.j. atribút ``farba``. Dá sa to zapísať ešte univerzálnejšie:
+
+ ::
+
+  class FarebnyBod(Bod):
+      def __init__(self, x, y, farba='black'):
+          super().__init__(x, y)
+          self.farba = farba
+      ...
+
+Štandardná funkcia ``super()`` na tomto mieste označuje: urob tu presne to, čo by na tomto mieste urobil môj rodič (t.j. moja super trieda). Tento zápis uvidíme aj v ďalších ukážkach.
+
+
+Grafické objekty
+................
+
+Trochu sme upravili grafické objekty ``Kruh``, ``Obdlznik`` a ``Skupina`` z prednášky: :doc:`15`:
+
+ ::
+
+  import tkinter
+
+  class Kruh:
+      canvas = None
+      typ = 'kruh'
+
+      def __init__(self, x, y, r, farba='red'):
+          self.x, self.y, self.r = x, y, r
+          self.farba = farba
+          self.id = self.canvas.create_oval(
+              self.x - self.r, self.y - self.r,
+              self.x + self.r, self.y + self.r,
+              fill=self.farba)
+
+      def __str__(self):
+          return 'Kruh({},{},{},{})'.format(
+              self.x, self.y, self.r, repr(self.farba))
+
+      def posun(self, dx=0, dy=0):
+          self.x += dx
+          self.y += dy
+          self.canvas.move(self.id, dx, dy)
+
+      def zmen(self, r):
+          self.r = r
+          self.canvas.coords(self.id, 
+              self.x - self.r, self.y - self.r,
+              self.x + self.r, self.y + self.r)
+
+      def prefarbi(self, farba):
+          self.farba = farba
+          self.canvas.itemconfig(self.id, fill=farba)
+
+  class Obdlznik:
+      canvas = None
+      typ = 'obdlznik'
+
+      def __init__(self, x, y, sirka, vyska, farba='red'):
+          self.x, self.y, self.sirka, self.vyska = x, y, sirka, vyska
+          self.farba = farba
+          self.id = self.canvas.create_rectangle(
+               self.x, self.y,
+               self.x + self.sirka, self.y + self.vyska,
+               fill=self.farba)
+
+      def __str__(self):
+          return 'Obdlznik({},{},{},{},{})'.format(
+              self.x, self.y, self.sirka, self.vyska, repr(self.farba))
+
+      def posun(self, dx=0, dy=0):
+          self.x += dx
+          self.y += dy
+          self.canvas.move(self.id, dx, dy)
+
+      def zmen(self, sirka, vyska):
+          self.sirka, self.vyska = sirka, vyska
+          self.canvas.coords(self.id, 
+              self.x, self.y,
+              self.x + self.sirka, self.y + self.vyska)
+
+      def prefarbi(self, farba):
+          self.farba = farba
+          self.canvas.itemconfig(self.id, fill=farba)
+
+  class Skupina:
+      def __init__(self):
+          self.pole = []
+
+      def pridaj(self, utvar):
+          self.pole.append(utvar)
+
+      def prefarbi(self, farba):
+          for utvar in self.pole:
+              utvar.prefarbi(farba)
+
+      def posun(self, dx=0, dy=0):
+          for utvar in self.pole:
+              utvar.posun(dx, dy)
+
+      def posun_typ(self, typ, dx=0, dy=0):
+          for utvar in self.pole:
+              if utvar.typ == typ:
+                  utvar.posun(dx, dy)
+
+      def prefarbi_typ(self, typ, farba):
+          for utvar in self.pole:
+              if utvar.typ == typ:
+                  utvar.prefarbi(farba)
+
+  #----------------------------------------
+
+  c = Kruh.canvas = Obdlznik.canvas = tkinter.Canvas(bg='white')
+  c.pack()
+
+  k = Kruh(50, 50, 30, 'blue')
+  r = Obdlznik(100, 20, 100, 50)
+  k.prefarbi('green')
+  r.posun(50)
+
+Všimnite si:
+
+* obe triedy ``Kruh`` aj ``Obdlznik`` majú niektoré atribúty aj metódy úplne rovnaké (napr. ``x``, ``y``, ``farba``, ``posun``, ``zmen``)
+* ak by sme chceli využiť dedičnosť (jedna trieda zdedí nejaké atribúty a metódy od inej), nie je rozumné, aby ``Kruh`` niečo dedil z triedy ``Obdlznik``, alebo naopak ``Obdlznik`` bol odvodený z triedy ``Kruh``
+
+Zadefinujeme novú triedu ``Utvar``, ktorá bude predkom (rodičom, bude základnou triedou) oboch tried ``Kruh`` aj ``Obdlznik`` - táto trieda bude obsahovať všetky spoločné atribúty týchto tried, t.j. aj niektoré metódy:
+
+ ::
+ 
+  import tkinter
+
+  class Utvar:
+      canvas = None
+      
+      def __init__(self, x, y, farba='red'):
+          self.x, self.y, self.farba = x, y, farba
+          self.id = None
+
+      def posun(self, dx=0, dy=0):
+          self.x += dx
+          self.y += dy
+          self.canvas.move(self.id, dx, dy)
+
+      def prefarbi(self, farba):
+          self.farba = farba
+          self.canvas.itemconfig(self.id, fill=farba)
+
+  Utvar.canvas = tkinter.Canvas(width=400, height=400)
+  Utvar.canvas.pack()
+
+Uvedomte si, že nemá zmysel vytvárať objekty tejto triedy, lebo okrem inicializácie nebude fungovať ani jedna ďalšia metóda. Teraz dopíšme triedy ``Kruh`` a ``Obdlznik``:
+
+ ::
+
+  class Kruh(Utvar):
+      def __init__(self, x, y, r, farba='red'):
+          super().__init__(x, y, farba)
+          self.r = r
+          self.id = self.canvas.create_oval(
+               self.x - self.r, self.y - self.r,
+               self.x + self.r, self.y + self.r,
+               fill=self.farba)
+
+      def zmen(self, r):
+          self.r = r
+          self.canvas.coords(self.id, 
+              self.x - self.r, self.y - self.r,
+              self.x + self.r, self.y + self.r)
+
+  class Obdlznik(Utvar):
+      def __init__(self, x, y, sirka, vyska, farba='red'):
+          super().__init__(x, y, farba)
+          self.sirka, self.vyska = sirka, vyska
+          self.id = self.canvas.create_rectangle(
+               self.x, self.y,
+               self.x + self.sirka, self.y + self.vyska,
+               fill=self.farba)
+
+      def zmen(self, sirka, vyska):
+          self.sirka, self.vyska = sirka, vyska
+          self.canvas.coords(self.id, 
+              self.x, self.y,
+              self.x + self.sirka, self.y + self.vyska)
+
+Zrušili sme atribút ``typ``, ktorý slúžil pre metódy ``posun_typ`` a ``prefarbi_typ`` triedy ``Skupina``:  vďaka atribútu ``typ`` mali tieto metódy vplyv len na inštancie príslušného typu. Uvidíme, že tento atribút naozaj nepotrebujeme.
+
+
+Testovanie typu inštancie
+.........................
+
+Pomocou štandardnej funkcie ``type()`` vieme otestovať, či je inštancia konkrétneho typu, napr.
+
+ ::
+
+  >>> t1 = Kruh(10, 20, 30)
+  >>> t2 = Obdlznik(40, 50, 60, 70)
+  >>> type(t1) == Kruh
+  True
+  >>> type(t2) == Kruh
+  False
+  >>> type(t2) == Obdlznik
+  True
+  >>> type(t1) == Utvar
+  False
+
+Okrem tohto testu môžeme použiť štandardnú funkciu ``isinstance(i, t)``, ktorá zistí, či je inštancia ``i`` typu ``t`` alebo je typom niektorého jeho predka, preto budeme radšej písať:
+
+ ::
+
+  >>> t1 = Kruh(10, 20, 30)
+  >>> t2 = Obdlznik(40, 50, 60, 70)
+  >>> isinstance(t1, Kruh)
+  True
+  >>> isinstance(t1, Utvar)
+  True
+  >>> isinstance(t2, Kruh)
+  False
+  >>> isinstance(t2, Utvar)
+  True
+
+Môžeme teraz prepísať metódy ``posun_typ`` a ``prefarbi_typ`` triedy ``Skupina`` takto:
+
+ ::
+
+  class Skupina:
+      def __init__(self):
+          self.pole = []
+
+      def pridaj(self, utvar):
+          self.pole.append(utvar)
+
+      def prefarbi(self, farba):
+          for utvar in self.pole:
+              utvar.prefarbi(farba)
+
+      def posun(self, dx=0, dy=0):
+          for utvar in self.pole:
+              utvar.posun(dx, dy)
+
+      def posun_typ(self, typ, dx=0, dy=0):
+          for utvar in self.pole:
+              if isinstance(utvar, typ):
+                  utvar.posun(dx, dy)
+
+      def prefarbi_typ(self, typ, farba):
+          for utvar in self.pole:
+              if isinstance(utvar, typ):
+                  utvar.prefarbi(farba)
+
+a použiť
+
+ ::
+
+  import random
+
+  def ri(a, b):
+      return random.randint(a, b)
+
+  sk = Skupina()
+  for i in range(20):
+      if ri(0, 1):
+          sk.pridaj(Kruh(ri(50, 350), ri(50, 350), ri(10, 25)))
+      else:
+          sk.pridaj(Obdlznik(ri(50, 350), ri(50, 350), ri(10, 50), ri(10, 50)))
+
+  sk.prefarbi_typ(Kruh, 'yellow')
+  sk.posun_typ(Obdlznik, -10, -25)
+
+* volanie ``prefarbi_typ`` zmení farbu všetkých kruhov v skupine na žltú
+* volanie ``posun_typ`` posunie len všetky obdĺžniky
+
+Všimnite si pomocnú funkciu ``ri()``, ktorú sme definovali len pre zjednodušenie zápisu volania funkcie ``random.randint()``. Ten istý efekt by sme dosiahli, keby sme namiesto ``def ri(...): ...`` zapísali:
+
+ ::
+ 
+  import random
+  
+  ri = random.randint
+  
+Takto sme vytvorili premennú ``ri``, ktorá je referenciou na funkciu ``randint`` z modulu ``random``. Keďže z tohto modulu v našom programe nevyužívame žiadne iné funkcie, môžeme takýto zápis funkcie ``ri`` ešte zapísať inak - samotný príkaz ``import`` to umožňuje urobiť takto:
+
+ ::
+ 
+  from random import randint as ri
+
+Môžeme to prečítať takto: z modulu ``random`` použijeme (importujeme) iba funkciu ``randint`` a pritom ju v našom programe chceme volať ako ``ri``. Niekedy môžete vidieť aj takýto zápis:
+
+ ::
+ 
+  from math import sin, cos, pi
+
+
+Odvodená trieda od Turtle
+.........................
+
+aj od triedy ``Turtle`` z prednášky: :doc:`11` môžeme odvádzať nové triedy, napr.
+
+ ::
+
+  import turtle
+
+  class MojaTurtle(turtle.Turtle):
+      def stvorec(self, velkost):
+          for i in range(4):
+              self.fd(velkost)
+              self.rt(90)
+
+  t = MojaTurtle()
+  t.stvorec(100)
+  t.lt(30)
+  t.stvorec(200)
+
+Zadefinovali sme novú triedu ``MojaTurtle``, ktorá je odvodená od triedy ``Turtle`` (z modulu ``turtle``, preto musíme písať ``turtle.Turtle``) a oproti pôvodnej triede má dodefinovanú novú metódu ``stvorec()``. Samozrejme, že túto metódu môžu volať len korytnačky typu ``MojaTurtle``, obyčajné korytnačky pri takomto volaní metódy ``stvorec()`` hlásia chybu.
+
+Môžeme definovať aj zložitejšie metódy, napr. aj rekurzívny strom:
+
+ ::
+
+  import turtle
+
+  class MojaTurtle(turtle.Turtle):
+      def strom(self, n, d):
+          self.fd(d)
+          if n > 0:
+              self.lt(40)
+              self.strom(n - 1, d * 0.6)
+              self.rt(90)
+              self.strom(n  -1, d * 0.7)
+              self.lt(50)
+          self.bk(d)
+
+  t = MojaTurtle()
+  t.lt(90)
+  t.strom(5, 100)
+
+Niekedy nám môže chýbať to, že trieda ``Turtle`` neumožňuje vytvoriť korytnačku inde ako v strede plochy. Predefinujme inicializáciu našej novej korytnačky:
+
+ ::
+
+  import turtle
+
+  class MojaTurtle(turtle.Turtle):
+      def __init__(self, x=0, y=0):
+          super().__init__()
+          self.speed(0)
+          self.pu()
+          self.setpos(x, y)
+          self.pd()
+
+      def domcek(self, dlzka):
+          for uhol in 90, 90, 90, 30, 120, -60:
+              self.fd(dlzka)
+              self.rt(uhol)
+
+Zároveň sme tu zadefinovali metódu ``domcek()``, ktorá nakreslí domček zadanej veľkosti. Otestujeme::
+
+ t = MojaTurtle(-200, 100)
+ t.domcek(100)
+
+Vytvorme odvodené triedy od triedy ``MojaTurtle``, v ktorých pozmeníme kreslenie rovnej čiary:
+
+ ::
+
+  from random import randint as ri
+
+  class MojaTurtle1(MojaTurtle):
+      def fd(self, dlzka):
+          while dlzka >= 5:
+              self.lt(60)
+              super().fd(5)
+              self.rt(120)
+              super().fd(5)
+              self.lt(60)
+              dlzka -= 5
+          super().fd(dlzka)
+
+  class MojaTurtle2(MojaTurtle):
+      def fd(self, dlzka):
+          super().fd(dlzka)
+          self.rt(180 - ri(-3, 3))
+          super().fd(dlzka)
+          self.rt(180 - ri(-3, 3))
+          super().fd(dlzka)
+
+Otestujme:
+
+ ::
+
+  turtle.delay(0)
+  MojaTurtle1(-100, 100).domcek(100)
+  MojaTurtle2(100, 100).domcek(100)
+
+
+
+
+Cvičenie
+--------
+
+1. Na prednáške sa kreslil domček pomocou korytnačky, ktorá malá pozmenenú metódu ``fd()``. Zadefinujte triedu ``MojaTurtle3``, ktorá bude odvodená od ``MojaTurtle`` s metódou ``domcek()``. Táto nová trieda ``MojaTurtle3`` bude mať dodefinovanú jedinú metódu:
+
+   * metóda ``rt()`` sa bude pri otáčaní náhodne mýliť, t.j. k uhlu pripočíta náhodné číslo z ``<-3,3>``
+
+    ::
+    
+     class MojaTurtle3(MojaTurtle):
+         def rt(self, uhol):
+             ...
+             
+     t = MojaTurtle()
+     t.domcek(100)
+     
+   * zistite, či sa niečo zmení, keď triedu ``MojaTurtle3`` odvodíme z ``MojaTurtle1`` (s cikcakovým ``fd()``) alebo ``MojaTurtle2`` (s ``fd()``, ktorý každú čiaru prejde trikrát)
+
+2. Zadefinujte triedu ``Ucet`` s metódami:
+
+   * ``__init__(meno, suma)`` - meno účtu a počiatočná suma
+   * ``__str__()`` - reťazec v tvare ``'ucet mbank -> 100 euro'``
+   * ``stav()`` - vráti momentálny stav účtu
+   * ``vklad(suma)`` - danú sumu pripočíta k účtu
+   * ``vyber(suma)`` - vyberie sumu z účtu (len ak je to kladné číslo), vráti vybranú sumu, ak je na účte menej ako požadovaná suma, vyberie len toľko koľko sa dá
+   * otestujte napr.
+
+    ::
+     
+     mbank = Ucet('mbank')
+     csob = Ucet('csob', 100)
+     tatra = Ucet('tatra', 17)
+     sporo = Ucet('sporo', 50)
+     mbank.vklad(sporo.vyber(30) + tatra.vyber(30))
+     csob.vyber(-5)
+     spolu = 0
+     for ucet in mbank, csob, tatra, sporo:
+         print(ucet)
+         spolu += ucet.stav()
+     print('spolu = ', spolu)
+
+   * vypíše
+
+    ::
+    
+     ucet mbank -> 47 euro
+     ucet csob -> 100 euro
+     ucet tatra -> 0 euro
+     ucet sporo -> 20 euro
+     spolu =  167
+
+3. Zadefinujte triedu ``UcetHeslo``, ktorá je odvodená z triedy ``Ucet`` a má takto zmenené správanie:
+
+   * ``__init__(meno, heslo, suma)`` - k účtu si zapamätá aj heslo
+   * ``vklad(suma)`` - si najprv vypýta heslo a až keď je správne, zrealizuje vklad
+   * ``vyber(suma)`` - si najprv vypýta heslo a až keď je správne, zrealizuje výber, inak vráti ``None``
+   * pri definovaní týchto metód volajte ich pôvodné verzie z triedy ``Ucet``
+   * otestujte napr.
+
+    ::
+     
+     mbank = UcetHeslo('mbank', 'gigi')
+     csob = Ucet('csob', 100)
+     tatra = UcetHeslo('tatra', 'gogo', 17)
+     sporo = Ucet('sporo', 50)
+     mbank.vklad(sporo.vyber(30) + tatra.vyber(30))
+     csob.vyber(-5)
+     spolu = 0
+     for ucet in mbank, csob, tatra, sporo:
+         print(ucet)
+         spolu += ucet.stav()
+     print('spolu = ', spolu)
+
+   * si najprv dvakrát vypýta heslo
+
+    ::
+    
+     zadaj heslo uctu tatra: gogo
+     zadaj heslo uctu mbank: gigi
+
+   * a až potom (po správnom zadaní hesiel) vypíše to isté, ako predtým
+   * zistite, čo sa stane, keď pre ``'mbank'`` určíme chybné heslo
+
+4. Zadefinujte dve triedy ``Turtle1`` a ``Turtle2``, obidve odvodené od ``Turtle``, pričom obe majú zadefinovanú metódu ``otoc()``
+ 
+  * metóda ``otoc(uhol)`` v triede ``Turtle1`` otočí korytnačku o zadaný uhol vľavo, v triede ``Turtle2`` ju otočí vpravo
+  
+   ::
+   
+    from turtle import Turtle
+    from random import randrange as rr
+    
+    class Turtle1(Turtle):
+        ...
+    
+    class Turtle2(Turtle):
+        ...
+    
+  * teraz naprogramujte takýto test týchto dvoch tried:
+
+    * na x-ovej osi rozložte 20 korytnačiek s rozostupmi 20 krokov, všetky budú otočené na východ - náhodným generátorom rozhodnite, ktorá z nich bude ``Turtle1`` a ktorá ``Turtle2`` - korytnačky uložte do poľa
+    * teraz postupne prejdete všetky korytnačky z tohto poľa a zmeníte im farbu pera na červenú (pre ``Turtle1``) alebo na modrú (pre ``Turtle2``)
+    * na záver štyrikrát zopakujete: každá korytnačka prejde 20 krokov a otočí sa pomocou ``otoc()`` o 90 stupňov
+
+5. Naprogramujte triedu ``Pero``, pomocou ktorej budeme vedieť kresliť do grafickej plochy. Trieda má tieto metódy:
+ 
+  * ``__init__(x=0, y=0)``, ak ešte nebol vytvorený ``canvas``, vytvorí ho s danou šírkou a výškou, zapamätá si súradnice pera a to, že pero je spustené dolu (bude kresliť)
+  * ``pu()`` zdvihne pero, odteraz pohyb pera nekreslí
+  * ``pd()`` spustí pero, pohyb bude zanechávať čiaru
+  * ``setpos(x, y)`` presunie pero na novú pozíciu, ak je spustené pero, zanecháva čiernu čiaru hrúbky 1
+  
+   ::
+   
+    import tkinter
+    from math import sin, cos, pi
+
+    class Pero:
+        canvas = None
+        sirka, vyska = 400, 300
+        
+        ...
+
+  * otestujte vytvorením dvoch inštancií pera, ktoré nakreslia napr. dva štvorce
+
+   ::
+
+    p1 = Pero(100, 200)
+    p2 = Pero(200, 150)
+    ...
+   
+
+6. Zadefinujte triedu ``Turtle``, ktorá bude odvodená od triedy ``Pero`` z úlohy (5):
+ 
+  * metóda ``__init__()`` vytvorí pero v strede plochy a do nového atribútu ``uhol`` nastaví 0 (teda otočenie smerom na východ)
+  * metódy ``lt(uhol)`` a ``rt(uhol)`` zmenšia, resp. zväčšia atribút ``uhol`` o zadanú hodnotu
+  * metóda ``fd(dlzka)`` presunie pero (zavolá metódu ``setpos()``) o zadanú dĺžku, ktorá je v momentálnom smere natočenia
+
+    * asi použijete nejaký takýto vzorec pre nové ``x`` a ``y``: ``x+dlzka*cos(uhol)``, ``y+dlzka*sin(uhol)``
+    * nezabudnite, že ``sin()`` a ``cos()`` fungujú v radiánoch, pričom náš atribút ``uhol`` pracuje v stupňoch
+
+  * otestujte napr.
+  
+   ::
+   
+    class Turtle(Pero):
+        ...
+        
+    #---- test -------
+    
+    t = Turtle()
+    for i in range(1, 200, 2):
+        t.fd(i)
+        t.lt(89)
+
+7. Z triedy ``Turtle`` zo (6) úlohy odvoďte triedu ``Turtle1``, do ktorej dopíšete metódu ``strom(n, d)`` (z prednášky)
+ 
+  * potom otestujte, napr.
+  
+   ::
+   
+    t = Turtle1()
+    t.lt(90)
+    t.strom(5, 60)
+    
+  * vyskúšajte, či aj v tejto triede fungujú príklady z prednášky s kreslením domčeka rôznym typom čiar
+
+   

@@ -1,0 +1,1002 @@
+Podprogramy
+===========
+
+Funkcie
+-------
+
+Doteraz sme pracovali so štandardnými funkciami, napr.
+
+* vstup a výstup ``input()`` a ``print()``
+* aritmetické funkcie ``abs()`` a ``round()``
+* generovanie postupnosti čísel pre for-cyklus ``range()``
+
+Všetky tieto funkcie niečo vykonali (vypísali, prečítali, vypočítali, ...) a niektoré z nich vrátili nejakú hodnotu, ktorú sme mohli ďalej spracovať. Tiež sme videli, že niektoré majú rôzny počet parametrov, prípadne sú niekedy volané bez parametrov.
+
+Okrem toho sme pracovali aj s funkciami, ktoré boli definované v iných moduloch:
+
+* keď napíšeme ``import random``, môžeme pracovať napr. s funkciami ``random.randint()`` a ``random.randrange()``
+* keď napíšeme ``import math``, môžeme pracovať napr. s funkciami ``math.sin()`` a ``math.cos()``
+
+Všetky tieto a tisícky ďalších v Pythone naprogramovali programátori pred nejakým časom, aby nám neskôr zjednodušili samotné programovanie. Vytváranie vlastných funkcií pritom vôbec nie je komplikované a teraz sa to naučíme aj my.
+
+.. topic:: Funkcie
+
+   Funkcia je pomenovaný blok príkazov (niekedy sa tomu hovorí aj podprogram). Popisujeme (**definujeme**) ju špeciálnou konštrukciou:
+
+   ::
+
+    def meno_funkcie():      # zapamätaj si blok príkazov ako nový príkaz
+        prikaz
+        prikaz
+        ...
+
+   Keď zapíšeme definíciu funkcie, zatiaľ sa z bloku príkazov (hovoríme tomu **telo funkcie**) nič nevykoná. Táto definícia sa "len" zapamätá a jej **referencia** sa priradí k zadanému menu - vlastne sa do premennej ``meno_funkcie`` priradí referencia na telo funkcie. Je to podobné tomu, ako sa priraďovacím príkazom do premennej priradí hodnota z pravej strany príkazu.
+
+Ako prvý príklad zapíšme takúto definíciu funkcie:
+
+ ::
+
+  def vypis():
+      print('**********')
+      print('**********')
+
+Zadefinovali sme funkciu s menom ``vypis``, pričom telo funkcie obsahuje dva príkazy na výpis riadkov s hviezdičkami. Celý blok príkazov je odsunutý o 4 medzery rovnako ako sme odsúvali príkazy v cykloch a aj v podmienených príkazoch. Definícia tela funkcie končí vtedy, keď sa objaví riadok, ktorý už nie je odsunutý. Touto definíciou sa ešte žiadne príkazy z tela funkcie nevykonávajú. Na to potrebujeme túto funkciu **zavolať**.
+
+.. topic:: Volanie funkcie
+
+   Volanie funkcie je taký zápis, ktorým sa začnú vykonávať príkazy z definície funkcie. Stačí zapísať meno funkcie so zátvorkami a funkcie sa spustí:
+
+   ::
+
+    meno_funkcie()
+
+   Samozrejme, že funkciu môžeme zavolať až vtedy, keď už Python pozná jej definíciu.
+
+Zavolajme funkciu ``vypis`` v príkazovom režime:
+
+ ::
+
+  >>> vypis()
+  **********
+  **********
+  >>>
+
+Vidíme, že sa vykonali oba príkazy z tela funkcie a potom Python ďalej čaká na ďalšie príkazy. Zapíšme volanie funkcie aj s jej definíciou priamo do skriptu (teda v programovom režime):
+
+ ::
+
+  def vypis():
+      print('**********')
+      print('**********')
+
+  print('hello')
+  vypis()
+  print('* Python *')
+  vypis()
+
+Skôr, ako to spustíme, si uvedomme, čo sa udeje pri spustení:
+
+* zapamätá sa definícia funkcie v premennej ``vypis``
+* vypíše sa slovo ``'hello'``
+* zavolá sa funkcia ``vypis()``
+* vypíše riadok s textom ``'* Python *'``
+* znovu sa zavolá funkcia ``vypis()``
+
+A teraz to spustíme:
+
+ ::
+
+  hello
+  **********
+  **********
+  * Python *
+  **********
+  **********
+
+Zapíšme teraz presné kroky, ktoré sa vykonajú pri volaní funkcie:
+
+1. preruší sa vykonávanie práve bežiaceho programu (Python si presne zapamätá miesto, kde sa to stalo)
+2. skočí sa na začiatok volanej funkcie
+3. postupne sa vykonajú všetky príkazy
+4. keď sa príde na koniec funkcie, zrealizuje sa **návrat** na zapamätané miesto, kde sa prerušilo vykonávanie programu a pokračuje sa vo vykonávaní ďalších príkazov za volaním funkcie
+
+Pre volanie funkcie sú veľmi dôležité okrúhle zátvorky. Bez nich to už nie je volanie, ale len zisťovanie referencie na hodnotu, ktorá je priradená pre toto meno. Napr.
+
+ ::
+
+  >>> vypis()
+  **********
+  **********
+  >>> vypis
+  <function vypis at 0x0205CB28>
+
+Ak by sme namiesto volania funkcie takto zapísali len meno funkcie bez zátvoriek, ale v skripte (teda nie v interaktívnom režime), táto hodnota referencie by sa nevypísala, ale odignorovala. Toto býva dosť častá chyba začiatočníkov, ktorá sa ale ťažšie odhaľuje.
+
+Ak zavoláme funkciu, ktorú sme ešte nedefinovali, Python vyhlási chybu, napr.
+
+ ::
+
+  >>> vipis()
+  ...
+  NameError: name 'vipis' is not defined
+
+Samozrejme, že môžeme volať len definované funkcie.
+
+ ::
+
+  >>> vypis()
+  **********
+  **********
+  >>> vypis = 'ahoj'
+  >>> vypis
+  'ahoj'
+  >>> vypis()
+  ...
+  TypeError: 'str' object is not callable
+
+Hodnotou premennej ``vypis`` je už teraz znakový reťazec, a ten sa "nedá zavolať", t.j. nie je "callable" (tento objekt nie je zavolateľný ako funkcia).
+
+Hotové funkcie, s ktorými sme doteraz pracovali, napr. ``print()`` alebo ``random.randint()``, mali aj parametre, vďaka čomu riešili rôzne úlohy. Parametre slúžia na to, aby sme mohli funkcii lepšie oznámiť, čo špecifické má urobiť: čo sa má vypísať, z akého intervalu má vygenerovať náhodné číslo, akú úsečku má nakresliť, prípadne akej farby, ...
+
+.. topic:: Parametre funkcie
+
+   Parametrom funkcie je **dočasná premenná**, ktorá vzniká pri volaní funkcie a prostredníctvom ktorej, môžeme do funkcie *poslať* nejakú hodnotu. Parametre funkcií definujeme počas definovania funkcie v **hlavičke funkcie** a ak ich je viac, oddeľujeme ich čiarkami:
+
+   ::
+
+    def meno_funkcie(parameter):
+        prikaz
+        prikaz
+        ...
+        
+Môžeme napríklad zapísať:
+
+ ::
+
+  def vypis_hviezdiciek(pocet):
+      print('*' * pocet)
+
+V prvom riadku definície funkcie (hlavička funkcie) pribudla jedna premenná ``pocet`` - parameter. Táto premenná vznikne automaticky pri volaní funkcie, preto musíme pri volaní oznámiť hodnotu tohto parametra. Volanie zapíšeme:
+
+ ::
+
+  >>> vypis_hviezdiciek(30)
+  ******************************
+  >>> for i in range(1, 10):
+          vypis_hviezdiciek(i)
+
+  *
+  **
+  ***
+  ****
+  *****
+  ******
+  *******
+  ********
+  *********
+
+Pri volaní sa "skutočná hodnota" **priradí** do parametra funkcie (premenná ``pocet``).
+
+Už predtým sme popísali mechanizmus volania funkcie, ale to sme ešte nepoznali parametre. Teraz doplníme tento postup o spracovanie parametrov. Najprv trochu terminológie:
+
+* pri definovaní funkcie v hlavičke funkcie uvádzame tzv. **formálne parametre**: sú to nové premenné, ktoré vzniknú až pri volaní funkcie
+* pri volaní funkcie musíme do zátvoriek zapísať hodnoty, ktoré sa stanú tzv. **skutočnými parametrami**: tieto hodnoty sa pri volaní priradia do formálnych parametrov
+
+**Mechanizmus volania** vysvetlíme na volaní ``vypis_hviezdiciek(30)``:
+
+1. zapamätá sa návratová adresa volania
+2. vytvorí sa **nová** premenná ``pocet`` (**formálny parameter**) a priradí sa do nej hodnota **skutočného parametra** ``30``
+3. vykonajú sa všetky príkazy v definícii funkcie (**telo funkcie**)
+4. zrušia sa všetky premenné, ktoré vznikli počas behu funkcie
+5. riadenie sa vráti na miesto, kde bolo volanie funkcie
+
+
+Už vieme, že priraďovací príkaz vytvára premennú a referenciou ju spojí s nejakou hodnotou. Premenné, ktoré vzniknú počas behu funkcie, sa stanú **lokálnymi premennými**: budú existovať len počas tohto behu a po skončení funkcie, sa automaticky zrušia. Aj parametre vznikajú pri štarte funkcie a zanikajú pri jej skončení: tieto premenné sú pre funkciu tiež lokálnymi premennými.
+
+V nasledovnom príklade funkcie ``vypis_sucet()`` počítame a vypisujeme súčet čísel od 1 po zadané ``n``:
+
+ ::
+
+  def vypis_sucet(n):
+      sucet = 1
+      print(1, end=' ')
+      for i in range(2, n + 1):
+          sucet = sucet + i
+          print('+', i, end=' ')
+      print('=', sucet)
+
+Pri volaní funkcie sa pre parameter ``n`` = 10 vypíše:
+
+ ::
+
+  >>> vypis_sucet(10)
+  1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 = 55
+
+Počas behu vzniknú 2 lokálne premenné a jeden parameter, ktorý je pre funkciu tiež lokálnou premennou:
+
+* ``n`` vznikne pri štarte funkcie aj s hodnotou 10
+* ``sucet`` vznikne pri prvom priradení ``sucet = 1``
+* ``i`` vznikne pri štarte for-cyklu
+
+Po skončení behu funkcie sa všetky tieto premenné automaticky zrušia.
+
+
+Menný priestor
+..............
+
+Aby sme lepšie pochopili ako naozaj fungujú **lokálne premenné**, musíme rozumieť, čo to je a ako funguje **menný priestor** (namespace). Najprv trochu ďalšej terminológie: všetky identifikátory v Pythone sú jedným z troch typov (Python má pre identifikátory 3 rôzne tabuľky mien):
+
+* **štandardné**, napr. ``int``, ``print``, ...
+
+  * hovorí sa tomu **builtins**
+
+* **globálne** - definujeme ich na najvyššej úrovni mimo funkcií, napr. funkcia ``vypis_sucet``
+
+  * hovorí sa tomu **main**
+
+* **lokálne** - vznikajú počas behu funkcie
+
+Tabuľka štandardných mien je je len jedna, tiež tabuľka globálnych mien je len jedna, ale každá funkcia má svoju "súkromnú" lokálnu tabuľku mien, ktorá vznikne pri štarte (zavolaní) funkcie a zruší sa pri konci vykonávania funkcie.
+
+Keď na nejakom mieste použijeme identifikátor, Python ho najprv hľadá (v tzv. **menných priestoroch**):
+
+* v lokálnej tabuľke mien, ak tam tento identifikátor nenájde, hľadá ho
+* v globálnej tabuľke mien, ak tam tento identifikátor nenájde, hľadá ho
+* v štandardnej tabuľke mien
+
+Ak nenájde v žiadnej z týchto tabuliek, hlási chybu ``NameError: name 'identifikátor' is not defined``.
+
+Príkaz (štandardná funkcia) ``dir()`` vypíše tabuľku globálnych mien. Hoci pri štarte Pythonu by táto tabuľka mala byť prázdna, obsahuje niekoľko špeciálnych mien, ktoré začínajú aj končia znakmi ``'__'``:
+
+ ::
+
+  >>> dir()
+  ['__builtins__', '__doc__', '__loader__', '__name__', '__package__', '__spec__']
+
+Keď teraz vytvoríme nejaké nové globálne mená, objavia sa aj v tejto globálnej tabuľke:
+
+ ::
+
+  >>> premenna = 2015
+  >>> def funkcia():
+  	pass
+
+  >>> dir()
+  ['__builtins__', '__doc__', '__loader__', '__name__', '__package__', '__spec__',
+   'funkcia', 'premenna']
+
+Podobne sa vieme dostať aj k tabuľke štandardných mien (builtins):
+
+ ::
+
+  >>> dir(__builtins__)
+  ['ArithmeticError', 'AssertionError', 'AttributeError', ...
+
+Takto sa vypíšu všetky preddefinované mená. Vidíme medzi nimi napr. ``'int'``, ``'print'``, ``'range'``, ``'str'``, ...
+
+S týmito tabuľkami súvisí aj príkaz na zrušenie premennej.
+
+.. topic:: príkaz ``del``
+
+   Príkazom ``del`` zrušíme identifikátor z tabuľky mien. Formát príkazu:
+
+   ::
+
+    del premenná
+
+   Príkaz najprv zistí, v ktorej tabuľke sa identifikátor nachádza (najprv pozrie do lokálnej a keď tam nenájde, tak do globálnej tabuľky) a potom ho z tejto tabuľky vyhodí. Príkaz nefunguje pre štandardné mená.
+
+Ukážme to na príklade: identifikátor ``print`` je menom štandardnej funkcie (v štandardnej tabuľke mien). Ak v priamom režime (čo je globálna úroveň mien) do premennej ``print`` priradíme nejakú hodnotu, toto meno vznikne v globálnej tabuľke:
+
+ ::
+
+  >>> print('ahoj')
+  ahoj
+  >>> print=('ahoj')          # do print sme priradili nejakú hodnotu
+  >>> print
+  'ahoj'
+  >>> print('ahoj')
+  ...
+  TypeError: 'str' object is not callable
+
+Teraz už ``print`` nefunguje ako funkcia na výpis hodnôt, ale len ako obyčajná globálna premenná. Ale v štandardnej tabuľke mien ``print`` stále existuje, len je **prekrytá** globálnym menom. Python predsa najprv prehľadáva globálnu tabuľku a až keď sa tam nenájde, hľadá sa v štandardnej tabuľke. A ako môžeme vrátiť funkčnosť štandardnej funkcie ``print``? Stačí vymazať identifikátor z globálnej tabuľky:
+
+ ::
+
+  >>> del print
+  >>> print('ahoj')
+  ahoj
+
+Vymazaním globálneho mena ``print`` ostane definovaný len identifikátor v tabuľke štandardných mien, teda opäť začne fungovať funkcia na výpis hodnôt.
+
+
+Pozrime sa teraz na prípad, keď sa v tele funkcie bude nachádzať volanie inej funkcie (tzv. **vnorené volanie**), napr.
+
+ ::
+
+  def vypis_hviezdiciek(pocet):
+      print('*' * pocet)
+
+  def trojuholnik(n):
+      for i in range(1, n + 1):
+          vypis_hviezdiciek(i)
+
+Pri ich definovaní v globálnom mennom priestore vznikli dva identifikátory: ``vypis_hviezdiciek`` a ``trojuholnik``. Zavoláme funkciu ``trojuholnik``:
+
+ ::
+
+  >>> trojuholnik(5)
+
+Najprv sa pre túto funkciu vytvorí jej menný priestor (lokálna tabuľka mien) s dvomi lokálnymi premennými: ``n`` a ``i``. Teraz **pri každom** (vnorenom) volaní ``vypis_hviezdiciek(i)`` sa pre túto funkciu:
+
+* vytvorí nový menný priestor s jedinou premennou ``pocet``
+* vykoná sa príkaz ``print()``
+* nakoniec sa zruší jej menný priestor, t.j. zanikne premenná ``pocet``
+
+Môžeme to odkrokovať pomocou http://www.pythontutor.com/visualize.html#mode=edit (zapneme voľbu ``Python 3.3``):
+
+* najprv do editovacieho okna zapíšeme nejaký program, napr.
+
+ .. image:: image/05_1.png
+    :alt: najprv vložíme program
+
+* spustíme vizualizáciu pomocou tlačidla **Visualize Execution** a potom niekoľkokrát tlačíme  tlačidlo **Forward >**
+
+ .. image:: image/05_2.png
+    :alt: po niekoľkých krokoch vizualizácie
+
+Všimnite si, že v pravej časti tejto stránky sa postupne zobrazujú menné priestory (tu sa nazývajú **frame**):
+
+* najprv len globálny priestor s premennými ``vypis_hviezdiciek`` a ``trojuholnik``
+* potom sa postupne objavujú a aj miznú lokálne priestory týchto dvoch funkcií - na obrázku vidíme oba tieto menné priestory tesne pred ukončením vykonávania funkcie ``trojuholnik`` s parametrom ``2``
+
+
+Funkcie s návratovou hodnotou
+.............................
+
+Väčšina štandardných funkcií v Pythone na základe parametrov vráti nejakú hodnotu, napr.
+
+ ::
+
+  >>> abs(-5.5)
+  5.5
+  >>> round(2.36, 1)
+  2.4
+
+Funkcie, ktoré sme zatiaľ vytvárali my, takú možnosť nemali: niečo počítali, niečo vypisovali, ale žiadnu návratovú hodnotu nevytvárali. Aby funkcia mohla vrátiť nejakú hodnotu ako výsledok volania funkcie, musí sa v jej tele objaviť príkaz ``return``, napr.
+
+ ::
+
+  def meno(parametre):
+      prikaz
+      prikaz
+      ...
+      return hodnota                  # takáto funkcia bude vracať výslednú hodnotu
+
+Príkazom ``return`` sa ukončí výpočet funkcie (zruší sa jej menný priestor) a uvedená hodnota sa stáva výsledkom funkcie, napr.
+
+ ::
+
+  def eura_na_koruny(eura):
+      koruny = round(eura * 30.126, 2)
+      return koruny
+
+môžeme otestovať:
+
+ ::
+
+  >>> print('dostal si', 123, 'euro, čo je', eura_na_koruny(123), 'korún')
+  dostal si 123 euro, čo je 3705.5 korún
+
+Niekedy potrebujeme návratovú hodnotu počítať nejakým cyklom, napr. nasledovná funkcia počíta súčet čísel od 1 do ``n``:
+
+ ::
+
+  def suma(n):
+      vysledok = 0
+      while n > 0:
+          vysledok += n
+          n -= 1
+      return vysledok
+
+Zároveň vidíme, že formálny parameter (je to predsa lokálna premenná) môžeme v tele funkcie modifikovať.
+
+
+Už sme videli, že rozlišujeme dva typy funkcií:
+
+* také, ktoré niečo robia (napr. vypisujú, kreslia, ...), ale nevracajú návratovú hodnotu (neobsahujú ``return`` s nejakou hodnotou)
+* také, ktoré niečo vypočítajú a vrátia nejakú výslednú hodnotu - musia obsahovať ``return`` s návratovou hodnotou
+
+Ďalej ukážeme, že rôzne funkcie môžu vracať hodnoty rôznych typov. Najprv číselné funkcie.
+
+
+.. rubric:: Výsledkom funkcie je číslo
+
+Nasledovná funkcia počíta ``n``-tú mocninu nejakého čísla a tento výsledok ešte zníži o 1:
+
+ ::
+
+  def pocitaj(n):
+      return 2 ** n - 1
+
+Zrejme výsledkom je vždy len číslo.
+
+Ak chceme funkciu otestovať, buď ju spustíme s konkrétnym parametrom, alebo napíšeme cyklus, ktorý našu funkciu spustí s konkrétnymi hodnotami (niekedy na testovanie píšeme ďalšiu testovaciu funkciu, ktorá nerobí nič iné, "len" testuje funkciu pre rôzne hodnoty a porovnáva ich s očakávanými výsledkami), napr.
+
+ ::
+
+  >>> pocitaj(5)
+  31
+  >>> for i in 1, 2, 3, 8, 10, 16, 20, 32:
+          print('pocitaj( {} ) = {}'.format(i, pocitaj(i)))
+
+  pocitaj( 1 ) = 1
+  pocitaj( 2 ) = 3
+  pocitaj( 3 ) = 7
+  pocitaj( 8 ) = 255
+  pocitaj( 10 ) = 1023
+  pocitaj( 16 ) = 65535
+  pocitaj( 20 ) = 1048575
+  pocitaj( 32 ) = 4294967295
+
+Ďalšia funkcia zisťuje dĺžku (počet znakov) zadaného reťazca. Využíva to, že for-cyklus vie prejsť všetky znaky reťazca a s každým  môže niečo urobiť, napr. zvýšiť počítadlo o 1:
+
+ ::
+
+  def dlzka(retazec):
+      pocet = 0
+      for znak in retazec:
+          pocet += 1
+      return pocet
+
+Otestujeme:
+
+ ::
+
+  >>> dlzka('Python')
+  6
+  >>> dlzka(10000 * 'ab')
+  20000
+
+
+.. rubric:: Výsledkom funkcie je logická hodnota
+
+Funkcie môžu vracať aj hodnoty iných typov, napr.
+
+ ::
+
+  def parne(n):
+      return n % 2 == 0
+
+vráti ``True`` alebo ``False`` podľa toho či je ``n`` párne (zvyšok po delení 2 bol 0), vtedy vráti ``True``, alebo nepárne (zvyšok po delení 2 nebol 0) a vráti ``False``. Túto istú funkciu môžeme zapísať aj tak, aby bolo lepšie vidieť tieto dve rôzne návratové hodnoty:
+
+ ::
+
+  def parne(n):
+      if n % 2 == 0:
+          return True
+      else:
+          return False
+
+Hoci táto verzia robí presne to isté ako predchádzajúca, skúsení programátori radšej používajú kratšiu prvú verziu. Keď chceme túto funkciu otestovať, môžeme zapísať:
+
+ ::
+
+  >>> parne(10)
+  True
+  >>> parne(11)
+  False
+  >>> for i in range(20, 30):
+          print(i, parne(i))
+
+  20 True
+  21 False
+  22 True
+  23 False
+  24 True
+  25 False
+  26 True
+  27 False
+  28 True
+  29 False
+
+
+.. rubric:: Výsledkom funkcie je reťazec
+
+Napíšme funkciu, ktorá vráti nejaký reťazec v závislosti od hodnoty parametra:
+
+ ::
+
+  def farba(ix):
+      if ix == 0:
+          return 'red'
+      elif ix == 1:
+          return 'blue'
+      else:
+          return 'yellow'
+
+Funkcia vráti buď červenú, alebo modrú, alebo žltú farbu v závislosti od hodnoty parametra.
+
+Opäť by ju bolo dobre najprv otestovať, napr.
+
+ ::
+
+  >>> for i in range(6):
+          print(i, farba(i))
+
+  0 red
+  1 blue
+  2 yellow
+  3 yellow
+  4 yellow
+  5 yellow
+
+Uvedomte si, prečo ju môžeme zapísať aj takto bez ``else`` vetiev:
+
+ ::
+
+  def farba(ix):
+      if ix == 0:
+          return 'red'
+      if ix == 1:
+          return 'blue'
+      return 'yellow'
+      
+V takýchto prípadoch je na vás, ktorý zápis použijete, ktorý z nich sa vám zdá čitateľnejší.
+
+.. rubric:: Typy parametrov a typ výsledku
+
+Python nekontroluje typy parametrov, ale kontroluje, čo sa s nimi robí vo funkcii. Napr. funkcia
+
+ ::
+
+  def pocitaj(x):
+      return 2 * x + 1
+
+bude fungovať pre čísla, ale pre reťazec spadne:
+
+ ::
+
+  >>> pocitaj(5)
+  11
+  >>> pocitaj('a')
+  ...
+  TypeError: Can't convert 'int' object to str implicitly
+
+V tele funkcie ale môžeme kontrolovať typ parametra, napr. takto
+
+ ::
+
+  def pocitaj(x):
+      if type(x) == str:
+          return 2 * x + '1'
+      else:
+          return 2 * x + 1
+
+a potom volanie
+
+ ::
+
+  >>> pocitaj(5)
+  11
+  >>> pocitaj('a')
+  'aa1'
+
+Neskôr sa naučíme testovať typ nejakých hodnôt správnejším spôsobom, ale zatiaľ nám bude stačiť to riešiť takto jednoducho.
+
+Napriek tomuto niektoré funkcie môžu fungovať rôzne pre rôzne typy, napr.
+
+ ::
+
+  def urob(a, b):
+      return 2 * a + 3 * b
+
+niekedy funguje pre čísla aj pre reťazce. Otestujte.
+
+
+.. rubric:: Grafické funkcie
+
+Zadefinujeme funkcie, pomocou ktorých sa nakreslí 5000 náhodných farebných bodiek, ktoré budú zafarbené podľa nejakých pravidiel:
+
+ ::
+
+  import tkinter
+  import random
+
+  def vzd(x1, y1, x2, y2):
+      return ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** .5
+
+  def kresli_bodku(x, y, farba):
+      canvas.create_oval(x-5, y-5, x+5, y+5, fill=farba, outline='')
+
+  def farebne_bodky(pocet):
+      for i in range(pocet):
+          x = random.randint(10, 290)
+          y = random.randint(10, 290)
+          if vzd(x, y, 150, 150) > 100:
+              kresli_bodku(x, y, 'navy')
+          elif vzd(x, y, 230, 150) > 100:
+              kresli_bodku(x, y, 'red')
+          else:
+              kresli_bodku(x, y, 'yellow')
+
+  canvas = tkinter.Canvas(bg='white', width=300, height=300)
+  canvas.pack()
+  farebne_bodky(5000)
+
+Funkcia ``vzd()`` počíta vzdialenosť dvoch bodov ``(x1, y1)`` a ``(x2, y2)`` v rovine - tu sa použil známy vzorec z matematiky. Táto funkcia nič nevypisuje, ale vracia číselnú hodnotu (desatinné číslo). Ďalšia funkcia ``kresli_bodku()`` nič nevracia, ale vykreslí v grafickej ploche malý kruh s polomerom 5, ktorý je zafarbený zadanou farbou. Tretia funkcia ``farebne_bodky()`` dostáva ako parameter počet bodiek, ktoré má nakresliť: funkcia na náhodné pozície nakreslí príslušný počet bodiek, pričom tie, ktoré sú od bodu ``(150, 150)`` vzdialené viac ako 100, budú tmavomodré (farba ``'navy'``), tie, ktoré sú od bodu ``(230, 150)`` vzdialené viac ako 100, budú červené a všetku ostatné budú žlté. Všimnite si, že sme za definíciami všetkých funkcií napísali samotný program, ktorý využíva práve zadefinované funkcie. Po spustení dostávame približne takýto obrázok:
+
+ .. image:: image/05_3.png
+    :alt: náhodne generované bodky
+
+
+
+
+Náhradná hodnota parametra
+..........................
+
+Naučíme sa zadefinovať parametre funkcie tak, aby sme pri volaní nemuseli uviesť všetky hodnoty skutočných parametrov, ale niektoré sa automaticky dosadia, tzv. náhradnou hodnotou (default), napr.
+
+ ::
+
+  def kresli_bodku(x, y, farba='red', r=5):
+      canvas.create_oval(x-r, y-r, x+r, y+r, fill=farba, outline='')
+
+V hlavičke funkcie môžeme k niektorým parametrom uviesť náhradnú hodnotu (vyzerá to ako priradenie). V tomto prípade to označuje to, že ak tomuto formálnemu parametru nebude zodpovedať skutočný parameter, dosadí sa práve táto náhradná hodnota. Pritom musí platiť, že keď nejakému parametru v definícii funkcie určíte, že má náhradnú hodnotu, tak náhradnú hodnotu musíte zadať aj všetkým ďalším formálnym parametrom, ktoré sa nachádzajú v zozname parametrov za ním (ak sme zadefinovali náhradnú hodnotu pre parameter ``farba``, musíme nejakú zadefinovať aj pre parameter ``r``).
+
+Teraz môžeme zapísať aj takéto volania tejto funkcie:
+
+ ::
+
+  kresli_bodku(100, 200, 'blue', 3)    # farba bude 'blue' a r bude 3
+  kresli_bodku(150, 250, 'blue')       # farba bude 'blue' a r bude 5
+  kresli_bodku(200, 200)               # farba bude 'red'  a r bude 5
+
+
+
+Parametre volané menom
+......................
+
+Predpokladajme rovnakú definíciu funkcie ``kresli_bodku``:
+
+ ::
+
+  def kresli_bodku(x, y, farba='red', r=5):
+      canvas.create_oval(x-r, y-r, x+r, y+r, fill=farba, outline='')
+
+Python umožňuje funkcie s viac parametrami volať tak, že skutočné parametre neurčujeme pozične (prvému skutočnému zodpovedá prvý formálny, druhému druhý, atď.) ale priamo pri volaní uvedieme meno parametra. Takto môžeme určiť hodnotu ľubovoľnému parametru. Napr. všetky tieto volania sú korektné:
+
+ ::
+
+  kresli_bodku(10, 20, r=10)
+  kresli_bodku(farba='green', x=10, y=20)
+  kresli_bodku(r=7, farba='yellow', y=20, x=30)
+
+Samozrejme aj pri takomto volaní môžeme vynechať len tie parametre, ktoré majú určenú náhradnú hodnotu, všetky ostatné parametre sa musia v nejakom poradí objaviť v zozname skutočných parametrov.
+
+
+Farebný model RGB
+-----------------
+
+.. rubric:: Formátovanie textu
+
+Pripomeňme si, ako vieme formátovať reťazce pomocou metódy ``format``: niekoľko základných zápisov:
+
+ ::
+
+  >>> 'Ahoj {}. Ako sa máš?'.format('Peter')
+  'Ahoj Peter. Ako sa máš?'
+  >>> '({}, {})'.format(150, 222)
+  '(150, 222)'
+  >>> 'prvý={}, druhý={:3} a tretí={:7}'.format('ahoj', 6*7, 1/4)
+  'prvý=ahoj, druhý= 42 a tretí=   0.25'
+
+Formátovanie reťazcov sa dá využiť aj na výpis celých čísel v **šestnástkovej sústave**. Už poznáme formát ``'{:5}'``, ktorý označuje, že príslušná hodnota sa vypíše na šírku 5. Za dvojbodku v zátvorkách ``'{}'`` okrem šírky môžeme písať aj typ výpisu. Tu sa nám bude hodiť typ výpisu ``'x'``, ktorý označuje výpis v šestnástkovej sústave, napr.
+
+ ::
+
+  >>> '{:x}'.format(122)
+  '7a'
+  >>> '{:x}'.format(12122)
+  '2f5a'
+
+Prípadne aj so šírkou výpisu:
+
+ ::
+
+  >>> '{:3x}'.format(122)
+  ' 7a'
+  >>> '{:3x}'.format(12122)
+  '2f5a'
+
+Načo teraz potrebujeme šestnástkovú sústavu? ``tkinter`` totiž umožňuje zadávať farby nielen ich menami ale aj v tzv. **RGB** formáte a vtedy ich treba zapísať v šestnástkovej sústave. Tu ale platí, že takto zadané šestnástkové číslo je 6-ciferné a zľava je doplnené nulami ``'0'``. Formátovanie reťazca pomocou ``'{:6x}'`` by kratšie ako 6-ciferné čísla doplnilo medzerami a preto využijeme ešte jednu špecialitu tohto formátu, ktoré čísla dopĺňa nulami: zapíšeme to ako ``'{:06x}'``, napr.
+
+ ::
+
+  >>> '{:03x}'.format(122)
+  '07a'
+  >>> '{:06x}'.format(12122)
+  '002f5a'
+
+Môžeme predpokladať, že všetky farby v počítači sú namiešané z troch základných farieb: červenej, zelenej a modrej (teda **Red**, **Green**, **Blue**). Farba závisí od toho, ako je v nej zastúpená každá z týchto troch farieb. Zastúpenie jednotlivej farby vyjadrujeme číslom od 0 do 255 (zmestí sa do jedného bajtu, teda ako 2-ciferné šestnástkové číslo). Napr. žltá farba vznikne, ak namiešame 255 červenej, 255 zelenej a 0 modrej. Ak budeme zastúpenie každej farby trochu meniť, napríklad 250 červenej, 240 zelenej a hoci 100 modrej, stále to bude žltá, ale v inom odtieni.
+
+Pri kreslení v ``tkinter`` zadávame farby buď menami alebo zakódujeme ich RGB-trojicu do šestnástkovej sústavy ako 3 dvojciferné čísla (spolu 6 cifier). Pred takéto šestnástkové číslo musíme ešte na začiatok pridať znak '#', aby to ``tkinter`` odlíšil od mena farby. Napr.
+
+* pre žltú ('yellow'): keďže platí ``red=255``, ``green=255``, ``blue=0``, šestnástkovo je to trojica ``ff``, ``ff``, ``00``, a ako farba je to ``'#ffff00'``
+* pre tmavozelenú ('darkgreen'): ``red=0``, ``green=100``, ``blue=0``, šestnástkovo je to trojica ``00``, ``64``, ``00``, a farba je potom ``'#006400'``
+
+Keďže už vieme vytvárať reťazce so šestnástkovým zápisom čísel (napr. ``'{:02x}'.format(číslo)``) zapíšme funkciu ``rgb()``, ktorá bude vytvárať farby pomocou RGB-modelu:
+
+ ::
+
+  def rgb(r, g, b):
+      return '#{:02x}{:02x}{:02x}'.format(r, g, b)
+      
+otestujme:
+
+ ::
+ 
+  >>> rgb(255, 255, 0)
+  '#ffff00'
+  >>> rgb(0, 100, 0)
+  '#006400'
+  
+
+Funkciu ``rgb()`` môžeme využiť napr. na kreslenie farebných štvorcov:
+
+ ::
+
+  def stvorec(strana, x, y, farba=''):
+      canvas.create_rectangle(x, y, x+strana, y+strana, fill=farba)
+
+  for i in range(10):
+      stvorec(30, i*30, 10, rgb(100+16*i, 0, 0))
+      stvorec(30, i*30, 50, rgb(100+16*i, 0, 255-26*i))
+      stvorec(30, i*30, 90, rgb(26*i, 26*i, 26*i))
+      stvorec(30, i*30, 130, rgb(0, 26*i, 26*i))
+
+Tento program nakreslí takýchto 40 zafarbených štvorcov:
+
+ .. image:: image/05_4.png
+    :alt: miešanie farieb
+
+
+Náhodné farby
+.............
+
+Ak potrebujeme generovať náhodnú farbu, ale stačí nám iba jedna z dvoch možností, môžeme to urobiť napr. takto:
+
+ ::
+
+  def nahodna2_farba():
+      if random.randrange(2):
+          return 'blue'
+      return 'red'
+
+Podobne by sa zapísala funkcia, ktorá generuje náhodnú farbu jednu z troch a pod.
+
+Ak ale chceme úplne náhodnú farbu z celej množiny všetkých farieb, využijeme RGB-model napr. takto
+
+ ::
+
+  def rgb(r, g, b):
+      return '#{:02x}{:02x}{:02x}'.format(r, g, b)
+
+  def nahodna_farba():
+      return rgb(random.randrange(256), random.randrange(256), random.randrange(256))
+
+Keďže takto sa vlastne vygeneruje náhodné šestnástkové šesťciferné číslo, toto isté vieme zapísať aj takto:
+
+ ::
+
+  def nahodna_farba():
+      return '#{:06x}'.format(random.randrange(256 * 256 * 256))  # čo je aj 256**3
+
+Môžeme vygenerovať štvorcovú sieť náhodných farieb:
+
+ ::
+
+  for y in range(0, 300, 30):
+      for x in range(0, 300, 30):
+          stvorec(30, x, y, nahodna_farba())
+
+Dostaneme nejaký takýto obrázok:
+
+ .. image:: image/05_5.png
+    :alt: náhodné farby
+
+
+
+
+
+Cvičenie
+--------
+
+1. Napíšte funkciu ``vypis_delitele(cislo)``, ktorá vypíše do jedného riadka všetky delitele daného čísla.
+
+  * napr.
+  
+   ::
+   
+    >>> vypis_delitele(24)
+    1 2 3 4 6 8 12 24
+    
+2. Napíšte funkciu ``sucet_delitelov(cislo)``, ktorá vráti súčet všetkých deliteľov daného čísla. Funkcia nič nevypisuje, funkcia vracia (pomocou ``return``) nejakú hodnotu.
+
+  * napr.
+  
+   ::
+   
+    >>> x = sucet_delitelov(24)
+    >>> x
+    60
+    
+3. Napíšte funkciu ``je_dokonale(cislo)``, ktorá pomocou funkcie ``sucet_delitelov()`` zistí, či je dané číslo **dokonalé**, t.j. že súčet všetkých menších deliteľov ako samotné číslo sa rovná samotnému číslu. Napr. delitele čísla 6 (menšie ako 6) sú 1, 2, 3. Ich súčet je 6. Preto je číslo 6 dokonalé. Funkcia nič nevypisuje, funkcia vracia (pomocou ``return``) nejakú hodnotu.
+
+  * napr.
+  
+   ::
+   
+    >>> je_dokonale(6)
+    True
+    >>> je_dokonale(24)
+    False
+    
+
+4. Napíšte funkciu ``vsetky_dokonale(od, do)``, ktorá vypíše dokonalé čísla v danom intervale.
+
+  * napr.
+
+   ::
+   
+    >>> vsetky_dokonale(1, 30)
+    6 je dokonale
+    28 je dokonale
+
+
+5. Napíšte funkciu ``nsd(a, b)``, ktorá počíta najväčší spoločný deliteľ dvoch čísel. Funkcia nič nevypisuje, funkcia vracia (pomocou ``return``) nejakú hodnotu.
+
+  * napr.
+
+   ::
+   
+    >>> nsd(21, 15)
+    3
+    >>> nsd(1000000, 17)
+    1
+
+  * odkrokujte vaše riešenie pomocou stránky http://www.pythontutor.com/visualize.html#mode=edit
+    
+6. Napíšte funkciu ``pocet_delitelov(cislo)``, ktorá pre dané číslo zistí počet všetkých deliteľov. Napr. delitele čísla 6 sú 1, 2, 3, 6, preto funkcia vráti 4. Funkcia nič nevypisuje, funkcia vracia (pomocou ``return``) nejakú hodnotu.
+
+  * napr. 
+
+   ::
+   
+    >>> pocet_delitelov(6)
+    4
+    >>> pocet_delitelov(17)
+    2
+       
+7. Napíšte funkciu ``je_prvocislo(cislo)``, ktorá pomocou funkcie ``pocet_delitelov()`` zistí (vráti ``True`` alebo ``False``), či je to prvočíslo (je deliteľné len 1 a samým sebou).
+
+  * napr.
+  
+   ::
+   
+    >>> je_prvocislo(6)
+    False
+    >>> je_prvocislo(17)
+    True
+    
+8. Napíšte funkciu ``vsetky_prvocisla(od, do)``, ktorá vypíše všetky prvočísla v danom intervale do jedného riadka.
+
+  * napr.
+
+   ::
+   
+    >>> vsetky_prvocisla(1, 30)
+    2 3 5 7 11 13 17 19 23 29
+    
+  * odkrokujte vaše riešenie pomocou stránky http://www.pythontutor.com/visualize.html#mode=edit
+
+9. Napíšte funkciu ``sucet_mocnin2(n)``, ktorá vráti súčet mocnín dvojky s exponentmi menšími ako ``n``. Napr. ``sucet_mocnin2(5)``, vráti hodnotu 1+2+4+8+16, t.j. hodnotu 31.
+
+  * otestujte
+  
+   ::
+   
+    >>> for i in range(7):
+            print(i, sucet_mocnin2(i))
+            
+    0 0
+    1 1
+    2 3
+    3 7
+    4 15
+    5 31
+    6 63
+
+  * pokúste sa odhadnúť, aký vzorec by vedel vypočítať rovnaký výsledok ako dáva funkcia ``sucet_mocnin2()`` ale bez cyklu.
+
+10. Napíšte funkciu ``sucet_mocnin2a(n)``, ktorá vráti súčet prevrátených mocnín dvojky s exponentmi menšími ako ``n``. Napr. ``sucet_mocnin2a(5)``, vráti hodnotu 1/1+1/2+1/4+1/8+1/16, t.j. hodnotu 1.9375.
+
+  * otestujte
+  
+   ::
+   
+    >>> for i in range(7):
+            print(i, sucet_mocnin2a(i))
+            
+    0 0
+    1 1.0
+    2 1.5
+    3 1.75
+    4 1.875
+    5 1.9375
+    6 1.96875
+
+  * všimnite si, že výsledok sa pre väčšie ``n`` blíži k nejakej konštante
+
+11. Napíšte funkciu ``kocka()`` bez parametrov, ktorá pri každom zavolaní vráti náhodné číslo z intervalu od 1 do 6.
+
+  * otestujte         
+        
+   ::
+   
+    >>> for i in range(20):
+            print(kocka(), end=' ')
+    ...
+    
+  * opravte tento testovací cyklus tak, že v postupnosti vypisovaných čísel za každé, ktoré je rovnaké ako predchádzajúce, vypíšete aj znak ``'*'``, napr.          
+        
+   ::
+   
+    >>> ... for i in range(20): ...
+    6 4 4 * 4 * 3 5 4 3 5 5 * 1 2 1 1 * 1 * 1 * 2 2 * 6 1      
+
+12. Napíšte funkciu ``pocet_samohlasok(text)``, ktorá pre zadaný znakový reťazec zistí počet samohlások, ktoré obsahuje.
+
+  * napr.
+   
+   ::
+   
+    >>> pocet_samohlasok('python')
+    2
+    >>> pocet_samohlasok('strc prst skrz krk')
+    0
+        
+13. Napíšte funkcie ``gula(x, y, r)`` a ``snehuliak(x, y, r)``. Funkcia ``gula()`` nakreslí biely kruh so stredom ``(x, y)`` a s polomerom ``r``. Funkcia ``snehuliak()`` pomocou troch volaní ``gula()`` nakreslí snehuliaka, v ktorom spodná najväčšia guľa má stred ``(x, y)`` a polomer ``r``. Stredná má polomer 2/3 veľkej a najmenšia je polovičná strednej. Otestujte na bledomodrom pozadí.
+
+  * napr.
+  
+   ::
+   
+    >>> snehuliak(200, 400, 90)
+    >>> snehuliak(400, 300, 45)
+    >>> snehuliak(100, 200, 30)
+
+14. Napíšte funkciu ``karticka(x, y, text)``, ktorá do grafickej plochy nakreslí bledošedý obdĺžnik a do jeho stredu vypíše zadaný text. Stred kartičky má súradnice ``(x, y)`` a jej strany majú dĺžky 100 a 40. Font písma nech je napr. ``'arial 14'``.
+
+  * otestujte náhodným vygenerovaním 10 kartičiek, napr. s textom ``'Python'``
+  * otestujte náhodným vygenerovaním 10 kartičiek s textom súradníc kartičky, napr. v tvare ``'(354,211)'``
+
+15. Napíšte funkcie ``stvorec(x, y, a, farba)``, ``trojuholnik(x, y, a, farba)`` a ``domcek(x, y, a=50, farba1='blue', farba2='red')``. Funkcia ``stvorec()`` nakreslí farebný štvorec s ľavým horným vrcholom na ``(x, y)`` a stranou ``a``. Funkcia ``trojuholnik()`` nakreslí rovnoramenný trojuholník s ľavým dolným vrcholom v ``(x, y)`` so stranou aj výškou ``a``. Funkcia ``domcek()`` nakreslí domček pomocou štvorca a trojuholníka.
+
+  * otestujte vykreslením 10 domčekov na náhodných pozíciách
+
+16. Napíšte funkcie ``kruh(x, y, r)`` a ``sustredne(n, x, y)``. Funkcia ``kruh()`` nakreslí na zadané súradnice kruh daného polomeru a vyplní ho náhodnou farbou. Funkcia ``sustredne()`` pomocou ``kruh()`` nakreslí ``n`` sústredných farebných kruhov s polomermi 5, 10, 15, 20, ... Použite funkciu ``nahodna_farba()`` z prednášky.
+
+  * otestujte niekoľkými volaniami ``sustredne()`` na náhodných pozíciách
+
+17. Napíšte funkcie: ``kocka(x, y, a, farba)``, ktorá nakreslí farebný štvorec s daným stredom a danou stranou; funkcia ``rad(n, x, y, a)`` nakreslí vedľa seba ``n`` štvorcov (prvý ľavý z nich na zadaných súradniciach), pričom sú zafarbené rovnakou náhodnou farbou; funkcia ``pyramida(n, x, y, a)`` pomocou funkcie ``rad()`` nakreslí pyramídu výšky ``n``, t.j. zloženú z ``n`` radov dĺžky 1, 2, 3, ... ``n``. Najvyššia kocka pyramídy je na zadaných súradniciach. Každý nižší rad kociek sa nakreslí o ``a`` nižšie a o ``a/2`` odsunutý vľavo.
+
+  * otestujte v ploche veľkosti 500x500 napr.  
+    
+   ::
+   
+    >>> pyramida(10, 250, 50, 40)
+    
+  * skuste zmeniť generátor náhodnej farby tak, aby sa vytvárali náhodné odtiene len jednej farby, napr. ``rgb(0, g, 0)``, kde ``g`` je náhodné číslo od 100 do 255 bude generovať len modré farby
+        
+        

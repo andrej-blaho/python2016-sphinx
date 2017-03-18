@@ -1,0 +1,1071 @@
+Korytnačky (turtle)
+===================
+
+Dnes sa naučíme v Pythone pracovať trochu s inou grafikou ako sa pracovalo pomocou ``tkinter``. Napr.
+
+ ::
+ 
+  import tkinter
+  canvas = tkinter.Create()                    # vytvor grafickú plochu
+  canvas.pack()                                # zobraz ju do okna
+  g.create_oval(100, 50, 150, 80, fill='red')  # nakresli červenú elipsu
+  ...
+
+Pri programovaní takýchto úloh sme počítali s tým, že:
+
+* počiatočný bod (0, 0) je v ľavom hornom rohu grafickej plochy
+* x-ová súradnica ide vpravo vodorovne po hornej hrane grafickej plochy
+* y-ová súradnica ide nadol zvislo po ľavej hrane grafickej plochy: smerom nadol sú kladné y-ové hodnoty, smerom nahor idú záporné hodnoty súradníc
+* všetky kreslené útvary sú umiestnené absolútne k bodu (0, 0)
+* otáčanie útvaru o nejaký uhol, resp. rozmiestňovanie bodov na kružnici môže byť dosť náročné a väčšinou vyžaduje použitie ``math.sin()`` a ``math.cos()``
+
+
+Korytnačia grafika
+------------------
+
+Korytnačka je grafické pero (grafický robot), ktoré si okrem pozície v grafickej ploche (``pos()``) pamätá aj smer natočenia (``heading()``). Korytnačku vytvárame podobne ako v ``tkinter`` grafickú plochu:
+
+ ::
+
+  >>> import turtle
+  >>> t = turtle.Turtle()
+  >>> print(t.pos())
+  (0.0,0.0)
+  >>> print(t.heading())
+  0.0
+
+Príkaz ``t = turtle.Turtle()`` vytvorí grafickú plochu a v jej strede korytnačku s natočením na východ. Volanie ``t.pos()`` vráti momentálnu pozíciu korytnačky (0, 0) a ``t.heading()`` vráti uhol 0.
+
+Pre grafickú plochu korytnačej grafiky platí:
+
+* súradná sústava má počiatok v strede grafickej plochy
+* x-ová súradnica ide vpravo vodorovne od počiatku
+* y-ová súradnica ide nahor zvislo od počiatku: smerom nahor sú kladné y-ové hodnoty, smerom nadol idú záporné hodnoty súradníc
+* smer natočenia určujeme v stupňoch (nie v radiánoch) a v protismere otáčania hodinových ručičiek:
+
+  * na východ je to 0
+  * na sever je to 90
+  * na západ je to 180
+  * na juh je to 270
+
+* pozícia a smer korytnačky je vizualizovaná malým čiernym trojuholníkom - keď sa bude korytnačka hýbať alebo otáčať, bude sa hýbať tento trojuholník.
+
+Základnými príkazmi sú ``forward(dĺžka)``, ktorý posunie korytnačku v momentálnom smere o zadanú dĺžku a ``right(uhol)``, ktorý otočí korytnačku o zadaný uhol vpravo, napr.
+
+ ::
+
+  >>> import turtle
+  >>> t = turtle.Turtle()
+  >>> t.forward(100)
+  >>> t.right(90)
+  >>> t.forward(100)
+  >>> t.right(90)
+  >>> t.forward(100)
+  >>> t.right(90)
+  >>> t.forward(100)
+
+nakreslí štvorec so stranou 100. Častejšie budeme používať skrátené zápisy týchto príkazov: ``fd()``, ``rt()`` a ``lt()`` (je skratkou príkazu ``left()``, teda otočenie vľavo).
+
+.. topic:: mainloop()
+
+   Takýto spôsob postupného testovania korytnačích príkazov a programov s korytnačkami nemusí fungovať mimo **IDLE**. Niektorí z vás už máte skúsenosti, že pri práci s grafikou musíte na záver programu pripísať ``canvas.mainloop()``. Pri práci s korytnačou grafikou Python tiež využíva ``tkinter``, preto aj v tomto prípade musíme na záver programu zadať napr.
+
+    ::
+
+     turtle.mainloop()
+
+   Pripadne môžeme namiesto tohto zapísať
+
+    ::
+
+     turtle.exitonclick()
+
+   čo bude označovať, že grafické okno sa automaticky zatvorí po kliknutí niekam do okna.
+
+
+Zapíšme funkciu, pomocou ktorej korytnačka nakreslí štvorec:
+
+ .. image:: image/11_1.png
+    :width: 300 px
+    :align: right
+
+ ::
+
+  import turtle
+
+  def stvorec(dlzka):
+      for i in range(4):
+          t.fd(dlzka)
+          t.rt(90)
+
+  t = turtle.Turtle()
+  stvorec(100)
+  t.lt(70)
+  t.fd(80)
+  stvorec(50)
+
+Program nakreslí dva rôzne štvorce - druhý je posunutý a trochu otočený.
+
+Aby sa nám ľahšie experimentovalo s korytnačkou, nemusíme stále reštartovať shell z programového režimu (napr. klávesom **F5**). Keď máme vytvorenú korytnačku ``t``, stačí zmazať kresbu pomocou:
+
+ ::
+
+  >>> t.clear()     # zmaže grafickú plochu a korytnačku nechá tam, kde sa momentálne nachádza
+ 
+alebo pri zmazaní plochy aj inicializuje korytnačku v strede plochy otočenú na východ:
+
+ ::
+
+  >>> t.reset()     # zmaže grafickú plochu a inicializuje korytnačku
+ 
+a teraz znovu kreslíme už do prázdnej plochy.
+
+Korytnačka má pero, ktorým kreslí pri svojom pohybe po grafickej ploche. Toto pero môžeme zdvihnúť (``pen up``) - odteraz sa pohybuje bez kreslenia, alebo spustiť (``pen down``) - opäť bude pri pohybe kresliť. Na to máme dva príkazy ``penup()`` alebo ``pendown()``, prípadne ich skratky ``pu()`` alebo ``pd()``. Predchádzajúci príklad doplníme o dvíhanie pera:
+
+ .. image:: image/11_2.png
+    :width: 300 px
+    :align: right
+
+ ::
+
+  import turtle
+
+  def stvorec(dlzka):
+      for i in range(4):
+          t.fd(dlzka)
+          t.rt(90)
+
+  t = turtle.Turtle()
+  stvorec(100)
+  t.pu()
+  t.lt(70)
+  t.fd(80)
+  t.pd()
+  stvorec(50)
+
+Napíšme funkciu ``posun()``, ktorá presunie korytnačku na náhodnú pozíciu v ploche a dá jej aj náhodný smer:
+
+ .. image:: image/11_3.png
+    :width: 300 px
+    :align: right
+
+ ::
+
+  import turtle
+  import random
+
+  def posun():
+      t.pu()
+      t.setpos(random.randint(-300, 300),
+               random.randint(-300, 300))
+      t.seth(random.randrange(360))
+      t.pd()
+
+  def stvorec(dlzka):
+      for i in range(4):
+          t.fd(dlzka)
+          t.rt(90)
+
+  t = turtle.Turtle()
+  for i in range(10):
+      posun()
+      stvorec(30)
+
+* funkcia na náhodné pozície nakreslí 10 malých štvorcov
+* použili sme tu dva nové príkazy: ``setpos(x, y)``, ktorá presunie korytnačku na novú pozíciu a ``seth(uhol)`` (skratka z ``setheading()``), ktorá otočí korytnačku do daného smeru
+
+Grafickému peru korytnačky môžeme meniť hrúbku a farbu:
+
+* príkaz ``pencolor(farba)`` zmení farbu pera - odteraz bude korytnačka všetko kresliť touto farbou, až kým ju opäť nezmeníme
+* príkaz ``pensize(hrúbka)`` zmení hrúbku pera (celé kladné číslo) - odteraz bude korytnačka všetko kresliť touto hrúbkou, až kým ju opäť nezmeníme
+
+V nasledovnom príklade uvidíme aj príkaz ``turtle.delay()``, ktorým môžeme urýchliť (alebo spomaliť) pohyb korytnačky (rýchlosť ``turtle.delay(0)`` je najrýchlejšia, ``turtle.delay(10)`` je pomalšia - parameter hovorí počet milisekúnd, ktorým sa zdržuje každé kreslenie):
+
+ .. image:: image/11_4.png
+    :width: 300 px
+    :align: right
+
+ ::
+
+  import turtle
+  import random
+
+  def stvorec(dlzka):
+      for i in range(4):
+          t.fd(dlzka)
+          t.rt(90)
+
+  def trojuholnik(dlzka):
+      for i in range(3):
+          t.fd(dlzka)
+          t.rt(120)
+
+  def posun():
+      t.pu()
+      t.setpos(random.randint(-300, 300),
+               random.randint(-300, 300))
+      t.seth(random.randrange(360))
+      t.pd()
+
+  turtle.delay(0)
+  t = turtle.Turtle()
+  t.pensize(5)
+  for i in range(20):
+      posun()
+      if random.randrange(2):
+          t.pencolor('red')
+          stvorec(30)
+      else:
+          t.pencolor('blue')
+          trojuholnik(30)
+
+Program na náhodné pozície umiestni červené štvorce alebo modré trojuholníky. Zrejme korytnačka je v **globálnej premennej** ``t`` (v hlavnom mennom priestore) a teda na ňu vidia všetky naše funkcie.
+
+Ďalší príklad predvedie funkciu, ktorá nakreslí ľubovoľný rovnostranný n-uholník a tiež príkaz ``clear()``, ktorý zmaže nakreslený obrázok, aby sa mohol kresliť ďalší už v prázdnej grafickej ploche:
+
+ .. image:: image/11_5.png
+    :width: 300 px
+    :align: right
+
+ ::
+
+  import turtle
+
+  def n_uholnik(n, d):
+      for i in range(n):
+          t.fd(d)
+          t.lt(360 / n)
+
+  t = turtle.Turtle()
+  for n in range(3, 16):
+      t.clear()
+      n_uholnik(n, 100)
+
+* ak by sme vyhodili príkaz ``clear()``, mohli by sme v jednej kresbe vidieť všetky n-uholníky
+
+Pomocou n-uholníkov môžeme nakresliť aj kružnicu (napr. ako 36-uholník s malou dĺžkou strany), ale aj len časti kružníc, napr. 18 strán z 36-uholníka nakreslí polkruh, a 9 strán nakreslí štvrťkruh.
+
+Nasledovný príklad najprv definuje ``oblúk`` (štvrťkruh), potom ``lupen`` (dva priložené štvrťkruhy) a nakoniec kvet ako ``n`` lupeňov:
+
+ .. image:: image/11_6.png
+    :width: 300 px
+    :align: right
+
+ ::
+
+  import turtle
+
+  def obluk(d):
+      for i in range(9):
+          t.fd(d)
+          t.rt(10)
+
+  def lupen(d):
+      for i in 1, 2:
+          obluk(d)
+          t.rt(90)
+
+  def kvet(n, d):
+      for i in range(n):
+          lupen(d)
+          t.rt(360 / n)
+
+  turtle.delay(0)
+  t = turtle.Turtle()
+  kvet(10, 20)
+
+
+Vyfarbenie útvaru
+.................
+
+Útvary, ktoré nakreslí korytnačka sa dajú aj vyfarbiť. Predpokladajme, že korytnačka nakreslí nejaký uzavretý útvar (napr. štvorec), a potom ho môže farbou výplne vyfarbiť. Princíp fungovania vypĺňania nejakou farbou je takýto: 
+
+* na začiatok postupnosti korytnačích príkazov, ktoré definujú obrys útvaru, umiestnime príkaz ``begin_fill()``
+* na koniec tejto postupnosti dáme príkaz ``end_fill()``, ktorý vyfarbí nakreslený útvar farbou výplne
+* farbu výplne meníme príkazom ``fillcolor(farba)`` (na začiatku je nastavená čierna farba)
+* ak nakreslíme krivku, ktorá netvorí uzavretý útvar, pri vypĺňaní sa táto uzavrie 
+
+Napr. nakreslíme farebné štvorce v jednom rade:
+
+ .. image:: image/11_7.png
+    :width: 300 px
+    :align: right
+
+ ::
+
+  import turtle
+
+  def stvorec(d):
+      for i in range(4):
+          t.fd(d)
+          t.rt(90)
+
+  turtle.delay(0)
+  t = turtle.Turtle()
+  t.fillcolor('red')
+  for i in range(5):
+      t.begin_fill()
+      stvorec(50)
+      t.end_fill()
+      t.pu()
+      t.fd(60)
+      t.pd()
+
+Nakreslíme kvet zložený z farebných lupeňov (každý lupeň inou farbou):
+
+ .. image:: image/11_8.png
+    :width: 300 px
+    :align: right
+
+ ::
+
+  import turtle
+
+  def obluk(d):
+      for i in range(9):
+          t.fd(d)
+          t.rt(10)
+
+  def lupen(d):
+      for i in 1, 2:
+          obluk(d)
+          t.rt(90)
+
+  def kvet(d, farby):
+      for f in farby:
+          t.fillcolor(f)
+          t.begin_fill()
+          lupen(d)
+          t.end_fill()
+          t.rt(360/len(farby))
+
+  turtle.delay(0)
+  t = turtle.Turtle()
+  kvet(20, ['red', 'blue', 'yellow', 'magenta',
+            'green', 'orange', 'violet'])
+
+
+Špirály
+.......
+
+ .. image:: image/11_9.png
+    :width: 300 px
+    :align: right
+
+Rôzne špirály môžeme kresliť tak, že opakujeme kreslenie stále sa zväčšujúcich čiar a za každým sa otočíme o pevný uhol, napr.
+
+ ::
+
+  import turtle
+  
+  t = turtle.Turtle()
+  t.lt(30)
+  for i in range(3, 300, 3):
+      t.fd(i)
+      t.rt(90)
+
+Program nakreslí štvorcovú špirálu.
+
+S uhlami môžete experimentovať, napr.
+
+ .. image:: image/11_10.png
+    :width: 300 px
+    :align: right
+
+ ::
+
+  import turtle
+  import random
+  
+  turtle.delay(0)
+  t = turtle.Turtle()
+  while True:
+      uhol = random.randint(30, 170)
+      print('spirala s uhlom', uhol)
+      for i in range(3, 300, 3):
+          t.fd(i)
+          t.rt(uhol)
+      t.reset()
+
+Tento program kreslí špirály s rôznymi náhodne generovanými uhlami. Zároveň do textovej plochy vypisuje informáciu o uhle momentálne kreslenej špirály.
+
+ .. image:: image/11_11.png
+    :width: 300 px
+    :align: right
+
+Zaujímavé špirály vznikajú, keď nemeníme dĺžku čiar ale uhol, napr.
+
+ ::
+
+  import turtle
+  
+  turtle.delay(0)
+  t = turtle.Turtle()
+  for uhol in range(1, 2000):
+      t.fd(8)
+      t.rt(uhol)
+
+ .. image:: image/11_12.png
+    :width: 300 px
+    :align: right
+
+Tu môžeme vyskúšať rôzne malé zmeny uhla, o ktorý sa mení kreslenie čiar útvaru:
+
+ ::
+
+  import turtle
+
+  turtle.delay(0)
+  t = turtle.Turtle()
+  for uhol in range(1, 2000):
+      t.fd(8)
+      t.rt(uhol + 0.1)
+
+Vyskúšajte rôzne iné zmeny uhla v príkaze ``t.rt()``.
+
+Zhrnutie užitočných metód
+.........................
+
+.. list-table:: korytnačie príkazy
+   :widths: 10 13 25 28
+   :header-rows: 1
+
+   * - metóda
+     - variant
+     - význam
+     - príklad
+   * - ``forward(d)``
+     - ``fd``
+     - choď dopredu
+     - ``t.fd(100); t.fd(-50)``
+   * - ``back(d)``
+     - ``backward``, ``bk``
+     - cúvaj
+     - ``t.bk(50); t.bk(-10)``
+   * - ``right(u)``
+     - ``rt``
+     - otoč sa vpravo
+     - ``t.rt(90); t.rt(-120)``
+   * - ``left(u)``
+     - ``lt``
+     - otoč sa vľavo
+     - ``t.lt(90); t.lt(-45)``
+   * - ``penup()``
+     - ``pu``, ``up``
+     - zdvihni pero
+     - ``t.pu()``
+   * - ``pendown()``
+     - ``pd``, ``down``
+     - spusti pero
+     - ``t.pd()``
+   * - ``setpos(x, y)``
+     - ``setposition``, ``goto``
+     - choď na pozíciu
+     - ``t.setpos(50, 70)``
+   * - ``pos()``
+     - ``position``
+     - zisti pozíciu korytnačky
+     - ``t.pos()``
+   * - ``xcor()``
+     -
+     - zisti x-ovú súradnicu
+     - ``t.xcor()``
+   * - ``ycor()``
+     -
+     - zisti y-ovú súradnicu
+     - ``t.ycor()``
+   * - ``heading()``
+     -
+     - zisti uhol korytnačky
+     - ``t.heading()``
+   * - ``setheading(u)``
+     - ``seth``
+     - nastav uhol korytnačky
+     - ``t.seth(120)``
+   * - ``pensize(h)``
+     - ``width``
+     - nastav hrúbku pera
+     - ``t.pensize(5)``
+   * - ``pencolor(f)``
+     -
+     - nastav farbu pera
+     - ``t.pencolor('red')``
+   * - ``pencolor()``
+     -
+     - zisti farbu pera
+     - ``t.pencolor()``
+   * - ``fillcolor(f)``
+     -
+     - nastav farbu výplne
+     - ``t.fillcolor('blue')``
+   * - ``fillcolor()``
+     -
+     - zisti farbu výplne
+     - ``t.fillcolor()``
+   * - ``color(f1, f2)``
+     -
+     - nastav farbu pera aj výplne
+     - ``t.color('red'); t.color('blue', 'white')``
+   * - ``color()``
+     -
+     - zisti farbu pera aj výplne
+     - ``t.color()``
+   * - ``reset()``
+     -
+     - zmaž kresbu a inicializuj korytnačku
+     - ``t.reset()``
+   * - ``clear()``
+     -
+     - zmaž kresbu
+     - ``t.clear()``
+   * - ``begin_fill()``
+     -
+     - začiatok budúceho vyfarbenia
+     - ``t.begin_fill()``
+   * - ``end_fill()``
+     -
+     - koniec vyfarbenia
+     - ``t.end_fill()``
+
+
+Globálne korytnačie funkcie
+...........................
+
+Modul ``turtle`` má ešte tieto funkcie, ktoré robia globálne nastavenia a zmeny (majú vplyv na všetky korytnačky):
+
+* ``turtle.delay(číslo)``  - vykonávanie korytnačích metód sa spomalí na zadaný počet milisekúnd (štandardne je 10)
+
+ * každú jednu korytnačku môžeme ešte individuálne zrýchľovať alebo spomaľovať pomocou ``t.speed(číslo)``, kde ``číslo`` je od 0 do 10 (0 najrýchlejšie, štandardne je 3)
+ 
+* ``turtle.tracer(číslo)`` - zapne alebo vypne priebežné zobrazovanie zmien v grafickej ploche (štandardne je ``číslo`` 1):
+
+  * ``turtle.tracer(0)`` - vypne zobrazovanie zmien, t. j. teraz je vykresľovanie veľmi rýchle bez pozdržiavania, ale zatiaľ žiadnu zmenu v grafickej ploche nevidíme
+  * ``turtle.tracer(1)`` - zapne zobrazovanie zmien, t. j. teraz je vykresľovanie už pomalé (podľa nastavených ``turtle.delay()`` a ``t.speed()``), lebo vidíme všetky zmeny kreslenia v grafickej ploche
+
+* ``turtle.bgcolor(farba)`` - zmení farbu pozadia grafickej plochy, pričom všetky kresby v ploche ostávajú bez zmeny
+ 
+ 
+Tvar korytnačky
+...............
+
+Korytnačkám môžeme meniť ich tvar - momentálne je to malý trojuholník.
+
+Príkaz ``shape()`` zmení tvar na jeden s preddefinovaných tvarov (pre korytnačku ``t``):
+
+ ::
+ 
+  t.shape('arrow')        # tvarom korytnačky bude šípka
+  t.shape('turtle')       # tvarom korytnačky bude 
+  t.shape('circle')       # tvarom korytnačky bude 
+  t.shape(square'')       # tvarom korytnačky bude 
+  t.shape('triangle')     # tvarom korytnačky bude 
+  t.shape('classic')      # tvarom korytnačky bude 
+  
+Default tvar je ``'classic'``.
+  
+Príkaz ``shapesize()`` nastavuje zväčšenie tvaru a hrúbku obrysu tvaru (pre korytnačku ``t``):
+
+ ::
+
+  t.shapesize(sirka, vyska, hrubka)
+
+ .. image:: image/11_13.png
+    :width: 300 px
+    :align: right
+
+Mohli ste si všimnúť, že keď korytnačke zmeníte farbu pera, zmení sa obrys jej tvaru. Podobne, keď sa zmení farba výplne, tak sa zmení aj výplň tvaru korytnačky. Napr.
+
+ ::
+
+  import turtle
+  
+  turtle.delay(0)
+  t = turtle.Turtle()
+  t.shape('turtle')
+  t.shapesize(5, 5, 8)
+  t.color('darkgreen', 'green')
+  for i in range(90):
+      t.fd(5)
+      t.rt(4)
+
+V tomto príklade sa nastaví korytnačke zväčšený tvar a pomaly nakreslí kružnicu (90-uholník).
+
+Zobrazovanie tvaru korytnačky môžeme skryť príkazom ``hideturtle()`` (skratka ``ht()``) a opätovné zobrazovanie zapnúť príkazom ``showturtle()`` (skratka ``st()``).
+
+
+Náhodné prechádzky
+------------------
+
+ .. image:: image/11_14.png
+    :width: 300 px
+    :align: right
+
+Náhodnými prechádzkami budeme nazývať taký pohyb korytnačky, pri ktorom sa korytnačka veľa-krát náhodne otočí a prejde nejakú malú vzdialenosť. Napr.
+
+ ::
+
+  import turtle
+  import random
+  
+  turtle.delay(0)
+  t = turtle.Turtle()
+  for i in range(10000):
+      t.seth(random.randrange(360))
+      t.fd(10)
+
+ .. image:: image/11_15.png
+    :width: 300 px
+    :align: right
+
+Po čase odíde z grafickej plochy - upravíme tak, aby nevyšla z nejakej oblasti, napr.
+
+ ::
+
+  import turtle
+  import random
+  
+  turtle.delay(0)
+  t = turtle.Turtle()
+  t.pensize(5)
+  t.pencolor('blue')
+  for i in range(10000):
+      t.seth(random.randrange(360))
+      t.fd(10)
+      if t.xcor() ** 2 + t.ycor() ** 2 > 50 ** 2:
+          t.fd(-10)
+
+Príkaz ``if`` nedovolí korytnačke vzdialiť sa od (0,0) viac ako 50 - počítali sme tu vzdialenosť korytnačky od počiatku.
+
+Môžeme využiť metódu ``distance()``, ktorá vráti vzdialenosť korytnačky od nejakého bodu alebo inej korytnačky:
+
+ .. image:: image/11_16.png
+    :width: 300 px
+    :align: right
+
+ ::
+
+  import turtle
+  import random
+  
+  turtle.delay(0)
+  t = turtle.Turtle()
+  turtle.bgcolor('navy')
+  t.pensize(5)
+  t.pencolor('yellow')
+  for i in range(10000):
+      t.seth(random.randrange(360))
+      t.fd(10)
+      if t.distance(20, 0) > 50 or t.distance(50, 0) < 50:
+          t.fd(-10)
+
+Korytnačka sa teraz pohybuje v oblasti, ktorá ma tvar mesiaca: nesmie vyjsť z prvého kruhu a zároveň vojsť do druhého.
+
+Tvar stráženej oblasti môže byť definovaný aj zložitejšou funkciou, napr.
+
+ .. image:: image/11_17.png
+    :width: 300 px
+    :align: right
+
+ ::
+
+  import turtle
+  import random
+  
+  def fun(pos):
+      x, y = pos            # pos je dvojica súradníc
+      if abs(x - 30) + abs(y) < 50:
+          return False
+      return abs(x + 30) + abs(y) > 50
+
+  turtle.delay(0)
+  t = turtle.Turtle()
+  t.speed(0)
+  t.pensize(5)
+  for i in range(10000):
+      t.seth(random.randrange(360))
+      if t.distance(0, 0) < 30:
+          t.pencolor('green')
+      else:
+          t.pencolor('red')
+      t.fd(5)
+      if fun(t.pos()):       # funkcia fun stráži nejakú oblasť
+          t.fd(-5)
+
+Okrem stráženia oblasti tu meníme farbu pera podľa nejakej podmienky
+
+
+Viac korytnačiek
+----------------
+
+Doteraz sme pracovali len s jednou korytnačkou (vytvorili sme ju pomocou ``t = turtle.Turtle()``). Korytnačiek ale môžeme vytvoriť ľubovoľne veľa. Aby rôzne korytnačky mohli využívať tú istú kresliacu funkciu (napr. ``stvorec()``) musíme globálnu premennú ``t`` vo funkcii prerobiť na parameter:
+
+ ::
+
+  import turtle
+
+  def stvorec(tu, velkost):
+      for i in range(4):
+          tu.fd(velkost)
+          tu.rt(90)
+
+  t = turtle.Turtle()
+  stvorec(t, 100)
+
+Vytvorme ďalšiu korytnačku a necháme ju tiež kresliť štvorce tou istou funkciou:
+
+ ::
+
+  t1 = turtle.Turtle()
+  t1.lt(30)
+  for i in range(5):
+      stvorec(t1, 50)
+      t1.lt(72)
+
+Kým sme vytvárali funkcie, ktoré pracovali len pre jednu korytnačku, nemuseli sme ju posielať ako parameter. Ak ale budeme potrebovať funkcie, ktoré by mali pracovať pre ľubovoľné ďalšie korytnačky, vytvoríme vo funkcii nový parameter (najčastejšie ako prvý parameter funkcie) a ten bude v tele funkcie zastupovať tú korytnačku, ktorú do funkcie pošleme.
+
+V ďalšom príklade vyrobíme 3 korytnačky: 2 sa pohybujú po nejakej stálej trase a tretia sa vždy nachádza presne v strede medzi nimi (ako keby bola v strede gumenej nite):
+
+ .. image:: image/11_18.png
+    :width: 300 px
+    :align: right
+
+ ::
+
+  import turtle
+
+  def posun(t, pos):     # pos je pozícia v tvare (x,y)
+      t.pu()
+      t.setpos(pos)
+      t.pd()
+
+  def stred(k1, k2):
+      x = (k1.xcor() + k2.xcor()) / 2
+      y = (k1.ycor() + k2.ycor()) / 2
+      return (x, y)
+
+  turtle.delay(0)
+  t1 = turtle.Turtle()
+  posun(t1, (-100, -100))
+  t2 = turtle.Turtle()
+  posun(t2, (200, 100))
+  t3 = turtle.Turtle()
+  posun(t3, stred(t1, t2))
+  t3.pencolor('red')
+  while True:
+      t1.fd(4)
+      t1.rt(3)
+      t2.fd(3)
+      t2.lt(2)
+      t3.setpos(stred(t1, t2))
+
+
+Pole korytnačiek
+................
+
+Do poľa postupne priradíme vygenerované korytnačky, pričom každú presunieme na inú pozíciu (všetky ležia na x-ovej osi) a nastavíme jej iný smer:
+
+ ::
+
+  import turtle
+  
+  turtle.delay(0)
+  pole = []
+  for i in range(60):
+      t = turtle.Turtle()
+      t.pu()
+      t.setpos(-300 + 10 * i, 0)
+      t.pd()
+      t.seth(i * 18)
+      pole.append(t)
+
+Necháme ich kresliť rovnaké kružnice:
+
+ .. image:: image/11_19.png
+    :width: 300 px
+    :align: right
+
+ ::
+
+  import turtle
+  
+  turtle.delay(0)
+  pole = []
+  for i in range(60):
+      t = turtle.Turtle()
+      t.pu()
+      t.setpos(-300 + 10 * i, 0)
+      t.pd()
+      t.seth(i * 18)
+      pole.append(t)
+
+  for t in pole:
+      for i in range(24):
+          t.fd(20)
+          t.lt(15)
+
+Takto kreslila jedna za druhou: ďalšia začala kresliť až vtedy, keď predchádzajúca skončila.
+
+Pozmeňme to tak, aby všetky kreslili naraz:
+
+ ::
+
+  import turtle
+  
+  turtle.delay(0)
+  pole = []
+  for i in range(60):
+      t = turtle.Turtle()
+      t.pu()
+      t.setpos(-300 + 10 * i, 0)
+      t.pd()
+      t.seth(i * 18)
+      pole.append(t)
+
+  for i in range(24):
+      for t in pole:
+          t.fd(20)
+          t.lt(15)
+
+Tu sme zmenili len poradie for-cyklov.
+
+ .. image:: image/11_20.png
+    :width: 300 px
+    :align: right
+
+V ďalšom príklade vygenerujeme všetky korytnačky v počiatku súradnej sústavy ale s rôznymi smermi a necháme ich prejsť dopredu rovnakú vzdialenosť:
+
+ ::
+
+  import turtle
+  
+  turtle.delay(0)
+  pole = []
+  for i in range(60):
+      pole.append(turtle.Turtle())
+      pole[-1].seth(i * 6)
+
+  for t in pole:
+      t.fd(200)
+
+Všimnite si, ako pracujeme s poľom korytnačiek (``pole[-1]`` označuje posledný prvok poľa, t. j. naposledy vygenerovanú korytnačku).
+
+
+Korytnačky sa naháňajú
+......................
+
+Na náhodných pozíciách vygenerujeme ``n`` korytnačiek a potom ich necháme sa naháňať podľa takýchto pravidiel:
+
+* každá sa otočí smerom k nasledovnej (prvá k druhej, druhá k tretej, ..., N-tá k prvej)
+* každá prejde stotinu vzdialenosti k nasledovnej
+
+ .. image:: image/11_21.png
+    :width: 300 px
+    :align: right
+
+ ::
+
+  import turtle
+  import random
+
+  n = 8
+  t = []
+  turtle.delay(0)
+  for i in range(n):
+      nova = turtle.Turtle()
+      nova.pu()
+      nova.setpos(random.randint(-300, 300),
+                  random.randint(-300, 300))
+      nova.pencolor('#{:06x}'.format(random.randrange(256 ** 3)))
+      nova.pensize(3)
+      nova.pd()
+      t.append(nova)
+
+  while True:
+      for i in range(n):
+          j = (i + 1) % n                  # index nasledovnej
+          uhol = t[i].towards(t[j])
+          t[i].seth(uhol)
+          vzdialenost = t[i].distance(t[j])
+          t[i].fd(vzdialenost / 100)
+
+Využili sme novú metódu ``towards()``, ktorá vráti uhol otočenia k nejakému bodu alebo k pozícii inej korytnačky.
+
+Trochu pozmeníme: okrem prejdenia 1/10 vzdialenosti k nasledovnej nakreslí aj celú spojnicu k nasledovnej:
+
+ .. image:: image/11_22.png
+    :width: 300 px
+    :align: right
+
+ ::
+
+  import turtle
+  import random
+
+  turtle.bgcolor('black')
+  turtle.delay(0)
+  while True:
+      n = random.randint(3, 8)
+      t = []
+      for i in range(n):
+          nova = turtle.Turtle()
+          nova.speed(0)
+          nova.pu()
+          nova.setpos(random.randint(-300, 300),
+                      random.randint(-300, 300))
+          farba = '#{:06x}'.format(random.randrange(256 ** 3))
+          nova.pencolor(farba)
+          nova.pd()
+          nova.ht()
+          t.append(nova)
+
+      for k in range(100):
+          for i in range(n):
+              j = (i + 1) % n                # index nasledovnej
+              uhol = t[i].towards(t[j])
+              t[i].seth(uhol)
+              vzdialenost = t[i].distance(t[j])
+              t[i].fd(vzdialenost)
+              t[i].fd(vzdialenost / 10 - vzdialenost)
+
+      for tt in t:
+          tt.clear()
+          del tt                       # zruší korytnačku
+
+Po dokreslení, obrázok zmaže a začne kresliť nový.
+
+
+Cvičenie
+--------
+
+1. Napíšte funkcie ``stvorec(strana)`` a ``trojuholnik(strana)`` a potom pomocou nich funkciu ``domcek(strana, farba1, farba2)``, ktorá nakreslí domček, pričom ``farba1`` je farba strechy (trojuholníka) a ``farba2`` farba štvorca.
+
+   * otestujte napr.
+   
+    ::
+    
+     >>> domcek(100, 'red', 'blue')
+
+2. Napíšte funkciu ``ulica(pole)``, ktorá nakreslí vedľa seba niekoľko domčekov (volaním funkcie ``domcek()``), pričom farby trojuholníka aj štvorca sú vygenerované náhodne, veľkosti domčekov aj ich počet je daný vstupným poľom: napr. ak pole má hodnoty ``[50, 20, 80]``, funkcia nakreslí tesne vedľa seba (na spoločnej základni) 3 domčeky veľkostí 50, 20 a 80.
+
+   * otestujte napr.
+   
+    ::
+    
+     >>> ulica([60, 50, 40, 30, 20, 10])
+
+3. Napíšte funkciu ``stvorce(strana)``, ktorá nakreslí štvorec s danou stranou a tiež ďalší do neho vpísaný štvorec, tento menší štvorec má vrcholy v stredoch strán veľkého štvorca.
+
+   * otestujte napr.
+   
+    ::
+    
+     >>> stvorce(150)
+
+4. Do funkcie ``stvorce()`` z predchádzajúcej úlohy pridajte ďalšie parametre: ``stvorce(strana, farba1, farba2)``, aby ``farba1`` bola farbou výplne veľkého štvorca a ``farba2`` farbou výplne malého štvorca.
+
+   * otestujte napr.
+   
+    ::
+    
+     >>> stvorce(150, 'red', 'blue')
+
+5. Napíšte funkciu ``rad_stvorcov(n, strana)``, ktorá nakreslí vedľa seba do radu ``n`` štvorcov (úplne na tesno), pričom po dokreslení korytnačka skončí presne na tom mieste, kde začala prvý štvorec.
+
+   * otestujte napr.
+    
+    ::
+    
+     >>> rad_stvorcov(10, 15)
+
+6. Napíšte funkciu ``pyramida(n, strana)``, ktorá pomocou funkcie ``rad_stvorcov()`` z predchádzajúcej úlohy nakreslí ``n``-poschodovú pyramídu: v spodnm rade je ``n`` štvorcov, každý rad nad ním má o 1 štvorec menej. Pozmeňte funkciu ``rad_stvorcov()`` tak, aby každý zo štvorcov bol vyfarbený náhodnou farbou 
+
+   * otestujte napr.
+    
+    ::
+    
+     >>> pyramida(10, 15)
+
+7. Napíšte funkciu ``ciara()``, ktorá nakreslí úsečku dĺžky 100, pričom ju kreslí ako 1000 čiar dĺžky 0.1.
+
+   * otestujte napr.
+    
+    ::
+    
+     >>> ciara()
+
+8. Funkcia ``hviezda()`` pomocou funkcie ``čiara()`` nakreslí 5-cípu hviezdu (5 úsečiek s otáčaním o 144 stupňov).
+
+   * otestujte napr.
+    
+    ::
+    
+     >>> hviezda()
+
+9. Funkcia ``kruh(velkost, farba)`` nakreslí 24-uholník so stranou ``velkost``, ktorý bude vyfarbený danou farbou. Potom funkcia ``naramok(n, vel)`` nakreslí ``n`` takýchto kruhov rozmiestnených na obvode nejakej kružnice. Kruhy vyfarbite náhodnou farbou.
+
+   * otestujte napr.
+    
+    ::
+    
+     >>> naramok(20, 8)
+
+10. Funkcia ``prechadzka1()`` pomocou náhodnej prechádzky vyfarbí obdĺžnik veľkosti 100x20 so stredom (0, 0).
+
+   * otestujte napr.
+    
+    ::
+    
+     >>> prechadzka1()
+
+11. Funkcia ``prechadzka2()`` pomocou náhodnej prechádzky vyfarbí dva na seba kolmé obdĺžniky 100x20 a 20x100 so spoločným stredom (0, 0).
+
+   * otestujte napr.
+    
+    ::
+    
+     >>> prechadzka2()
+
+12. Funkcia ``prechadzka3(r1, r2)`` pomocou náhodnej prechádzky vyfarbí kruh s polomerom ``r1`` a stredom (0, 0) pričom, kým bude od (0, 0) vo vzdialenosti menšej ako ``r2``, bude chodiť s nastaveným modrým perom, inak červeným.
+
+   * otestujte napr.
+    
+    ::
+    
+     >>> prechadzka3(70, 30)
+
+13. Vytvorte 2 korytnačky s hrúbkou pera 5 a farbami pera ``blue`` a ``yellow``. Pomocou funkcie ``prechadzka4(r)`` sa budú obe paralelne prechádzať v kruhu s polomerom ``r``.
+
+   * otestujte napr.
+    
+    ::
+    
+     >>> prechadzka4(80)
+
+14. Napíšte funkciu ``nova(x, y, uhol)``, ktorá vytvorí novú korytnačku, umiestni ju na pozíciu ``(x, y)`` a nastaví jej daný uhol. Funkcia vráti túto korytnačku ako výsledok funkcie
+
+   * otestujte napr.
+    
+    ::
+    
+     >>> t1 = nova(-100, 50, -90)
+     >>> t1.fd(100)
+
+15. Otestujte funkciu ``nova()`` z predchádzajúcej úlohy tak, že pomocou nej vygenerujete 100 korytnačiek na náhodných pozíciách s náhodným uhlom a potom všetky naraz nakreslia štvorec so stranou 20, t. j. najprv všetky prejdú dopredu 20, potom sa všetky otočia o 90 stupňov a toto 4-krát opakujú.
+
+   * otestujte napr.
+    
+    ::
+    
+     >>> test_nova()
+
+16. Napíšte funkciu ``n_uholnik(n, strana)``, pomocou ktorej korytnačka ``t`` prejde so zdvihnutým perom po obvode pravidelného ``n``-uholníka s danou stranou a v každom vrchole vytvorí novú korytnačku, ktorá je natočená v smere príslušnej strany n-uholníka. Funkcia vráti **pole** takto vytvorených korytnačiek. Na záver sa všetky tieto korytnačky naraz pohybujú svojim smerom krokom 1 k nasledovnému vrcholu
+
+   * otestujte napr.
+    
+    ::
+    
+     >>> pole = n_uholnik(15, 50)
+     >>> for i in range(50):
+             ... každá korytnačka v poli prejde dopredu 1 krok
+
+     

@@ -1,0 +1,844 @@
+Grafika
+=======
+
+Základy kreslenia útvarov
+-------------------------
+
+Doteraz sme pracovali buď v priamom (shell) alebo v programovom režime. Programy sme spúšťali priamo z editora (klávesom F5) alebo dvojkliknutím na súbor z operačného systému. V dnešnej prednáške ukážeme, ako vytvoríme program, ktorý pracuje s grafickým oknom (v grafickom režime).
+
+Už vieme, že príkaz (funkcia) ``print()`` vypisuje priamo do textového okna (shell). Existuje iná skupina príkazov (funkcií), ktoré nevypisujú do textového ale do grafického okna. Takéto okno sa ale nevytvorí samo, musíme zadať špeciálne príkazy:
+
+ ::
+
+  import tkinter
+
+  canvas = tkinter.Canvas()
+  canvas.pack()
+ 
+Keď takto vytvorený program spustíme (z editora klávesom F5), otvorí sa nové okno so šedou prázdnou plochou. Teraz môžeme v textovom okne (shell) zadávať grafické príkazy a tie budú priamo zasahovať do grafického okna. 
+
+Ako to funguje:
+
+1. príkaz ``import tkinter`` oznámi, že budeme pracovať s **modulom** ``tkinter``, ktorý obsahuje všetky grafické príkazy
+
+  * týmto príkazom vznikla nová premenná ``tkinter``, ktorá obsahuje referenciu na tento modul, t.j. všetky funkcie a premenné, ktoré sú definované v tomto module, sú prístupné pomocou tejto premennej a preto k nim budeme pristupovať tzv. bodkovou notáciou, t.j. vždy uvedieme meno premennej ``tkinter``, za tým bodku a meno funkcie alebo premennej, napr. ``tkinter.Canvas``
+
+2. práve zápis ``tkinter.Canvas()`` vytvorí grafickú plochu a aby sme s touto plochou mohli ďalej pracovať, uložíme si jej referenciu do premennej ``canvas`` (mohli by sme ju nazvať napríklad aj ``plocha`` alebo jednoducho ``g``)
+
+  * nezabudnite uviesť okrúhle zátvorky: vďaka nim sa zavolá funkcia, ktorá vytvorí nové okno, bez týchto zátvoriek zápis ``tkinter.Canvas`` označuje len referenciu na nejakú funkciu bez jej zavolania
+
+3. kým nezadáme aj príkaz ``canvas.pack()``, grafická plocha sa ešte nezobrazí - volanie ``canvas.pack()`` zabezpečí zobrazenie nového okna aj s novovytvorenou grafickou plochou
+
+  * opäť nesmieme zabudnúť zapísať aj okrúhle zátvorky, lebo inak sa grafická plocha nezobrazí (len prázdne grafické okno)
+
+ .. image:: image/03_1.png
+    :alt: grafické okno s prázdnou grafickou plochou
+
+
+Užitočné informácie k **tkinter** nájdete napr. v materiáli:
+
+* `Tkinter 8.5 reference: a GUI for Python <http://infohost.nmt.edu/tcc/help/pubs/tkinter/web/index.html>`_
+
+Všetky grafické príkazy pracujú s grafickou plochou, ku ktorej máme prístup prostredníctvom premennej ``canvas``. Tieto príkazy sú v skutočnosti funkciami, ktoré budeme volať s nejakými parametrami. Všeobecný tvar väčšiny grafických príkazov je:
+
+ ::
+
+  canvas.create_utvar(x, y, x, y, ..., param=hodnota, param=hodnota, ...)
+
+kde
+
+* ``create_utvar`` je meno funkcie na vytvorenie grafického objektu, napr. ``create_line`` (nakreslí úsečku), ``create_rectangle`` (nakreslí obdĺžnik), ``create_oval`` (nakreslí elipsu), ...
+* ``x, y, x, y, ...`` je postupnosť dvojíc súradníc bodov v grafickej ploche (rôzne príkazy vyžadujú rôzny počet zadaných bodov v rovine)
+* ``param=hodnota`` je dvojica: meno doplnkového parametra (napr. ``fill``, ``width``, ...) a jej hodnota (napr. ``'red'``, ``5``, ``'Arial 20'``, ...) - väčšinou takto zadávame farbu útvaru, hrúbku kreslenej čiary a pod.
+
+  * všimnite si, že pri zadávaní doplnkových parametrov nedávame medzeru ani pred ani za znak rovnosti. 
+
+Pre všetky grafické príkazy platí, že keď vynecháme nejaké doplnkové parametre, tak tieto budú mať nastavené svoje inicializované (náhradné, default) hodnoty (často takýmito náhradnými hodnotami sú napr. ``fill='black'`` alebo ``width=1``).
+
+
+.. topic:: Súradnicová sústava
+
+   Súradnicová sústava v grafickej ploche je trochu inak orientovaná, ako sme zvyknutí z matematiky:
+
+   * **x-ová os** prechádza po hornej hrane grafickej plochy zľava doprava
+   * **y-ová os** prechádza po ľavej hrane grafickej plochy zhora nadol
+   * počiatok (0,0) je v ľavom hornom rohu plochy
+   * môžeme používať aj záporné súradnice, vtedy označujeme bod, ktorý je mimo grafickú plochu
+
+Veľkosť grafickej plochy je zatiaľ 378x264 bodov (pixelov), ale neskôr uvidíme, ako jednoducho môžeme túto veľkosť zmeniť.
+
+
+
+Kreslenie čiar
+..............
+
+Čiary v grafickom režime kreslíme pomocou funkcie ``canvas.create_line()``. Táto funkcia dokáže kresliť lomenú čiaru, ktorá sa skladá z jednej alebo viacerých úsečiek.
+
+* parametrom funkcie je postupnosť súradníc v tvare ``canvas.create_line(x1, y1, x2, y2, ...)``
+* ak je zadaných bodov (dvojíc ``x``, ``y``) viac ako 2, kreslí sa lomená čiara zložená z navzájom nadväzujúcich úsečiek
+
+Napr. takýto príkaz
+
+ ::
+
+  >>> canvas.create_line(50, 120, 150, 70)
+
+nakreslí úsečku z bodu ``(50, 120)`` do bodu ``(150, 70)``. Zapíšme tento príkaz priamo do nášho programu:
+
+ ::
+
+  import tkinter
+
+  canvas = tkinter.Canvas()
+  canvas.pack()
+  canvas.create_line(50, 120, 150, 70)
+
+Po opätovnom spustení (F5) sa pôvodná grafická plocha zatvorí a otvorí sa nová aj s nakreslenou úsečkou.
+
+Pri práci s grafikou budeme často experimentovať v priamom režime a keď budeme s výsledkom spokojní, prekopírujeme príkazy zo shellu do programu v editovacom okne a prípadne znovu spustíme pomocou F5.
+
+Volanie funkcie ``canvas.create_line()`` môže spájať čiarami aj viac ako 2 body, napr.
+
+ ::
+
+  >>> canvas.create_line(10, 10, 90, 10, 10, 60)
+  >>> canvas.create_line(120, 10, 70, 97, 170, 97, 120, 10)
+  
+Nakreslí ďalšie dve lomené čiary, pričom druhá z nich je uzavretá a tvorí trojuholník:
+
+ .. image:: image/03_2.png
+    :alt: po nakreslení niekoľkých čiar
+
+Pri kreslení čiar môžeme ešte špecifikovať aj ďalšie doplnkové parametre tejto kresby: za postupnosť bodov môžeme uviesť hrúbku nakreslenej čiary (parameter ``width=``) a jej farbu (parameter ``fill=``). Zrejme, keď tieto dva parametre nešpecifikujeme, kreslí sa čierna čiara hrúbky 1. Napr.
+
+ ::
+
+  >>> canvas.create_line(10, 100, 110, 100, width=10)
+
+nakreslí úsečku s hrúbkou čiary 10, kde farba je čierna
+         
+ ::
+
+  >>> canvas.create_line(10, 130, 110, 130, fill='red')       
+  
+nakreslí úsečku s hrúbkou čiary 1, ale farba je červená
+
+ ::
+
+  >>> canvas.create_line(10, 160, 110, 160, width=7, fill='blue')     
+  
+teraz bude hrúbka úsečky 7 a farba bude modrá
+
+Farby v ``tkinter`` zadávame ako znakové reťazce názvov farieb v angličtine. Kompletný zoznam akceptovaných mien nájdeme v súbore ``rgb.txt``, ktorý sa nachádza v niektorom z priečinkov inštalovaného Pythonu. Najčastejšie budeme používať tieto farby:
+
+* ``'white'``
+* ``'black'``
+* ``'red'``
+* ``'blue'``
+* ``'green'``
+* ``'yellow'``
+
+
+.. topic:: funkcia ``canvas.create_line()``
+
+   .. function:: canvas.create_line(x, y, x, y, ...)
+                 canvas.create_line(x, y, x, y, ..., width=číslo, fill=farba)
+
+      :param x,y: dvojica súradníc jedného bodu lomenej čiary
+      :param width=číslo: nastavenie hrúbky čiary, ak tento parameter chýba, predpokladá sa hrúbka 1
+      :param fill=farba: nastavenie farby čiary, ak tento parameter chýba, predpokladá sa farba ``'black'``
+
+   Funkcia ``canvas.create_line()`` kreslí lomenú čiaru, ktorá sa môže skladať aj z niekoľkých navzájom napojených úsečiek. Postupnosť dvojíc súradníc by mala obsahovať aspoň dva body (teda aspoň jednu úsečku). Číselné hodnoty pre súradnice môžu byť aj desatinné čísla.
+   
+   
+Kreslenie obdĺžnika
+...................
+
+Obdĺžniky kreslíme pomocou funkcie ``canvas.create_rectangle()``. V tejto funkcii sú parametrami súradnice dvoch protiľahlých vrcholov kresleného obdĺžnika. Jej tvar je:
+
+* ``canvas.create_rectangle(x1, y1, x2, y2)``
+* strany tohto obdĺžnika sú vždy rovnobežné so súradnicovými osami
+
+Napr.
+
+ ::
+
+  >>> canvas.create_rectangle(50, 120, 150, 70)
+
+Nakreslí obdĺžnik s vrcholmi so súradnicami ``(50, 120)`` a ``(150, 70)``. Dĺžky strán tohto obdĺžnika sú ``100`` a ``50``. Zrejme ďalšie dva vrcholy majú súradnice ``(50, 70)`` a ``(150, 120)``.
+
+Parametrami grafických funkcií nemusia byť len celočíselné konštanty, ale aj výrazy s premennými. napr.
+
+ ::
+
+  >>> x, y, a = 80, 60, 35
+  >>> canvas.create_rectangle(x, y, x+a, y+a)
+
+Nakreslí štvorec, ktorého súradnice ľavého horného vrcholu sú ``(x, y)``, t.j. ``(80, 60)`` a jeho strana je ``35``. Podobne:
+
+ ::
+
+  >>> x, y, a, b = 150, 90, 60, 100
+  >>> canvas.create_rectangle(x-a/2, y-b/2, x+a/2, y+b/2)
+
+Nakreslí obdĺžnik, ktorého **súradnice stredu** sú ``(x, y)``, t.j. ``(150, 90)`` a jeho strany sú ``60`` a ``100``. Všimnite si, že súradnice vrcholov sme tu zadali ako desatinné čísla (typ ``float``).
+
+Takto kreslené obdĺžniky (resp. štvorce) majú nevyplnené vnútro (vnútro obdĺžnika je priesvitné). Tiež obrys obdĺžnika je tenká čierna čiara hrúbky 1. Pri kreslení obdĺžnikov môžeme ešte špecifikovať aj ďalšie doplnkové parametre tejto kresby, napr. hrúbku obrysu (parameter ``width=``), farbu obrysu (parameter ``outline=``) a výplň obdĺžnika (parameter ``fill=``). Napr.
+
+ ::
+
+  >>> canvas.create_rectangle(10, 10, 100, 60, width=5)
+
+nakreslí obdĺžnik, ktorého obrys má hrúbku 10, farba obrysu je čierna, výplň nie je žiadna (vnútro je priesvitné)
+
+ ::
+
+  >>> canvas.create_rectangle(120, 10, 200, 40, fill='red')
+
+nakreslí obdĺžnik, ktorého čierny obrys má hrúbku 1 a výplň je červená
+
+ ::
+
+  >>> canvas.create_rectangle(10, 100, 110, 160, outline='', fill='blue')
+
+nakreslí obdĺžnik, ktorý je bez obrysu a jeho výplň je modrá
+
+Všimnite si hodnotu parametra ``outline=''``, ktorá označuje "priesvitný", t.j. žiaden obrys. Podobne by fungoval aj ``fill=''``, ktorý označuje obdĺžnik bez výplne.
+
+.. topic:: funkcia ``canvas.create_rectangle()``
+
+   .. function:: canvas.create_rectangle(x, y, x, y)
+                 canvas.create_rectangle(x, y, x, y, width=číslo, fill=farba, outline=farba)
+
+      :param x,y: dvojica súradníc jedného vrcholu obdĺžnika
+      :param width=číslo: nastavenie hrúbky čiary obrysu, ak parameter chýba, predpokladá sa hrúbka 1
+      :param fill=farba: nastavenie farby výplne, ak parameter chýba, predpokladá sa priesvitná farba, t.j. ``''``
+      :param outline=farba: nastavenie farby čiary obrysu, ak tento parameter chýba, predpokladá sa farba ``'black'``, prázdny reťazec ``''`` označuje obdĺžnik bez obrysu
+
+   Funkcia ``canvas.create_rectangle()`` na základe dvoch bodov v ploche nakreslí obdĺžnik, ktorého strany sú rovnobežné so súradnicovými osami. Číselné hodnoty pre súradnice môžu byť aj desatinné čísla.
+
+
+Kreslenie elipsy
+................
+
+Parametre príkazu ``canvas.create_oval()`` vychádzajú z kreslenia obdĺžnika. Pre ``tkinter`` sú to presne rovnaké parametre, len elipsa ich trochu inak interpretuje: z dvoch protiľahlých vrcholov nenakreslí obdĺžnik ale **vpísanú** elipsu, t.j. elipsu, ktorá leží vo vnútri tohto "mysleného" obdĺžnika a dotýka sa jeho strán. Parametrami príkazu sú súradnice dvoch protiľahlých vrcholov "mysleného" opísaného obdĺžnika v tvare:
+
+* ``canvas.create_oval(x1, y1, x2, y2)``
+* strany tohto mysleného obdĺžnika sú rovnobežné so súradnicovými osami
+
+Napr.
+
+ ::
+
+  >>> canvas.create_oval(50, 120, 150, 70)
+
+Nakreslí elipsu so stredom ``(100, 95)`` a s polosami ``50`` a ``25``, keďže "myslený" opísaný obdĺžnik má vrcholy so súradnicami ``(50, 120)`` a ``(150, 70)``. Ak by sme spolu s elipsou nakreslili aj tento opísaný obdĺžnik, lepšie by sme videli ich vzťah:
+
+ ::
+
+  >>> canvas.create_rectangle(50, 120, 150, 70, outline='red')
+  >>> canvas.create_oval(50, 120, 150, 70)
+
+..
+  obrázok
+
+Ďalšie parametre ``width=``, ``outline=`` a ``fill=`` majú presne rovnaký význam ako boli pre obdĺžnik: hrúbka obrysu elipsy, farba obrysu (môže chýbať, ak má hodnotu ``''``) a farba výplne (môže chýbať, ak má hodnotu ``''``). Ak nešpecifikujeme žiaden parameter, tak sa kreslí elipsa s čiernym obrysom hrúbky 1, ktorá je bez výplne.
+
+Ak zadáme elipsu, ktorá je vpísaná do štvorca, nakreslí sa kružnica. Všimnite si:
+
+ ::
+
+  import tkinter
+
+  canvas = tkinter.Canvas()
+  canvas.pack()
+
+  x, y = 150, 120
+  for r in range(100, 0, -10):
+      canvas.create_oval(x-r, y-r, x+r, y+r, fill='red')
+
+..
+  obrázok
+
+Tento program nakreslí 10 sústredných kruhov (so spoločným stredom ``(150, 120)``) a s polomermi 100, 90, 80, ..., 20, 10. Kruhy sú vyplnené červenou farbou a preto ich kreslíme od najväčšieho po najmenší, inak by väčšie kruhy zakryli menšie a menšie by nebolo vidieť. Ak by sme chceli tieto kruhy striedavo zafarbovať dvomi rôznymi farbami, môžeme využiť vymieňanie obsahov dvoch premenných:
+
+ ::
+
+  x, y = 150, 120
+  farba, farba1 = 'red', 'yellow'
+  for r in range(100, 0, -10):
+      canvas.create_oval(x-r, y-r, x+r, y+r, fill=farba)
+      farba, farba1 = farba1, farba
+
+..
+  obrázok
+
+Zhrnieme kreslenie elipsy:
+
+.. topic:: funkcia ``canvas.create_oval()``
+
+   .. function:: canvas.create_oval(x, y, x, y)
+                 canvas.create_oval(x, y, x, y, width=číslo, fill=farba, outline=farba)
+
+      :param x,y: dvojica súradníc jedného vrcholu "opísaného obdĺžnika" elipsy
+      :param width=číslo: nastavenie hrúbky čiary obrysu, ak parameter chýba, predpokladá sa hrúbka 1
+      :param fill=farba: nastavenie farby výplne, ak parameter chýba, predpokladá sa priesvitná farba, t.j. ``''``
+      :param outline=farba: nastavenie farby čiary obrysu, ak tento parameter chýba, predpokladá sa farba ``'black'``, prázdny reťazec ``''`` označuje elipsu bez obrysu
+
+   Funkcia ``canvas.create_oval()`` na základe dvoch bodov "opísaného obdĺžnika" nakreslí elipsu. Strany takéhoto mysleného obdĺžnika sú rovnobežné sú súradnicovými osami.
+
+
+Kreslenie polygónu
+..................
+
+Polygónom rozumieme uzavretú krivku, ktorá môže byť vyplnená nejakou farbou. Súradnicami sa tento príkaz podobá na ``canvas.create_line()`` a ďalšie doplnkové parametre (``width=``, ``outline=`` a ``fill=``) má rovnaké ako napr. ``canvas.create_rectangle()``.
+
+* parametrom je postupnosť súradníc v tvare ``canvas.create_polygon(x1, y1, x2, y2, ...)``
+* aby mal polygón zmysel, postupnosť súradníc musí obsahovať aspoň 3 body
+
+Napr.
+
+ ::
+
+  >>> canvas.create_polygon(50, 120, 150, 70, 200, 200)
+
+..
+  obrázok
+
+Spojí tromi úsečkami tri body ``(50, 120)``, ``(150, 70)`` a ``(200, 200)`` a potom tento trojuholník vyfarbí farbou výplne. Keďže sme nenastavili ani farbu obrysu ani farbu výplne, útvar sa vyplní čiernou farbou a obrys je vypnutý (ako keby bolo nastavené ``outline=''`` a ``fill='black'``).
+
+Napr.
+
+ ::
+
+  canvas.create_polygon(10, 80, 110, 80, 30, 150, 60, 30, 90, 150, fill='red')
+
+nakreslí červenú päťcípu hviezdu, ale bez obrysu. 
+
+..
+  obrázok
+
+Ak chceme nakresliť aj obrys, zadáme
+
+ ::
+
+  canvas.create_polygon(10, 80, 110, 80, 30, 150, 60, 30, 90, 150, fill='red', outline='blue')
+
+Teraz ukážeme, že ak do nejakých premenných priradíme dvojice čísel, teda súradnice nejakých bodov v rovine, tieto potom môžeme používať aj v grafických príkazoch. Zadefinujme 4 vrcholy v ploche a potom ich spojíme a vyplníme šedou farbou:
+
+ ::
+
+  b1 = (50, 20)
+  b2 = (150, 20)
+  b3 = (150, 80)
+  b4 = (50, 80)
+  canvas.create_polygon(b1, b2, b3, b4, fill='gray', outline='blue')
+
+..
+  obrázok
+
+Vďaka takémuto zápisu s premennými by mohlo byť pre vás čitateľné aj:
+
+ ::
+
+  canvas.create_polygon(b1, b2, b4, b3, fill='red')
+  canvas.create_polygon(b1, b3, b2, b4, fill='green')
+
+..
+  obrázok
+
+Ak máme v premennej dvojicu čísel, môžeme ju "rozobrať" na dve samostatné čísla a priradiť ich do dvoch premenných, napr. takto:
+
+ ::
+
+  a = (50, 20)
+  ax, ay = a
+  b = (ax+100, ay)
+  bb = bbx, bby = (110, 150)
+
+Dokonca budú fungovať aj takéto for-cykly:
+
+ ::
+
+  for bod in (130, 30), (150, 60), (200, 90):
+      canvas.create_rectangle(bod, (175, 75))
+
+  for x, y  in (100, 100), (150, 150), (200, 160):
+      canvas.create_oval(x-20, y-20, x+20, y+20)
+
+Prvý for-cyklus nakreslí tri obdĺžniky, ktoré majú jeden vrchol ``(175, 75)`` spoločný a druhý je jeden z ``(130, 30)``, ``(150, 60)``, ``(200, 90)``. Druhý for-cyklus nakreslí 3 kružnice všetky s polomerom ``20``, pričom poznáme stredy týchto kružníc: ``(100, 100)``, ``(150, 150)``, ``(200, 160)``. Všimnite si, že tento cyklus má dve premenné cyklu ``x`` a ``y`` a paralelne sa do nich priradzujú dvojice zadaných čísel.
+
+..
+  obrázok
+
+Zhrňme príkaz na kreslenie polygónu:
+
+.. topic:: funkcia ``canvas.create_polygon()``
+
+   .. function:: canvas.create_polygon(x, y, x, y, ...)
+                 canvas.create_polygon(x, y, x, y, ..., width=číslo, fill=farba, outline=farba)
+
+      :param x,y: dvojica súradníc jedného vrcholu obrysu n-uholníka
+      :param width=číslo: nastavenie hrúbky čiary obrysu, ak parameter chýba, predpokladá sa hrúbka 1
+      :param fill=farba: nastavenie farby výplne, ak parameter chýba, predpokladá sa čierna, t.j. ``'black'``, prázdny reťazec ``''`` označuje n-uholníka bez výplne
+      :param outline=farba: nastavenie farby čiary obrysu, ak tento parameter chýba, predpokladá sa priesvitná farba ``''``
+
+   Funkcia ``canvas.create_polygon()`` na základe postupnosti bodov nakreslí n-uholník. Do príkazu musíme zadať minimálne 3 vrcholy. 
+
+
+Písanie textu
+.............
+
+Pomocou funkcie ``canvas.create_text()`` môžeme do grafickej plochy písať aj texty. Prvé dva parametre funkcie sú súradnice stredu vypisovaného textu a ďalším doplnkovým parametrom je samotný text v tvare:
+
+* ``canvas.create_text(x, y, text='text')``
+
+Napr.
+
+ ::
+
+  >>> canvas.create_text(150, 120, text='Python')
+
+Na súradnice ``(150, 120)`` sa vypíše text ``'Python'`` (čiernou farbou) - použije sa pritom "default" font aj veľkosť písma. Zadané súradnice určujú stred vypisovaného textu. Pri písaní textu môžeme ešte špecifikovať aj ďalšie parametre: môžeme uviesť font (parameter ``font=``) a aj farbu textu (parameter ``fill=``). **Font** definujeme ako znakový reťazec, ktorý obsahuje (jednoslovný) názov písma a veľkosť písma, napr. v tvare ``'arial 20'``. Tento reťazec môže obsahovať aj informáciu o tvare písma ``'bold'`` a ``'italic'``.
+
+Napr.
+
+ ::
+
+  >>> canvas.create_text(150, 50, text='Python', fill='blue', font='arial 30 bold')
+  
+..
+  obrázok  
+
+.. topic:: funkcia ``canvas.create_text()``
+
+   .. function:: canvas.create_text(x, y, text='text')
+                 canvas.create_text(x, y, text='text', font='písmo', fill=farba, angle=číslo)
+
+      :param x,y: dvojica súradníc stredu vypisovaného textu
+      :param text='text': zadaný text
+      :param fill=farba: nastavenie farby textu
+      :param font='písmo': nastavenie typu písma a aj jeho veľkosti
+      :param angle=číslo: otočenie výpisu o zadaný uhol v stupňoch (tento parameter nemusí fungovať na počítačoch Mac)
+
+   Funkcia ``canvas.create_text()`` na zadanú súradnicu stredu vypíše text.
+
+
+Kreslenie obrázka
+.................
+
+Aby sme do plochy nakreslili nejaký obrázok, musíme najprv vytvoriť "obrázkový objekt" (pomocou ``tkinter.PhotoImage()`` prečítať obrázok zo súboru) a až tento poslať ako parameter do príkazu na kreslenie obrázkov ``canvas.create_image()``.
+
+Obrázkový objekt vytvoríme špeciálnym príkazom:
+
+ ::
+
+  premenna = tkinter.PhotoImage(file='meno suboru')
+
+v ktorom ``meno suboru`` je súbor s obrázkom vo formáte **png** alebo **gif**. Takýto obrázkový objekt môžeme potom vykresliť do grafickej plochy ľubovoľný počet-krát.
+
+Samotná funkcia ``canvas.create_image()`` na vykreslenie obrázka má tri parametre: prvé dva sú súradnice stredu vykresľovaného obrázka a ďalší doplnkový parameter určuje obrázkový objekt. Príkaz má tvar:
+
+* ``canvas.create_image(x, y, image=premenna)``
+
+Napr.
+
+ ::
+
+  >>> obr = tkinter.PhotoImage(file='python.png')
+  >>> canvas.create_image(500, 100, image=obr)
+
+.. topic:: funkcia ``canvas.create_image()``
+
+   .. function:: canvas.create_image(x, y, image=premenná)
+
+      :param x,y: dvojica súradníc stredu vykresľovaného obrázka
+      :param image=premenná: nastaví obrázok, ktorý sa vykreslí (premenná musí byť obrázkový objekt, ktorý vznikol pomocou ``tkinter.PhotoImage(file='meno suboru')``)
+
+   Funkcia ``canvas.create_image()`` na zadanú súradnicu stredu nakreslí zadaný obrázok.
+
+
+Parametre grafickej plochy
+..........................
+
+Pri vytváraní grafickej plochy (pomocou ``tkinter.Canvas()``) môžeme nastaviť veľkosť plochy ale aj farbu pozadia grafickej plochy. Môžeme uviesť tieto parametre:
+
+* ``bg=`` nastavuje farbu pozadia (z anglického "background")
+* ``width=`` nastavuje šírku grafickej plochy
+* ``height=`` výšku plochy
+
+Napr.
+
+ ::
+
+  canvas = tkinter.Canvas(bg='white', width=400, height=200)
+  
+Vytvorí bielu grafickú plochu, ktorá má šírku 400 a výšku 200.  
+
+Tieto parametre plochy môžeme meniť aj dodatočne, aj vtedy, keď je už v ploche niečo nakreslené. Vtedy použijeme takýto formát:
+
+ ::
+
+  >>> canvas['bg'] = 'yellow'
+  >>> sirka = int(canvas['width'])      # zapamätaj si momentálnu šírku plochy
+  >>> canvas['width'] = 600             # zmeň šírku
+  >>> canvas['height'] = 400            # zmeň výšku
+
+
+
+Zmeny nakreslených útvarov
+--------------------------
+
+Všetky útvary, ktoré kreslíme do grafickej plochy si systém pamätá tak, že ich dokáže dodatočne meniť (napr. ich farbu), posúvať po ploche, ale aj mazať. Všetky útvary sú v ploche vykresľované presne v tom poradí, ako sme zadávali jednotlivé grafické príkazy: skôr nakreslené útvary sú pod neskôr nakreslenými a môžu ich prekrývať.
+
+Každý grafický príkaz (napr. ``canvas.create_line()``) je v skutočnosti funkciou, ktorá vracia celé číslo - identifikátor nakresleného útvaru. Toto číslo nám umožní neskoršie modifikovanie, resp. jeho zmazanie.
+
+
+Zmazanie nakresleného útvaru
+............................
+
+.. topic:: funkcia ``canvas.delete()``
+
+   * slúži na zmazanie ľubovoľného nakresleného útvaru
+   * jeho tvar je ``canvas.delete(identifikátor)``
+
+     * kde ``identifikátor`` je návratová hodnota príkazu kreslenia útvaru
+
+   * ak ako ``identifikátor`` použijeme reťazec ``'all'``, príkaz zmaže všetky doteraz nakreslené útvary
+
+Napr. 
+
+ ::
+ 
+  >>> id1 = canvas.create_line(10, 20, 30, 40)
+  >>> id2 = canvas.create_oval(10, 20, 30, 40)
+  >>> canvas.delete(id1)
+
+zmaže prvý grafický objekt, t.j. úsečku, pričom druhý objekt kružnica ostáva bez zmeny.
+
+
+Posúvanie útvarov
+.................
+
+Pomocou identifikátora útvaru ho môžeme posúvať ľubovoľným smerom. Ostatné útvary sa pri tom nehýbu.
+
+.. topic:: funkcia ``canvas.move()``
+
+   * slúži na posúvanie ľubovoľného nakresleného útvaru
+   * jeho tvar je ``canvas.move(identifikátor, dx, dy)``
+
+     * kde ``identifikátor`` je návratová hodnota príkazu kreslenia útvaru
+     * ``dx`` a ``dy`` označujú číselné hodnoty zmeny súradníc útvaru
+
+   * posúvaný útvar môže byť ľubovoľne komplikovaný (môže sa skladať aj z väčšieho počtu bodov), príkaz ``canvas.move()`` posunie všetky vrcholy útvaru
+   * ak ako ``identifikátor`` použijeme reťazec ``'all'``, príkaz posunie všetky doteraz nakreslené útvary
+
+Napr. ::
+
+ >>> id1 = canvas.create_line(10, 20, 30, 40)
+ >>> id2 = canvas.create_oval(10, 20, 30, 40)
+ >>> canvas.move(id1, -5, 10)
+
+posunie prvý nakreslený útvar, teda úsečku, druhý útvar (kružnicu) pri tom nehýbe.
+
+
+Zmena parametrov útvaru
+.......................
+
+Pomocou príkazu ``canvas.itemconfig()`` môžeme nakresleným útvarom zmeniť ľubovoľné doplnkové parametre.
+
+.. topic:: funkcia ``canvas.itemconfig()``
+
+   * slúži na zmenu ľubovoľných doplnkových parametrov nakresleného útvaru
+   * má tvar ``canvas.itemconfig(identifikátor, parametre)``
+
+     * kde ``identifikátor`` je návratová hodnota príkazu kreslenia útvaru
+     * ``parametre`` sú ľubovoľné doplnkové parametre pre daný útvar
+
+
+Zhrňme doplnkové parametre útvarov, s ktorými sme sa doteraz stretli:
+
++-----------+---------------+----------------+
+| ``canvas.create_line()``                   |
++-----------+---------------+-----------+----+
+|           | ``width=`` hrúbka obrysu       |
++-----------+---------------------------+----+
+|           | ``fill=`` farba obrysu         |
++-----------+--------------------------------+
+| ``canvas.create_rectangle()``              |
++-----------+--------------------------------+
+|           | ``width=`` hrúbka obrysu       |
++-----------+--------------------------------+
+|           | ``outline=`` farba obrysu      |
++-----------+--------------------------------+
+|           | ``fill=`` farba výplne         |
++-----------+--------------------------------+
+| ``canvas.create_oval()``                   |
++-----------+--------------------------------+
+|           | ``width=`` hrúbka obrysu       |
++-----------+--------------------------------+
+|           | ``outline=`` farba obrysu      |
++-----------+--------------------------------+
+|           | ``fill=`` farba výplne         |
++-----------+--------------------------------+
+| ``canvas.create_text()``                   |
++-----------+--------------------------------+
+|           | ``text=`` vypisovaný text      |
++-----------+--------------------------------+
+|           | ``font=`` písmo a veľkosť      |
++-----------+--------------------------------+
+|           | ``fill=`` farba textu          |
++-----------+--------------------------------+
+|           | ``angle=`` uhol otočenia       |
++-----------+--------------------------------+
+| ``canvas.create_polygon()``                |
++-----------+--------------------------------+
+|           | ``width=`` hrúbka obrysu       |
++-----------+--------------------------------+
+|           | ``outline=`` farba obrysu      |
++-----------+--------------------------------+
+|           | ``fill=`` farba výplne         |
++-----------+--------------------------------+
+| ``canvas.create_image()``                  |
++-----------+--------------------------------+
+|           | ``image=`` obrázkový objekt    |
++-----------+--------------------------------+
+
+Napr.
+
+ ::
+
+  >>> id1 = canvas.create_line(10, 20, 30, 40)
+  >>> id2 = canvas.create_oval(10, 20, 30, 40)
+  >>> canvas.itemconfig(id1, width=5, fill='blue')
+  >>> canvas.itemconfig(id2, outline='', fill='red')
+
+
+Zmena súradníc
+..............
+
+Okrem posúvania útvaru môžeme zmeniť aj jeho kompletnú postupnosť súradníc. Napr. pre ``canvas.create_line()`` alebo ``canvas.create_polygon()`` môžeme zmeniť aj počet bodov útvaru.
+
+.. topic:: funkcia ``canvas.coords()``
+
+   * slúži na zmenu všetkých súradníc nakresleného útvaru
+   * má tvar ``canvas.coords(identifikátor, postupnosť)``
+
+     * kde ``identifikátor`` je návratová hodnota príkazu kreslenia útvaru
+     * ``postupnosť`` je ľubovoľná postupnosť súradníc, ktorá je vhodná pre daný útvar - táto postupnosť musí obsahovať párny počet čísel (celých alebo desatinných)
+
+Napr.
+
+ ::
+
+  >>> i1 = canvas.create_line(10, 20, 30, 40)
+  >>> canvas.coords(i1, 30, 40, 50, 60, 70, 90)
+
+
+
+Niektoré užitočné moduly
+------------------------
+
+Okrem modulu ``tkinter`` sa zoznámime aj s niektorými ďalšími modulmi.
+
+Generátor náhodných čísel
+.........................
+
+V mnohých našich programoch sa nám môže hodiť, keď niektoré premenné nebudú mať pri každom spustení rovnakú hodnotu, ale zakaždým dostanú podľa nejakých pravidiel nejakú náhodnú hodnotu. Využijeme modul ``random``, ktorý obsahuje niekoľko užitočných funkcií. Aby sme mohli používať funkcie z tohto modulu, musíme na začiatku programu zapísať
+
+ ::
+
+  import random
+ 
+Vznikne premenná ``random``, ktorá obsahuje referenciu na tento modul a pomocou nej budeme pristupovať k funkciám v tomto module. Každá takáto funkcia bude teda začínať ``random`` a za bodkou bude uvedené meno funkcie.
+   
+
+Modul obsahuje niekoľko užitočných funkcií, my budeme najčastejšie používať tieto tri.
+
+.. topic:: funkcia ``random.randint()``
+
+   * funkcia má dva parametre: hranice intervalu čísel
+   * vyberie náhodnú hodnotu z tohto intervalu, pričom sa do výberu počítajú aj hraničné body intervalu
+
+.. topic:: funkcia ``random.randrange()``
+
+   * funkcia má 1, 2 alebo 3 parametre s rovnakým významom ako ``range()``
+   * vyberie náhodnú hodnotu z tohto rozsahu
+   * napr. ``random.randrange(100)``, ``random.randrange(10, 100)``, ``random.randrange(10, 100, 5)``
+
+.. topic:: funkcia ``random.choice()``
+
+   * funkcia má jeden parameter: ľubovoľnú postupnosť hodnôt
+   * vyberie náhodnú hodnotu z tejto postupnosti
+   * napr. ``random.choice(('red', 'blue', 'green'))``
+
+Príklad použitia:
+
+ ::
+
+  import tkinter
+  import random
+
+  canvas = tkinter.Canvas(bg='white', width=400, height=300)
+  canvas.pack()
+
+  for i in range(random.randint(10 ,20)):
+      x = random.randrange(400)
+      y = random.randrange(300)
+      r = 10
+      farba = random.choice(('red', 'blue', 'green'))
+      canvas.create_oval(x-r, y-r, x+r, y+r, fill=farba)
+
+
+Pozdržanie výpočtu
+..................
+
+Chceme napísať program, ktorý najprv nakreslí obrázok a potom ho 100-krát posunie vpravo o nejaký malý úsek. Radi by sme to videli ako animáciu
+
+ ::
+
+  import tkinter
+
+  canvas = tkinter.Canvas(width=600, height=200)
+  canvas.pack()
+
+  obr = tkinter.PhotoImage(file='python.png')
+  canvas.create_image(500, 100, image=obr)
+
+  for x in range(100):
+      canvas.move(1, -5, 0)
+
+Po spustení nevidíme žiadnu animáciu, ale len výsledný efekt, t.j. obrázok je v cieľovej pozícii. Namiesto mena súboru ``file='python.png'`` použite ľubovoľný obrázkový súbor.
+
+Ak využijeme ďalšiu metódu grafickej plochy ``after``, dokážeme pozdržať výpočet.
+
+.. topic:: funkcia ``canvas.after()``
+
+   * funkcia má jeden číselný parameter: počet tisícin sekundy, na ktorý sa výpočet na tomto mieste pozdrží
+   * napr. ``canvas.after(500)`` pozdrží výpočet o **0,5** sekundy
+
+A ešte jedna dôležitá vec: aby sme počas pozdržaného času videli zrealizovanú zmenu v grafickej ploche, musíme zavolať špeciálny príkaz ``canvas.update()``, ktorý zabezpečí zobrazenie zmeny, t.j. animáciu
+
+ ::
+
+  import tkinter
+
+  canvas = tkinter.Canvas(width=600, height=200)
+  canvas.pack()
+
+  obr = tkinter.PhotoImage(file='python.png')
+  canvas.create_image(500, 100, image=obr)
+
+  for x in range(100):
+      canvas.move(1, -5, 0)
+      canvas.update()
+      canvas.after(100)
+
+Keďže program vykoná 100-krát pozdržanie 0,1 sekundy, celá animácia bude trvať 10 sekúnd.
+
+Matematické funkcie
+...................
+
+Modul ``math`` obsahuje množstvo užitočných matematických funkcií. Aby ste ich mohli používať, musíte najprv zadať príkaz:
+
+ ::
+ 
+  import math 
+
+Vymenujme niekoľko funkcií, ktoré asi využijeme v mnohých našich programoch:
+
+* ``math.sin()`` - goniometrická funkcia **sin**, pracuje v radiánoch a nie v stupňoch
+* ``math.cos()`` - goniometrická funkcia **cos**, pracuje v radiánoch a nie v stupňoch 
+* ``math.tan()`` - goniometrická funkcia **tangens**, pracuje v radiánoch a nie v stupňoch 
+* ``math.sqrt()`` - druhá odmocnina čísla
+* ``math.exp()`` - exponenciálna funkcia
+* ``math.log()`` - prirodzený logaritmus čísla 
+
+Okrem týchto funkcií sú v tomto module definované aj dve užitočné konštanty:
+
+* ``math.pi`` - Ludolfovo číslo
+* ``math.e`` - základ prirodzených logaritmov
+
+Spustenie programu z operačného systému
+.......................................
+
+Ak by sme nejaký grafický program spustili priamo z operačného systému (napr. dvojkliknutím na súbor), napr.
+
+ ::
+
+  import tkinter
+
+  canvas = tkinter.Canvas()
+  canvas.pack()
+  canvas.create_line(50, 120, 150, 70)
+
+grafické okno by sa otvorilo a okamžite aj zatvorilo, lebo program po nakreslení úsečky už nemusí na nič ďalšie čakať a teda skončí. Z tohto dôvodu sa na koniec programu zapisuje nový riadok ``canvas.mainloop()``:
+
+ ::
+
+  import tkinter
+
+  canvas = tkinter.Canvas()
+  canvas.pack()
+  canvas.create_line(50, 120, 150, 70)
+  canvas.mainloop()
+
+Takýto program
+
+* ak spustíme z operačného systému, otvorí grafické okno, nakreslí úsečku a čaká na zatvorenie tohto okna
+* ak spustíme z editora (F5), tiež sa otvorí grafické okno s nakreslenou úsečkou a čaká sa na zatvorenie tohto okna; toto ale znamená, že shell je počas tohto čakania zablokovaný (uvedomte si, že toto zablokovanie spôsobilo volanie ``canvas.mainloop()``)
+
+    * V niektorých inštaláciách Pythonu sa grafické okno zobrazí len vtedy, keď sa náš program ukončí príkazom ``canvas.mainloop()`` - t.j. neumožňuje sa ďalej komunikovať cez príkazový riadok (shell). Žiaľ v tomto prípade nemôžete experimentovať s grafickými príkazmi v shell, ale musíte ich zadávať len do programu.
+    
+    
+    
+
+Cvičenie
+--------
+
+1. Napíšte program, ktorý nakreslí pyramídu: tvoria ju 3 na sebe položené obdĺžniky veľkosti 100x20, 60x20, 20x20, tieto obdĺžniky sú vycentrované.
+
+2. Napíšte program, ktorý nakreslí podobnú pyramídu z predchádzajúceho príkladu, pričom všetky obdĺžniky majú výšku 10 a ich šírky sú postupne 200, 180, 160, ... 60, 40, 20.
+
+3. Napíšte program, ktorý nakreslí rad ``n`` modrých kruhov: všetky sú tesne vedla seba a majú polomery 20. Napr. pre ``n = int(input('zadaj pocet: '))``.
+
+4. Podobný príklad ako (3), ale výplne kruhov sú troch rôznych farieb: postupne sa striedajú ``'red'``, ``'yellow'``, ``'blue'``. Kreslenie kruhov zapíšte tak, aby sa nekreslil ich čierny obrys.
+
+5. Napíšte program, ktorý najprv prečíta polomer kružnice (``input('polomer: ')``), potom ju nakreslí do stredu grafickej plochy a do neho pomocou ``canvas.create_rectangle()`` nakreslí vpísaný štvorec (jeho vrcholy ležia na obvode kružnice).
+
+6. V priečinku, v ktorom je nainštalovaný Python, nájdite súbor ``'rgb.txt'``. Zvoľte si z neho nejakých 5 zaujímavých farieb a ich mená vypíšte pod sebou nejakým hrubým fontom, napr. ``canvas.create_text(x, y, text=meno_farby, font=..., fill=meno_farby)``.
+
+7. Napíšte program, ktorý pre tri zadané hodnoty, napr. ``r1, r2, r3 = 20, 40, 60`` nakreslí snehuliaka, ktorý sa skladá z troch bielych kruhov s polomermi ``r1``, ``r2``, ``r3``. Snehuliak je nakreslený v strede grafickej plochy na bledomodrom pozadí.
+
+8. Napíšte program, ktorý nakreslí rovnoramenný trojuholník so základňou ``a`` a výškou ``v``. Hodnoty ``a`` a ``v`` program prečíta zo vstupu (``input()``).
+
+9. Napíšte program, ktorý nakreslí takýto domček: skladá sa z červenej strechy (rovnoramenný trojuholník so základňou 50 a výškou 50) a modrého štvorca (veľkosti 50x50). Ľavý horný vrchol štvorca nech je na súradniciach napr. ``x, y = 10, 80``.
+
+10. Využite predchádzajúci príklad (9) a nakreslite ``n`` domčekov vedľa seba (s malou medzerou medzi nimi). ``n`` prečítate zo vstupu (``input()``).
+
+11. Napíšte program, ktorý nakreslí ``n`` žltých kruhov na náhodných pozíciách, pričom v strede každého sú postupne čísla 1, 2, ..., ``n``.
+
+12. Napíšte program, ktorý si najprv vyžiada nejaké slovo (``input()``) a potom ho vypíše ho stredu plochy nejakým veľkým fontom. Zvoľte nejaké zaujímavé písmo, ktorého meno sa skladá z viac slov, napr. ``'Cooper Black'``, ``'Brush Script MT'`` alebo ``'Courier New'``... Keďže meno fontu je teraz viacslovné, doplnkový parameter ``font='...'`` musíte zmeniť na zápis napr. takto ``font=('Courier New', 40, 'bold')``
+
+13. Napíšte program, ktorý vypíše (``print()``) tabuľku hodnôt: v prvom stĺpci je uhol v stupňoch (z intervalu od 0 do 360 s krokom 30), v druhom je vypočítaný ``sin()`` a v treťom ``cos()`` tohto uhla. Na prevod medzi stupňami a radiánmi môžete použiť hodnotu premennej ``math.pi``. Výsledok zaokrúhľujte na 2 desatinné miesta (``round(číslo, 2)``).
+  
+14. Body na kružnici so stredom ``(x0, y0)`` a polomerom ``r`` sa dajú vyjadriť vzorcom:
+  
+     ::
+  
+      x = x0 + r * cos(uhol)
+      y = y0 + r * sin(uhol)
+      
+  kde ``uhol`` je číslo od 0 do 360 stupňov (pozor na radiány). Ak budete takto vypočítané body postupne spájať úsečkami (napr. pomocou ``canvas.create_line()``), dostanete kružnicu. Nakreslite týmto postupom kružnicu, pričom otestujte kreslenie pre rôznu hustotu bodov na kružnici (pre rôzne hodnoty zväčšovania uhla, napr. s krokom 30, alebo 10 alebo 2, ...).
+  
+  
+15. Ak v programe z predchádzajúcej úlohy (14) nebudeme spájať susedné vrcholy, ktoré ležia na obvode kružnice, ale budeme spájať tieto vrcholy so stredom kružnice (zvoľte žlté hrubé pero) a na koniec nakreslíme žltý kruh (``canvas.create_oval()``) s rovnakým stredom ako naša kružnica ale s menším polomerom, dostaneme slnko s lúčmi. Napíšte program:
+  
+     ::
+  
+      pocet lucov: 10
+      dlzka lucov od stredu: 150
+      velkost slnka: 80
+      # nakreslí žlté slnko
+  
+16. Zvoľte si nejaký zaujímavý obrázok vo formáte ``.png`` alebo ``.gif`` (vyhľadajte napr. na webe) a nakreslite ho 10-krát na náhodných pozíciách.

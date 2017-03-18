@@ -1,0 +1,884 @@
+Triedy a metódy
+===============
+
+Zhrňme, čo už vieme o triedach a objektoch:
+
+**Novú triedu** najčastejšie definujeme takto:
+
+ ::
+
+  class Meno_triedy:
+
+      def __init__(self, parametre):
+          ...
+
+      def metoda1(self, parametre):
+          ...
+
+      def metoda2(self, parametre):
+          ...
+
+      def metoda3(self, parametre):
+          ...
+
+Objekty (inštancie triedy) vytvárame a používame takto:
+
+  ::
+
+   >>> premenna = Meno_triedy(...)   # skonštruovanie objektu
+   >>> premenna.atribut = hodnota    # vytvorenie nového atribútu/zmena hodnoty atribútu
+   >>> premenna.metoda(parametre)    # zavolanie metódy
+
+Metóda musí mať pri definovaní prvý parameter ``self``, ktorý reprezentuje samotnú inštanciu: Python sem pri volaní metódy automaticky dosadí samotný objekt, nasledovné dvojice volaní robia to isté:
+
+  ::
+
+   >>> premenna.metoda(parametre)
+   >>> Meno_triedy.metoda(premenna, parametre)
+
+   >>> 'mama ma emu'.count('ma')
+   3
+   >>> str.count('mama ma emu', 'ma')
+   3
+
+**Metódy** sú súkromné funkcie definované v triede. Pozrime sa na príklad z cvičení, v ktorom sme definovali triedu ``Cas`` s dvoma atribútmi ``hodiny`` a ``minuty``:
+
+ ::
+
+  class Cas:
+
+      def __init__(self, hodiny, minuty):
+          self.hodiny = hodiny
+          self.minuty = minuty
+
+      def vypis(self):
+          print('cas je {}:{:02}'.format(self.hodiny, self.minuty))
+
+      def str(self):
+          return '{}:{:02}'.format(self.hodiny, self.minuty)
+
+Spomínali sme, že v Pythone všetky funkcie (a teda aj metódy) môžeme rozdeliť do dvoch základných typov:
+
+* **modifikátor** - mení niektorú hodnotu atribútu (alebo aj viacerých), napr.
+
+ ::
+
+  class Cas:
+      ...
+      def pridaj(self, hodiny, minuty):
+          self.hodiny += hodiny + (self.minuty + minuty) // 60
+          self.minuty = (self.minuty + minuty) % 60
+
+* **pravá funkcia** - nemení atribúty a nemá ani žiadne vedľajšie účinky (nemení globálne premenné); najčastejšie vráti nejakú hodnotu - môže to byť aj nový objekt, napr.
+
+ ::
+
+  class Cas:
+      ...
+      def kopia(self):
+          return Cas(self.hodiny, self.minuty)
+
+* uvedomte si, že nemeniteľné typy (**immutable**) obsahujú iba pravé funkcie (okrem inicializácie ``__init__()``, ktorá bude veľmi často modifikátor)
+
+
+Magické metódy
+--------------
+
+Niektoré metódy sú špeciálne (tzv. **magické**) - nimi definujeme špeciálne správanie (nová trieda sa lepšie prispôsobí filozofii Pythonu). Zatiaľ sme sa zoznámili len s jednou magickou metódou ``__init__()``, ktorá inicializuje atribúty  - automaticky sa vyvolá hneď po vytvorení (skonštruovaní) objektu.
+
+Ďalšou veľmi často definovanou magickou metódou je ``__str__()``. Jej využitie ukážeme na príklade triedy ``Cas``, ktorú sme doteraz používali takto:
+
+ ::
+ 
+  >>> c = Cas(9, 17)
+  >>> c.vypis()
+  cas je 9:17
+  >>> print('teraz je', c.str())
+  teraz je 9:17
+  
+Už sme trochu zvykli, že keď priamo vypisujeme inštanciu ``c``, dostaneme:
+
+ ::
+ 
+  >>> c
+  <__main__.Cas object at 0x03220F10>
+  >>> print(c)
+  <__main__.Cas object at 0x03220F10>
+  >>> str(c)
+  '<__main__.Cas object at 0x03220F10>'
+
+Momentálne veľmi nezaujímavú informáciu. Asi by bolo veľmi užitočné, keby Python nejako pochopil, že reťazcová reprezentácia nášho objektu by mohla byť výsledkom nejakej našej metódy a automaticky by ju použil, napr. v ``print()`` alebo aj v ``str()``.
+
+Naozaj presne toto funguje: keď zadefinujeme magickú metódu ``__str__()`` a Python na niektorých miestach bude potrebovať reťazcovú reprezentáciu objektu, tak zavolá túto našu vlastnú metódu. Zrejme výsledkom tejto metódy **musí byť** znakový reťazec, inak by Python protestoval. Opravme triedu ``Cas`` so zadefinovaním magickej metódy:
+
+ ::
+
+  class Cas:
+
+      def __init__(self, hodiny, minuty):
+          self.hodiny = hodiny
+          self.minuty = minuty
+
+      def __str__(self):
+          return '{}:{:02}'.format(self.hodiny, self.minuty)
+
+      def vypis(self):
+          print('cas je', self)
+
+Všimnite si, ako sme mohli vďaka tomuto opraviť metódu ``vypis()``: keďže ``print()`` po vypísaní ``'cas je'`` chce vypísať aj ``self`` a zrejme táto inštancia nie je znakový reťazec (je to predsa inštancia triedy ``Cas``), Python pohľadá, či táto trieda nemá náhodou definovanú metódu ``__str__()`` a keďže áno, zavolá ju a má reťazcovú reprezentáciu premennej ``self``. Otestujeme:
+
+ ::
+
+  >>> c = Cas(9, 17)
+  >>> c.vypis()
+  cas je 9:17
+  >>> print('teraz je', c.__str__())
+  teraz je 9:17
+  >>> print('teraz je', c)
+  teraz je 9:17
+  >>> c
+  <__main__.Cas object at 0x03220F10>
+  >>> print(c)
+  9:17
+  >>> str(c)
+  '9:17'
+
+Všimnite si dosť škaredý zápis volania ``c.__str__()``. Vôbec to nemusíme takto zapisovať: v príkaze ``print()`` stačí písať len meno premennej ``c``, prípadne, ak potrebujeme naozaj reťazec, krajší je zápis ``str(c)``.
+
+Volanie metódy z inej metódy
+----------------------------
+
+Zatiaľ sme v našich jednoduchých príkladoch, v ktorých sme definovali nejaké triedy, nepotrebovali riešiť situácie, v ktorých v jednej metóde voláme nejakú inú metódu tej istej triedy. Doplňme do triedy ``Cas`` aj metódu ``pridaj()``:
+
+ ::
+ 
+  class Cas:
+
+      def __init__(self, hodiny, minuty):
+          self.hodiny = hodiny
+          self.minuty = minuty
+
+      def __str__(self):
+          return '{}:{:02}'.format(self.hodiny, self.minuty)
+
+      def vypis(self):
+          print('cas je', self)
+
+      def kopia(self):
+          return Cas(self.hodiny, self.minuty)
+
+      def pridaj(self, hodiny, minuty):
+          self.hodiny += hodiny + (self.minuty + minuty) // 60
+          self.minuty = (self.minuty + minuty) % 60
+
+Pridajme teraz ďalšiu metódu ``kopia_a_pridaj()``, ktorá vyrobí kópiu objektu a zároveň v tejto kópii posunie hodiny aj minúty:
+
+ ::
+ 
+  class Cas:
+      ...
+      def kopia_a_pridaj(self, hodiny, minuty):
+          novy = Cas(self.hodiny, self.minuty)
+          novy.pridaj(hodiny, minuty)
+          return novy
+
+Vidíme, že novovytvorený objekt ``novy`` zavolal svoju metódu ``pridaj()``, preto sme to museli zapísať ``novy.pridaj(...)``. Prvý riadok tejto metódy je priradenie ``novy = Cas(self.hodiny, self.minuty)``, ktoré vytvorí kópiu objektu ``self``. Ale na toto už máme hotovú metódu ``kopia()``, takže môžeme to zapísať aj takto:
+
+ ::
+
+  class Cas:
+      ...
+      def kopia_a_pridaj(self, hodiny, minuty):
+          novy = self.kopia()
+          novy.pridaj(hodiny, minuty)
+          return novy
+
+Tu vidíme, že keď objekt ``self`` potrebuje zavolať niektorú svoju metódu, musí pred meno metódy pripísať ``self`` aj s bodkou, tak ako je to v tejto metóde, teda ``self.kopia()``. Uvedomte si, že bez tohto ``self.`` by toto označovalo volanie obyčajnej funkcie (nie metódy), ktorá je buď globálna alebo niekde lokálne zadefinovaná.
+
+Ďalej uvedieme niekoľko príkladov, v ktorých sa stretneme s doteraz vysvetľovanými pojmami.
+
+Príklad s nemeniteľnou triedou čas
+..................................
+
+Vylepšíme triedu ``Cas``: bude mať 3 atribúty: ``hod``, ``min``, ``sek`` (pre hodiny, minúty, sekundy). Všetky metódy vytvoríme ako **pravé funkcie**, vďaka čomu sa bude táto trieda správať ako **immutable** (nemenný typ):
+
+ ::
+
+  class Cas:
+
+      def __init__(self, hodiny=0, minuty=0, sekundy=0):
+          self.hod = hodiny
+          self.min = minuty
+          self.sek = sekundy
+
+      def __str__(self):
+          return '{}:{:02}:{:02}'.format(self.hod, self.min, self.sek)
+
+      def sucet(self, iny):
+          return Cas(self.hod+iny.hod, self.min+iny.min, self.sek+iny.sek)
+
+      def vacsi(self, iny):
+          return (self.hod > iny.hod or
+                  self.hod == iny.hod and self.min > iny.min or
+                  self.hod == iny.hod and self.min == iny.min and self.sek > iny.sek)
+
+Otestujme:
+
+ ::
+
+  cas1 = Cas(10, 22, 30)
+  cas2 = Cas(10, 8)
+  print('cas1 =', cas1)
+  print('cas2 =', cas2)
+  print('sucet =', cas1.sucet(cas2))
+  print('cas1 > cas2 =', cas1.vacsi(cas2))
+  print('cas2 > cas1 =', cas2.vacsi(cas1))
+
+Výpis:
+
+ ::
+
+  cas1 = 10:22:30
+  cas2 = 10:08:00
+  sucet = 20:30:30
+  cas1 > cas2 = True
+  cas2 > cas1 = False
+
+Vidíme, že metóda ``vacsi()``, ktorá porovnáva dva časy, je dosť prekomplikovaná, lebo treba porovnávať tri atribúty v jednom aj druhom objekte.
+
+.. rubric:: Pomocná metóda
+
+Predchádzajúce riešenie má viac problémov:
+
+* môžeme vytvoriť čas (napr. pomocou metódy ``sucet()``), v ktorej minúty alebo sekundy majú viac ako 59
+* dosť komplikovane sa porovnávajú dva časy
+
+Vytvorme pomocnú funkciu (teda metódu), ktorá z daného času vypočíta celkový počet sekúnd. Zároveň opravíme aj inicializáciu ``__init__()``:
+
+ ::
+
+  class Cas:
+
+      def __init__(self, hodiny=0, minuty=0, sekundy=0):
+          cas = abs(3600*hodiny + 60*minuty + sekundy)
+          self.hod = cas // 3600
+          self.min = cas // 60 % 60
+          self.sek = cas % 60
+
+      def __str__(self):
+          return '{}:{:02}:{:02}'.format(self.hod, self.min, self.sek)
+
+      def sucet(self, iny):
+          return Cas(self.hod+iny.hod, self.min+iny.min, self.sek+iny.sek)
+
+      def rozdiel(self, iny):
+          return Cas(sekundy = self.pocet_sekund() - iny.pocet_sekund())
+
+      def pocet_sekund(self):
+          return 3600 * self.hod + 60 * self.min + self.sek
+
+      def vacsi(self, iny):
+          return self.pocet_sekund() > iny.pocet_sekund()
+
+  cas1 = Cas(10, 22, 30)
+  cas2 = Cas(9, 58, 45)
+  print('cas1 =', cas1)
+  print('cas2 =', cas2)
+  print('sucet =', cas1.sucet(cas2))
+  print('cas1 > cas2 =', cas1.vacsi(cas2))
+  print('cas2 > cas1 =', cas2.vacsi(cas1))
+  print('cas1 - cas2 =', cas1.rozdiel(cas2))
+  print('cas2 - cas1 =', cas2.rozdiel(cas1))
+
+Pomocnú funkciu ``pocet_sekund()`` sme využili nielen v porovnávaní dvoch časov (metóda ``vacsi()``) ale aj v novej metóde ``rozdiel()``.
+
+Celá trieda sa dá ešte viac zjednodušiť, ak by samotný objekt nemal 3 atribúty ``hod``, ``min`` a ``sek``, ale len jeden atribút ``sek`` pre celkový počet sekúnd. Vďaka tomu by sme nemuseli pri každej operácii čas prepočítavať na sekundy: len pri výpise by sme museli sekundy previesť na hodiny a minúty. Napr.
+
+ ::
+
+  class Cas:
+
+      def __init__(self, hodiny=0, minuty=0, sekundy=0):
+          self.sek = abs(3600*hodiny + 60*minuty + sekundy)
+
+      def __str__(self):
+          return '{}:{:02}:{:02}'.format(self.sek//3600, self.sek//60%60, self.sek%60)
+
+      def sucet(self, iny):
+          return Cas(sekundy=self.sek+iny.sek)
+
+      def rozdiel(self, iny):
+          return Cas(sekundy=self.sek-iny.sek)
+
+      def vacsi(self, iny):
+          return self.sek > iny.sek
+          
+Ak budeme teraz potrebovať vytvoriť pole časov, pričom prvý z nich je ``8:10`` a každý ďalší je o 50 minút posunutý, môžeme to zapísať napr. takto:
+
+ ::
+ 
+  pole = [Cas(8, 10)]
+
+  for i in range(14):
+      pole.append(pole[-1].sucet(Cas(0, 50)))
+
+  for cas in pole:
+      print(cas, end=' ')
+
+Zápis ``pole[-1].sucet(Cas(0, 50))`` označuje, že k času, ktorý je momentálne posledným prvkom v poli pripočítame 50 minút (teda čas, ktorý je 0 hodín a 50 minút). Ak by sme vedeli zabezpečiť sčitovanie časov rovnakým zápisom ako je napr. sčitovanie čísel alebo zreťazovanie reťazcov, tento zápis by vyzeral ``pole[-1] + Cas(0, 50)``, čo už vyzerá zaujímavo, ale žiaľ nefunguje.
+
+Triedne a inštančné atribúty
+----------------------------
+
+Už vieme, že
+
+* triedy sú kontajnery na súkromné funkcie (metódy)
+* inštancie sú kontajnery na súkromné premenné (atribúty)
+
+Napr.
+
+ ::
+ 
+  >>> class Test: pass
+  >>> t.x = 100               # nový atribút v inštancii
+  >>> t.y = 200
+
+Lenže atribúty ako premenné môžeme definovať aj v triede, vtedy sú to tzv. **triedne atribúty** (atribúty na úrovni inštancií sú **inštančné atribúty**). Ak teda definujeme triedny atribút:
+
+ ::
+
+  >>> Test.z = 300            # nový atribút v triede
+
+tak tento atribút automaticky získavajú (vidia) aj všetky inštancie tejto triedy (tak ako všetky inštancie vidia všetky metódy triedy):
+
+ ::
+
+  >>> print(t.x, t.y, t.z)
+  100 200 300
+
+Aj novovytvorená inštancia získava (teda vidí) tento triedny atribút:
+
+ ::
+
+  >>> t2 = Test()
+  >>> t2.z
+  300
+
+Lenže tento atribút sa stále nachádza v kontajneri triedy ``Test`` a v kontajneroch inštancií atribúty s takýmto menom nie sú. Ak ho chceme mať ako súkromnú premennú v inštancii, musíme mu priradiť hodnotu:
+
+ ::
+
+  >>> t2.z = 400
+  >>> Test.z
+  300
+  >>> t.z
+  300
+  >>> t2.z
+  400
+
+Kým do inštancie nepriradíme tento atribút, inštancia "vidí" hodnotu triedy, keď už vyrobíme vlastný atribút, tak vidí túto hodnotu.
+
+Triedne atribúty môžeme vytvoriť už pri definovaní triedy, napr.
+
+ ::
+ 
+  class Test:
+      z = 300
+      
+      def __init__(self, x, y):
+          self.x = x
+          self.y = y
+          
+      def __str__(self):
+          return 'test {},{},{}'.format(self.x, self.y, self.z)
+
+ ::
+ 
+  >>> t1 = Test(100, 200)
+  >>> print(t1)
+  test 100 200 300
+  >>> t2 = Test(10, 20)
+  >>> t2.z = 30
+  >>> print(t2)
+  test 10 20 30
+  
+Triedny atribút ``z`` má stále hodnotu 300, hoci inštancia ``t2`` má už svoju vlastnú verziu inštančného atribútu ``z`` s hodnotou 30 a preto pri výpise ``t2.z`` vidí len svoj atribút ``z``. Keď zmeníme obsah triedneho atribútu,
+  
+ ::
+  
+  >>> Test.z = 9
+  >>> print(t1)
+  test 100 200 9
+  >>> print(t2)
+  test 10 20 30
+
+Ukážme si takéto využitie triedneho atribútu:
+
+ ::
+ 
+  import tkinter
+  import random
+
+  class Bodka:
+
+      def __init__(self, canvas, x, y):
+          self.id = canvas.create_oval(x-5, y-5, x+5, y+5)
+          self.canvas = canvas
+
+      def prefarbi(self):
+          if random.randrange(2):
+              farba = 'red'
+          else:
+              farba = 'blue'
+          self.canvas.itemconfig(self.id, fill=farba)
+
+  canvas = tkinter.Canvas()
+  canvas.pack()
+  bodky = []
+  for i in range(100):
+      bodky.append(Bodka(canvas, random.randint(10, 300), random.randint(10, 250)))
+  for b in bodky:
+      b.prefarbi()
+
+Keďže sme v metódach triedy nechceli pracovať s globálnou premennou ``canvas``, poslali sme ``canvas`` ako parameter do inicializácie. Tu sa zapamätal ako atribút inštancie.
+
+Na záver testovacieho programu sme náhodne niektoré bodky prefarbili na modro alebo červeno. Ak by sme dostali úlohu na záver vypísať počet modrých a červených, zdá sa, že bez globálnej premennej to bude veľmi ťažké.
+
+Tu nám pomôžu triedne atribúty:
+
+* ``canvas`` nemusíme posielať zvlášť každému objektu (takto v každom objekte vzniká inštančný atribút ``canvas``, pričom všetky objekty triedy ``Bodka`` majú rovnakú hodnotu tohto atribútu), môžeme vytvoriť jediný triedny atribút, ktorý budú vidieť všetky inštancie
+* pridáme ďalšie dva triedne atribúty pre počítanie počtu modrých a červených, pričom v metóde ``prefarbi()`` budeme tieto dve počítadla zvyšovať
+
+Dostávame takúto verziu programu:
+
+ ::
+
+  import tkinter
+  import random
+
+  class Bodka:
+      canvas = None
+      pocet_modrych = pocet_cervenych = 0
+
+      def __init__(self, x, y):
+          self.id = self.canvas.create_oval(x-5, y-5, x+5, y+5)
+
+      def prefarbi(self):
+          if random.randrange(2):
+              farba = 'red'
+              Bodka.pocet_cervenych += 1
+          else:
+              farba = 'blue'
+              Bodka.pocet_modrych += 1
+          self.canvas.itemconfig(self.id, fill=farba)
+
+  Bodka.canvas = tkinter.Canvas()
+  Bodka.canvas.pack()
+  bodky = []
+  for i in range(100):
+      bodky.append(Bodka(random.randint(10, 300), random.randint(10, 250)))
+  for b in bodky:
+      b.prefarbi()
+  print('pocet modrych =', Bodka.pocet_modrych)
+  print('pocet cervenych =', Bodka.pocet_cervenych)
+
+Zamyslite sa nad tým čo sa stane, keď v metóde ``prefarbi()`` zmeníme ``Bodka.pocet_cervenych += 1`` na ``self.pocet_cervenych += 1``.
+
+
+Príklad s grafickými objektmi
+.............................
+
+Postupne zadefinujeme niekoľko tried pracujúcich s objektmi v grafickej ploche (pomocou ``tkinter``)
+
+.. rubric:: Objekt Kruh
+
+Zadefinujeme:
+
+ ::
+
+  import tkinter
+
+  class Kruh:
+      def __init__(self, x, y, r, farba='red'):
+          self.x = x
+          self.y = y
+          self.r = r
+          self.farba = farba
+          self.canvas.create_oval(
+              self.x - self.r, self.y - self.r,
+              self.x + self.r, self.y + self.r,
+              fill=self.farba)
+
+  Kruh.canvas = tkinter.Canvas(bg='white')
+  Kruh.canvas.pack()
+  k1 = Kruh(50, 50, 30, 'blue')
+  k2 = Kruh(150, 100, 80)
+
+Aby sme mohli nakreslený objekt posunúť alebo zmeniť jeho veľkosť alebo farbu, musíme si zapamätať jeho identifikačné číslo - vráti ho funkcia ``create_oval()``. Využijeme už známy mechanizmus metód objektu ``canvas``, ktoré menia už nakreslený útvar:
+
+* ``canvas.move(id, dx, dy)`` - posúva ľubovoľný útvar
+* ``canvas.itemconfig(id, nastavenie=hodnota, ...)`` - zmení ľubovoľné nastavenie (napr. farbu, hrúbku, ...)
+* ``canvas.coords(id, x1, y1, x2, y2, ...)`` - zmení súradnice útvaru
+
+Zapíšme novú verziu triedy ``Kruh``:
+
+ ::
+
+  import tkinter
+
+  class Kruh:
+      canvas = None
+      
+      def __init__(self, x, y, r, farba='red'):
+          self.x = x
+          self.y = y
+          self.r = r
+          self.farba = farba
+          self.id = self.canvas.create_oval(
+              self.x - self.r, self.y - self.r,
+              self.x + self.r, self.y + self.r,
+              fill=self.farba)
+
+      def posun(self, dx=0, dy=0):
+          self.x += dx
+          self.y += dy
+          self.canvas.move(self.id, dx, dy)
+
+      def zmen(self, r):
+          self.r = r
+          self.canvas.coords(self.id,
+              self.x - self.r, self.y - self.r,
+              self.x + self.r, self.y + self.r)
+
+      def prefarbi(self, farba):
+          self.farba = farba
+          self.canvas.itemconfig(self.id, fill=farba)
+
+  Kruh.canvas = tkinter.Canvas(bg='white')
+  Kruh.canvas.pack()
+  k1 = Kruh(50, 50, 30, 'blue')
+  k2 = Kruh(150, 100, 80)
+
+  k1.posun(30,10)
+  k2.zmen(50)
+  k1.prefarbi('green')
+
+Na začiatok definície triedy ``Kruh`` sme pridali vytvorenie triedneho atribútu ``canvas`` zatiaľ s hodnotou ``None``. Robiť sme to nemuseli - funguje to rovnako dobre aj bez tohto, ale čitateľ nášho programu bude vidieť, že na tomto mieste počítame s triednym atribútom.
+
+
+.. rubric:: Trieda Obdlznik
+
+Skopírujeme triedu ``Kruh`` a zmeníme na ``Obdlznik``:
+
+ ::
+
+  import tkinter
+
+  class Obdlznik:
+      canvas = None
+
+      def __init__(self, x, y, sirka, vyska, farba='red'):
+          self.x = x
+          self.y = y
+          self.sirka = sirka
+          self.vyska = vyska
+          self.farba = farba
+          self.id = self.canvas.create_rectangle(
+              self.x, self.y,
+              self.x + self.sirka, self.y + self.vyska,
+              fill=self.farba)
+
+      def posun(self, dx=0, dy=0):
+          self.x += dx
+          self.y += dy
+          self.canvas.move(self.id, dx, dy)
+
+      def zmen(self, sirka, vyska):
+          self.sirka = sirka
+          self.vyska = vyska
+          self.canvas.coords(self.id,
+              self.x, self.y,
+              self.x + self.sirka, self.y + self.vyska)
+
+      def prefarbi(self, farba):
+          self.farba = farba
+          self.canvas.itemconfig(self.id, fill=farba)
+
+  Obdlznik.canvas = tkinter.Canvas(bg='white')
+  Obdlznik.canvas.pack()
+  r1 = Obdlznik(50, 50, 50, 30, 'blue')
+  r2 = Obdlznik(150, 100, 80, 80)
+
+
+.. rubric:: Trieda Skupina
+
+Vyrobíme triedu ``Skupina``, pomocou ktorej budeme ukladať rôzne útvary do jednej štruktúry:
+
+ ::
+
+  import tkinter
+
+  class Skupina:
+      def __init__(self):
+          self.pole = []
+
+      def pridaj(self, utvar):
+          self.pole.append(utvar)
+
+  canvas = tkinter.Canvas(bg='white')
+  canvas.pack()
+  Kruh.canvas = Obdlznik.canvas = canvas
+
+  sk = Skupina()
+  sk.pridaj(Kruh(50, 50, 30, 'blue'))
+  sk.pridaj(Obdlznik(100, 20, 100, 50))
+  sk.pole[0].prefarbi('green')
+  sk.pole[1].posun(50)
+
+Vidíme, ako môžeme meniť už nakreslené útvary.
+
+Ak budeme potrebovať meniť viac útvarov, použijeme cyklus:
+
+ ::
+
+  for i in range(len(sk.pole)):
+      sk.pole[i].prefarbi('orange')
+
+alebo
+
+ ::
+
+  for utvar in sk.pole:
+      utvar.posun(dy=15)
+
+Do triedy ``Skupina`` môžeme doplniť metódy, ktoré pracujú so všetkými útvarmi v skupine, napr.
+
+ ::
+
+  class Skupina:
+      ...
+
+      def prefarbi(self, farba):
+          for utvar in self.pole:
+              utvar.prefarbi(farba)
+
+      def posun(self, dx=0, dy=0):
+          for utvar in self.pole:
+              utvar.posun(dx, dy)
+
+Môžeme navrhnúť metódy, ktoré nebudú pracovať so všetkými útvarmi, ale len s útvarmi nejakého konkrétneho typu (napr. len s kruhmi). Preto do tried ``Kruh`` aj ``Obdlznik`` doplníme ďalší atribút:
+
+ ::
+
+  class Kruh:
+      canvas = None
+      typ = 'kruh'
+      
+      def __init__(self, x, y, r, farba='red'):
+          ...
+
+  class Obdlznik:
+      canvas = None
+      typ = 'obdlznik'
+
+      def __init__(self, x, y, sirka, vyska, farba='red'):
+          ...
+
+  class Skupina:
+      ...
+      def posun_typ(self, typ, dx=0, dy=0):
+          for utvar in self.pole:
+              if utvar.typ == typ:
+                  utvar.posun(dx, dy)
+
+      def prefarbi_typ(self, typ, farba):
+          for utvar in self.pole:
+              if utvar.typ == typ:
+                  utvar.prefarbi(farba)
+
+Môžeme vygenerovať skupinu 20 náhodných útvarov - kruhov a obdĺžnikov:
+
+ ::
+
+  import tkinter
+  import random
+
+  canvas = Kruh.canvas = Obdlznik.canvas = tkinter.Canvas(bg='white')
+  canvas.pack()
+
+  sk = Skupina()
+
+  for i in range(20):
+      if random.randrange(2) == 0:
+          sk.pridaj(Kruh(random.randint(50, 200), random.randint(50, 200), 30, 'blue'))
+      else:
+          sk.pridaj(Obdlznik(random.randint(50, 200), random.randint(50, 200), 40, 40))
+
+  sk.prefarbi_typ('kruh', 'yellow')
+  sk.posun_typ('obdlznik', -10, -25)
+
+
+.. rubric:: Metóda __str__()
+
+Do oboch tried ``Kruh`` aj ``Obdlznik`` pridáme magickú metódu ``__str__()`` a vďaka tomu môžeme veľmi elegantne vypísať všetky útvary v skupine:
+
+ ::
+
+  class Kruh:
+      ...
+      def __str__(self):
+          return 'Kruh({},{},{},{})'.format(
+              self.x, self.y, self.r, repr(self.farba))
+
+  class Obdlznik:
+      ...
+      def __str__(self):
+          return 'Obdlznik({},{},{},{},{})'.format(
+              self.x, self.y, self.sirka, self.vyska, repr(self.farba))
+
+  ...
+  for utvar in sk.pole:
+      print(utvar)
+
+a dostávame niečo takéto:
+
+ ::
+
+  Obdlznik(185,50,40,40,'red')
+  Kruh(95,115,30,'blue')
+  Obdlznik(63,173,40,40,'red')
+  Kruh(138,176,30,'blue')
+  Obdlznik(92,50,40,40,'red')
+  Obdlznik(180,80,40,40,'red')
+  ...
+
+
+Cvičenie
+--------
+
+1. Zadefinujeme triedu, pomocou ktorej budeme vedieť reprezentovať obdĺžniky. Pri obdĺžnikoch nás budú zaujímať len veľkosti strán a na základe toho budeme vedieť vypočítať obsah aj obvod.
+
+   * dopíšte všetky metódy:
+
+    ::
+
+     class Obdlznik:
+
+         def __init__(self, a, b):
+             # inicializuje
+             ...
+
+         def __str__(self):
+             # vráti reťazec v tvare 'Obdlznik(100,70)'
+             ...
+
+         def obsah(self):
+             # vráti obsah
+             ...
+
+         def obvod(self):
+             # vráti obvod
+             ...
+
+         def zmen_velkost(self, pomer):
+             # vynásobí obe veľkosti pomerom
+             ...
+
+         def kopia(self):
+             # vyrobí kópiu samého seba
+             ...
+
+   * otestujte, napr.
+
+    ::
+    
+     >>> obd1 = Obdlznik(20, 7)
+     >>> print('obvod =', obd1.obvod())
+     obvod = 54
+     >>> print(obd1)
+     Obdlznik(20,7)
+     >>> obd2 = obd1.kopia()
+     >>> obd2.zmen_velkost(2)
+     >>> print(obd2)
+     Obdlznik(40,14)
+
+
+2. Zoberte riešenie (11) úlohy z predchádzajúceho cvičenia: trieda ``TelefonnyZoznam``, ktorá udržiava informácie o telefónnych číslach (ako pole ``list`` dvojíc, teda ``tuple``). Trieda mala tieto metódy:
+
+   * ``pridaj(meno, telefon)`` pridá do zoznamu dvojicu ``(meno, telefon)``; ak takéto ``meno`` v zozname už existovalo, nepridáva novú dvojicu, ale nahradí len telefónne číslo
+   * ``vypis()`` vypíše celý telefónny zoznam
+   * malo by fungovať:
+
+    ::
+
+     tz = TelefonnyZoznam()
+     tz.pridaj('Jana', '0901020304')
+     tz.pridaj('Juro', '0911111111')
+     tz.pridaj('Jozo', '0212345678')
+     tz.pridaj('Jana', '0999020304')
+     tz.vypis()
+
+   * doplňte túto triedu tak, aby fungovalo aj zapisovanie aj čítanie s textovým súborom:
+
+     * metóda ``__init__(meno_suboru)`` si zapamätá meno súboru (nič ešte nezapisuje ani nečíta)
+     * metóda ``zapis()`` obsah telefónneho zoznamu zapíše do súboru: v každom riadku bude jedna dvojica meno a číslo, pričom budú oddelené znakom ``';'``
+     * metóda ``citaj()`` prečíta zadaný súbor a vyrobí z neho pole dvojíc (``list`` s prvkami ``tuple``) - starý obsah zoznamu v pamäti sa zruší a nahradí novým
+
+   * malo by fungovať napr.
+
+    ::
+    
+     tz = TelefonnyZoznam('tel.txt')
+     tz.pridaj('Jana', '0901020304')
+     tz.pridaj(...
+     ...
+     tz.zapis()     # zapísal do súboru
+     t2 = TelefonnyZoznam('tel.txt')
+     t2.citaj()
+     t2.vypis()     # pôvodny obsah
+
+3. Zadefinujte triedu ``VyrobPolygon``, ktorá bude fungovať takto:
+
+   * metóda ``__init__(meno_suboru)`` si zapamätá meno súboru (nič ešte nezapisuje ani nečíta), ale vytvorí grafickú plochu (``self.canvas``) a v nej jeden polygon s jediným bodom (0, 0), s čiernym obrysom a bielym vnútrom; zároveň zviaže (``bind``) dve metódy ``self.klik`` a ``self.enter`` na udalosti kliknutia a stlačenie klávesu Enter (udalosť ``'<Return>'``)
+   * metóda ``klik(event)`` pridá do poľa ``self.pole`` kliknuté súradnice (nie ako dvojicu, ale 2 celé čísla) a pomocou ``self.canvas.coords(...)`` zmení vykresľovaný polygon na obsah poľa
+   * metóda ``enter(event)`` zapíše obsah poľa (súradnice polygonu) do súboru tak, že v každom riadku bude jedna dvojica súradníc (len 2 čísla)
+   * keď bude táto trieda hotová, program sa naštartuje:
+
+    ::
+    
+     VyrobPolygon('poly.txt')    # týmto sa zavolá konštruktor __init__()
+     
+4. Zadefinujte triedu ``CitajPolygon``, ktorá vykreslí polygon uložený do súboru z úlohy (3). Zapíšte 2 metódy:
+
+   * metóda ``__init__(meno_suboru)`` vytvorí grafickú plochu, prečíta súradnice z daného súboru a vykreslí polygon s čiernym obrysom a bielym vnútrom; zároveň zviaže metódu ``self.prefarbi`` s udalosťou kliknutia
+   * metóda ``prefarbi(event)`` zmení vnútro (``fill``) nakresleného polygonu na náhodnú farbu
+   * keď bude táto trieda hotová, program sa naštartuje:
+
+    ::
+
+     CitajPolygon('poly.txt')    # týmto sa zavolá konštruktor __init__()
+
+
+5. Zadefinujte triedu ``MojaGrafika`` s týmito metódami:
+
+   * metóda ``__init__()`` vytvorí grafickú plochu veľkosti 400x300 (atribút ``self.canvas``)
+   * metóda ``kruh(r, x, y, farba=None)`` nakreslí kruh s polomerom ``r`` so stredom ``(x, y)`` s danou výplňou (``None`` označuje náhodnú farbu)
+   * metóda ``stvorec(a, x, y, farba=None)`` nakreslí štvorec so stranou ``a`` so stredom ``(x, y)`` s danou výplňou (``None`` označuje náhodnú farbu)
+   * metóda ``text(text, x, y, farba=None)`` vypíše daný text na súradnice ``(x, y)`` s danou farbou (``None`` označuje náhodnú farbu)
+   * metóda ``zapis(meno_suboru)`` zapíše všetky nakreslené útvary do textového súboru: každý do samostatného riadka v tvare, napr. ``kruh 40 100 150 red`` alebo ``text Python 100 50 #12ff3a``, ...
+   * metóda ``citaj(meno_suboru)`` zruší všetky nakreslené objekty (``self.canvas.delete('all')``), prečíta súbor a nakreslí všetky v ňom zapísané útvary
+   * napr.
+
+    ::
+    
+     g = MojaGrafika()
+     g.stvorec(280, 200, 150, 'yellow')
+     for x in range(20, 400, 40):
+         g.kruh(20, x, 100)
+     g.text(200, 150, 'Python', 'red')
+     g.zapis('grafika.txt')               # vytvorí súbor
+
+    ::
+
+     g = MojaGrafika()
+     g.citaj('grafika.txt')               # znovu ho prečíta a vykreslí

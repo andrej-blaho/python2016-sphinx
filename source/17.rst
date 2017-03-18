@@ -1,0 +1,786 @@
+Výnimky
+=======
+
+
+Zapíšme funkciu, ktorá prečíta celé číslo zo vstupu:
+
+ ::
+
+  def cislo():
+      vstup = input('zadaj cislo: ')
+      return int(vstup)
+
+ ::
+
+  >>> cislo()
+  zadaj cislo: 234
+  234
+
+Toto funguje, len ak zadáme korektný reťazec celého čísla. Spadne to s chybovou správou pri zle zadanom vstupe:
+
+ ::
+
+  >>> cislo()
+  zadaj cislo: 234a
+  ...
+  ValueError: invalid literal for int() with base 10: '234a'
+
+Aby takýto prípad nenastal, vložíme pred volanie funkcie ``int()`` test, napr. takto
+
+ ::
+
+  def test_cele_cislo(retazec):
+      for znak in retazec:
+          if znak not in '0123456789':
+              return False
+      return True
+
+  def cislo():
+      vstup = input('zadaj cislo: ')
+      if test_cele_cislo(vstup):
+          return int(vstup)
+      print('chybne zadane cele cislo')
+
+Pripadne s opakovaným vstupom pri chybne zadanom čísle (hoci aj tento test ``test_cele_cislo()`` nie je dokonalý a niekedy prejde, aj keď nemá):
+
+ ::
+
+  def cislo():
+      while True:
+          vstup = input('zadaj cislo: ')
+          if test_cele_cislo(vstup):
+              return int(vstup)
+          print('*** chybne zadane cele cislo ***')
+
+Takto ošetrený vstup už nespadne, ale oznámi chybu a pýta si nový vstup, napr.
+
+ ::
+
+  >>> cislo()
+  zadaj cislo: 234a
+  *** chybne zadane cele cislo ***
+  zadaj cislo: 234 a
+  *** chybne zadane cele cislo ***
+  zadaj cislo: 234
+  234
+  >>>
+
+
+try - except
+------------
+
+Python umožňuje aj iný spôsob riešenia takýchto situácií: chybe sa nebudeme snažiť predísť, ale keď vznikne, tak ju "ošetríme". Využijeme novú programovú konštrukciu ``try`` - ``except``. Jej základný tvar je
+
+ ::
+
+  try:
+      '''blok príkazov'''
+  except MenoChyby:
+      '''ošetrenie chyby'''
+
+Konštrukcia sa skladá z dvoch častí:
+
+* príkazy medzi ``try`` a ``except``
+* príkazmi za ``except``
+
+Blok príkazov medzi ``try`` a ``except`` bude Python spúšťať "opatrnejšie", t.j. ak pri ich vykonávaní nastane uvedená chyba (meno chyby za ``except``), vykonávanie bloku príkazov sa okamžite ukončí a pokračuje sa príkazmi za ``except``, pritom Python zruší chybový stav, v ktorom sa práve nachádzal. Ďalej sa pokračuje v príkazoch za touto konštrukciou.
+
+Ak pri opatrnejšom vykonávaní bloku príkazov uvedená chyba nenastane, tak príkazy za ``except`` sa preskočia a normálne sa pokračuje v príkazoch za konštrukciou.
+
+Ak pri opatrnejšom vykonávaní bloku príkazov nastane iná chyba ako je uvedená v riadku ``except``, tak táto konštrukcia túto chybu nespracuje, ale pokračuje sa tak, ako sme boli zvyknutí doteraz, t.j. celý program spadne a IDLE o tom vypíše chybovú správu.
+
+Ukážme to na predchádzajúcom príklade (pomocnú funkciu ``test_cele_cislo()`` teraz už nepotrebujeme):
+
+ ::
+
+  def cislo():
+      while True:
+          vstup = input('zadaj cislo: ')
+          try:
+              return int(vstup)
+          except ValueError:
+              print('*** chybne zadane cele cislo ***')
+
+To isté by sa dalo zapísať aj niekoľkými inými spôsobmi, napr.
+
+ ::
+
+  def cislo():
+      while True:
+          try:
+              return int(input('zadaj cislo: '))
+          except ValueError:
+              print('*** chybne zadane cele cislo ***')
+
+ ::
+
+  def cislo():
+      while True:
+          try:
+              vysledok = int(input('zadaj cislo: '))
+              break
+          except ValueError:
+              print('*** chybne zadane cele cislo ***')
+      return vysledok
+
+ ::
+
+  def cislo():
+      ok = False
+      while not ok:
+          try:
+              vysledok = int(input('zadaj cislo: '))
+              ok = True
+          except ValueError:
+              print('*** chybne zadane cele cislo ***')
+      return vysledok
+
+Na chybové prípady odteraz nemusíme pozerať ako na niečo zlé, ale ako na výnimočné prípady (výnimky, t.j. **exception**), ktoré vieme veľmi šikovne vyriešiť. Len neošetrená výnimka spôsobí spadnutie nášho programu. Často to bude znamenať, že sme niečo zle naprogramovali, alebo sme nedomysleli nejaký špeciálny prípad.
+
+Na predchádzajúcom príklade sme videli, že odteraz bude pre nás dôležité meno chyby (napr. ako v predchádzajúcom príklade **ValueError**). Mená chýb nám prezradí Python, keď vyskúšame niektoré konkrétne situácie, napr.
+
+ ::
+
+  >>> 1+'2'
+  ...
+  TypeError: unsupported operand type(s) for +: 'int' and 'str'
+  >>> 12/0
+  ...
+  ZeroDivisionError: division by zero
+  >>> x+1
+  ...
+  NameError: name 'x' is not defined
+  >>> open('')
+  ...
+  FileNotFoundError: [Errno 2] No such file or directory: ''
+  >>> [1,2,3][10]
+  ...
+  IndexError: list index out of range
+  >>> 5()
+  ...
+  TypeError: 'int' object is not callable
+  >>> ''.x
+  ...
+  AttributeError: 'str' object has no attribute 'x'
+  >>> 2**10000/1.
+  ...
+  OverflowError: int too large to convert to float
+  >>> import x
+  ...
+  ImportError: No module named 'x'
+  >>> def t(): x += 1
+  >>> t()
+  ...
+  UnboundLocalError: local variable 'x' referenced before assignment
+
+Všimnite si, že Python za meno chyby vypisuje aj nejaký komentár, ktorý nám môže pomôcť pri pochopení dôvodu chyby, resp. pri ladení. Tento text je ale mimo mena chyby, v ``except`` riadku ho nepíšeme. Takže, ak chceme odchytiť a spracovať nejakú konkrétnu chybu, jej meno si najjednoduchšie zistíme v dialógovom režime v IDLE.
+
+
+Spracovanie viacerých výnimiek
+..............................
+
+Pomocou ``try`` a ``except`` môžeme zachytiť aj viac chýb ako jednu. V ďalšom príklade si funkcia vyžiada celé číslo, ktoré bude indexom do nejakého poľa. Funkcia potom vypíše hodnotu prvku s týmto indexom. Môžu tu nastať dve rôzne výnimky:
+
+* **ValueError** pre zle zadané celé číslo indexu
+* **IndexError** pre index mimo rozsah poľa
+
+Zapíšme funkciu:
+
+ ::
+
+  pole = ['prvy', 'druhy', 'treti', 'stvrty']
+
+  def zisti():
+      while True:
+          try:
+              vstup = input('zadaj index: ')
+              index = int(vstup)
+              print('prvok pola =', pole[index])
+              break
+          except ValueError:
+              print('*** chybne zadane cele cislo ***')
+          except IndexError:
+              print('*** index mimo rozsah pola ***')
+
+otestujeme:
+
+ ::
+
+  >>> zisti()
+  zadaj index: 22
+  *** index mimo rozsah pola ***
+  zadaj index: 2.
+  *** chybne zadane cele cislo ***
+  zadaj index: 2
+  prvok pola = treti
+  >>>
+
+To isté by sme dosiahli aj vtedy, keby sme to zapísali pomocou dvoch vnorených príkazov ``try``:
+
+ ::
+
+  def zisti():
+      while True:
+          try:
+              try:
+                  vstup = input('zadaj index: ')
+                  index = int(vstup)
+                  print('prvok pola =', pole[index])
+                  break
+              except ValueError:
+                  print('*** chybne zadane cele cislo ***')
+          except IndexError:
+              print('*** index mimo rozsah pola ***')
+
+Zlúčenie výnimiek
+.................
+
+Niekedy sa môže hodiť, keď máme pre rôzne výnimky spoločný kód. Za ``except`` môžeme uviesť aj viac rôznych mien výnimiek, ale musíme ich uzavrieť do zátvoriek (urobiť z nich ``tuple``), napr.
+
+ ::
+
+  def zisti():
+      while True:
+          try:
+              print('prvok pola =', pole[int(input('zadaj index: '))])
+              break
+          except (ValueError, IndexError):
+              print('*** chybne zadany index pola ***')
+
+ ::
+
+  >>> zisti()
+  zadaj index: 22
+  *** chybne zadany index pola ***
+  zadaj index: 2.
+  *** chybne zadany index pola ***
+  zadaj index: 2
+  prvok pola = treti
+  >>>
+
+Uvedomte si, že pri takomto zlučovaní výnimiek môžeme stratiť detailnejšiu informáciu o tom, čo sa v skutočnosti udialo.
+
+Príkaz ``try`` - ``except`` môžeme použiť aj bez uvedenia mena chyby: vtedy to označuje zachytenie všetkých typov chýb, napr.
+
+ ::
+
+  def zisti():
+      while True:
+          try:
+              print('prvok pola =', pole[int(input('zadaj index: '))])
+              break
+          except:
+              print('*** chybne zadany index pola ***')
+
+Takýto spôsob použitia ``try`` - ``except`` sa ale **neodporúča**, skúste sa ho vyvarovať! Jeho používaním môžete ušetriť zopár minút pri hľadaní všetkých typov chýb, ktoré môžu vzniknúť pri vykonávaní daného bloku príkazov. Ale skúsenosti ukazujú, že môžete zase stratiť niekoľko hodín pri hľadaní chýb v takýchto programoch. Veľmi často takéto bloky ``try`` - ``except`` bez uvedenia výnimky sú zdrojom veľmi nečakaných chýb.
+
+
+Ako funguje mechanizmus výnimiek
+................................
+
+Kým sme nepoznali výnimky, ak nastala nejaká chyba v našej funkcii, dostali sme nejaký takýto výpis:
+
+ ::
+
+  >>> fun1()
+  Traceback (most recent call last):
+    File "<pyshell#9>", line 1, in <module>
+      fun1()
+    File "p.py", line 13, in fun1
+      fun2()
+    File "p.py", line 16, in fun2
+      fun3()
+    File "p.py", line 19, in fun3
+      fun4()
+    File "p.py", line 22, in fun4
+      int('x')
+  ValueError: invalid literal for int() with base 10: 'x'
+
+Python pri výskyte chyby (t.j. nejakej výnimky) hneď túto chybu nevypisuje, ale zisťuje, či sa nevyskytla v bloku príkazu ``try`` - ``except``. Ak áno a meno chyby zodpovedá menu v ``except``, vykoná definované príkazy pre túto výnimku.
+
+Ak na danom mieste neexistuje obsluha tejto výnimky, vyskočí z momentálnej funkcie a zisťuje, či jej volanie v nadradenej funkcii nebolo chránené príkazom ``try`` - ``except``. Ak áno, vykoná čo treba a na tomto mieste pokračuje ďalej, akoby sa žiadna chyba nevyskytla.
+
+Ak ale ani v tejto funkcii nie je kontrola pomocou ``try`` - ``except``, vyskakuje o úroveň vyššie a vyššie, až kým nepríde na najvyššiu úroveň, teda do dialógu IDLE. Keďže nik doteraz nezachytil túto výnimku, IDLE ju vypíše v nám známom tvare. V tomto výpise vidíme, ako sa Python "vynáral" vyššie a vyššie.
+
+Práca so súbormi
+................
+
+Pri práci so súbormi výnimky vznikajú veľmi často a nie je jednoduché ošetriť všetky situácie pomocou podmienených príkazov. Najčastejšou chybou je neexistujúci súbor:
+
+ ::
+
+  try:
+      with open('x.txt') as subor:
+          cislo = int(subor.readline())
+  except FileNotFoundError:
+      print('*** neexistujuci subor ***')
+      cislo = 0
+  except (ValueError, TypeError):
+      print('*** prvy riadok suboru neobsahuje cele cislo ***')
+      cislo = 10
+
+Prípadne sa môže hodiť pomocná funkcia, ktorá zistí, či súbor s daným menom existuje:
+
+ ::
+ 
+  def existuje(meno_suboru):
+      try:
+          with open(meno_suboru):
+              return True
+      except (TypeError, OSError, FileNotFoundError):
+          return False
+          
+Uvedomte si ale, že táto funkcia, aby zistila, či súbor existuje, ho otvorí a okamžite aj zatvorí. Preto takýto kód nebude veľmi efektívny:
+
+ ::
+ 
+  if existuje('x.txt'):
+      with open('x.txt') as t:
+          obsah = t.read()
+  else:
+      obsah = ''
+
+..
+  Kedy nepoužiť mechanizmus výnimiek
+  ..................................
+
+  Zrejme sa dá programovať bez spracovávania výnimiek, teda písať tak ošetrené programy, že "nikdy" žiadne výnimky nenastanú. Toto je niekedy dosť náročné, lebo program sa môže priveľmi prekomplikovať veľmi zložitými testami. Niektorí programátori, najmä začiatočníci, to môžu tak s výnimkami preháňať, že takýto kód je nielen zle čitateľný, ale hlavne veľmi ťažko laditeľný.
+
+  Uveďme príklad. Pole čísel potrebujeme vypísať do viacerých riadkov tak, že v každom budú po dve čísla. Zapíšme:
+
+   ::
+
+    pole = [2, 3, 5, 7, 11, 13, 17]
+    for i in range(0, len(pole), 2):
+        try:
+            print(pole[i], pole[i+1])
+        except IndexError:
+            print(pole[i])
+
+  Keď to isté spravíme pre cyklus smerom nadol (v prvom riadku posledný a predposledný, v druhom ďalšie dva, ...):
+
+   ::
+
+    for i in range(len(pole)-1, -1, -2):
+        try:
+            print(pole[i], pole[i-1])
+        except IndexError:
+            print(pole[i])
+
+  Preto sa snažme **nikdy** neodchytávať výnimku ``IndexError``, radšej rozsah indexov otestujeme nejakými podmienkami.
+
+  ...
+
+Vyvolanie výnimky
+-----------------
+
+V niektorých situáciách sa nám môže hodiť vyvolanie vzniknutej chyby aj napriek tomu, že ju vieme zachytiť príkazom ``try`` - ``except``. Slúži na to nový príkaz ``raise``, ktorý má niekoľko variantov. Prvý z nich môžete vidieť v upravenej verzii funkcie ``cislo()``. Funkcia sa najprv 3-krát pokúsi prečítať číslo zo vstupu, a ak sa jej to napriek tomu nepodarí, rezignuje a vyvolá známu chybu ``ValueError``:
+
+ ::
+
+  def cislo():
+      pokus = 0
+      while True:
+          try:
+              return int(input('zadaj cislo: '))
+          except ValueError:
+              pokus += 1
+              if pokus > 3:
+                  raise
+              print('*** chybne zadane cele cislo ***')
+
+ ::
+
+  >>> cislo()
+  zadaj cislo: jeden
+  *** chybne zadane cele cislo ***
+  zadaj cislo: dva
+  *** chybne zadane cele cislo ***
+  zadaj cislo: tri
+  *** chybne zadane cele cislo ***
+  zadaj cislo: styri
+  ...
+  ValueError: invalid literal for int() with base 10: 'styri'
+
+Pomocou príkazu ``raise`` môžeme vyvolať nielen práve zachytenú výnimku, ale môžeme vyvolať ľubovoľnú inú chybu aj s vlastným komentárom, ktorý sa pri nej vypíše, napr.
+
+ ::
+
+  raise ValueError('chybne zadane cele cislo')
+  raise ZeroDivisionError('delenie nulou')
+  raise TypeError('dnes sa ti vobec nedari')
+
+
+Príklad s metódou index()
+.........................
+
+Poznáme už metódu ``index()``, ktorá v poli (typ ``list`` ale funguje aj pre znakové reťazce) nájde prvý výskyt nejakej hodnoty. Metóda je zaujímavá tým, že vyvolá výnimku ``ValueError``, ak sa táto hodnota v poli nenachádza. Kým sme nepoznali odchytávanie výnimiek, väčšinou sme museli najprv kontrolovať, či sa tam príslušný prvok nachádza a až ak áno, volali sme ``index()``, napr.
+
+ ::
+ 
+  def nahrad(pole, h1, h2):
+      if h1 in pole:
+          i = pole.index(h1)
+          pole[i] = h2
+          
+Pomocou ``try`` - ``except`` to vyriešime výrazne efektívnejšie:
+
+ ::
+
+  def nahrad(pole, h1, h2):
+      try:
+          i = pole.index(h1)
+          pole[i] = h2
+      except ValueError:
+          pass
+          
+Táto metóda ``index()``, ktorá funguje pre jednorozmerné polia, nás môže inšpirovať aj na úlohu, v ktorej budeme hľadať indexy do dvojrozmerného poľa. Napíšme funkciu ``hladaj(pole, hodnota)``, ktorá hľadá prvý výskyt danej hodnoty v dvojrozmernom poli a ak taký prvok nájde, vráti jeho číslo riadku a číslo stĺpca. Ak sa tam taký prvok nenachádza, funkcia by mala vyvolať rovnakú výnimku, ako to robila pôvodná metóda ``index()``, t.j. ``ValueError: hodnota is not in list``. Zapíšme riešenie dvoma vnorenými cyklami:
+
+ ::
+ 
+  def hladaj(pole, hodnota):
+      for r in range(len(pole)):
+          for s in range(len(pole[r])):
+              if pole[r][s] == hodnota:
+                  return r, s
+      raise ValueError(repr(hodnota) + ' is not in list')
+
+Hoci je toto správne riešenie, vieme ho zapísať aj efektívnejšie pomocou volania metódy ``index()``:
+
+ ::
+
+  def hladaj(pole, hodnota):
+      for r in range(len(pole)):
+          try:
+              s = pole[r].index(hodnota)
+              return r, s
+          except ValueError:
+              pass
+      raise ValueError(repr(hodnota) + ' is not in list')
+      
+Ak si ale uvedomíme, že neúspešné hľadanie prvku v ``r``-tom riadku poľa pomocou ``index()`` vyvolá presne tú istú chybu, ktorú sme zachytili a potom znovu vyvolali, môžeme to celé skrátiť takto:
+
+
+ ::
+
+  def hladaj(pole, hodnota):
+      for r in range(len(pole)):
+          try:
+              s = pole[r].index(hodnota)
+              return r, s
+          except ValueError:
+              if r == len(pole)-1:
+                  raise
+
+Teda zachytená chyba ``ValueError`` v poslednom riadku dvojrozmerného poľa označuje, že sa hodnota nenachádza v žiadnom riadku poľa a teda sa opätovne vyvolá zachytená chyba. (Zamyslite sa, ako bude toto riešenie fungovať pre prázdne dvojrozmerné pole, teda pole, ktoré neobsahuje ani jeden riadok).
+
+
+Vytváranie vlastných výnimiek
+.............................
+
+Keď chceme vytvoriť vlastný typ výnimky, musíme vytvoriť novú triedu odvodenú od základnej triedy ``Exception``. Môže to vyzerať napr. takto:
+
+ ::
+
+  class MojaChyba(Exception): pass
+
+Príkaz ``pass`` tu znamená, že nedefinujeme nič nové oproti základnej triede ``Exception``. Použiť to môžeme napr. takto:
+
+ ::
+
+  def podiel(p1, p2):
+      if not isinstance(p1, int):
+          raise MojaChyba('prvy parameter nie je cele cislo')
+      if not isinstance(p2, int):
+          raise MojaChyba('druhy parameter nie je cele cislo')
+      if p2 == 0:
+          raise MojaChyba('neda sa delit nulou')
+      return p1//p2
+
+ ::
+
+  >>> podiel(22, 3)
+  7
+  >>> podiel(2.2, 3)
+  ...
+  MojaChyba: prvy parameter nie je cele cislo
+  >>> podiel(22, 3.3)
+  ...
+  MojaChyba: druhy parameter nie je cele cislo
+  >>> podiel(22, 0)
+  ...
+  MojaChyba: neda sa delit nulou
+  >>>
+
+
+Kontrola pomocou assert
+.......................
+
+Ďalší nový príkaz ``assert`` slúži na kontrolu nejakej podmienky: ak táto podmienka nie je splnená, vyvolá sa výnimka ``AssertionError`` aj s uvedeným komentárom. Tvar tohto príkazu je:
+
+ ::
+
+  assert podmienka, 'komentár'
+
+Toto sa často používa pri ladení, keď potrebujeme mať istotu, že je splnená nejaká konkrétna podmienka (vlastnosť). Prepíšme funkciu ``podiel()`` tak, že namiesto ``if`` a ``raise`` zapíšeme volanie ``assert``:
+
+ ::
+
+  def podiel(p1, p2):
+      assert isinstance(p1, int), 'prvy parameter nie je cele cislo'
+      assert isinstance(p2, int), 'druhy parameter nie je cele cislo'
+      assert p2 != 0, 'neda sa delit nulou'
+      return p1 // p2
+
+
+Príklad s triedou Ucet
+......................
+
+Na cvičeniach ste riešili príklad, v ktorom ste definovali triedu ``Ucet``, resp. ``UcetHeslo`` aj jej metódy ``vklad()`` a ``vyber()``. Ukážme riešenie trochu zjednodušeného zadania len s jednou triedou, zatiaľ bez ošetrovania výnimiek:
+
+ ::
+ 
+  class Ucet:
+      def __init__(self, meno, heslo, suma=0):
+          self.meno, self.heslo, self.suma = meno, heslo, suma
+
+      def __str__(self):
+          return 'ucet {} -> {} euro'.format(self.meno, self.suma)
+
+      def vklad(self, suma):
+          if self.heslo == input('heslo pre {}? '.format(self.meno)):
+              self.suma += suma
+          else:
+              print('chybne heslo')
+
+      def vyber(self, suma):
+          if self.heslo == input('heslo pre {}? '.format(self.meno)):
+              if suma <= 0:
+                  return 0
+              suma = min(self.suma, suma)
+              self.suma -= suma
+              return suma
+          else:
+              print('chybne heslo')
+
+  #---- test ----
+
+  mbank = Ucet('mbank', 'heslo1', 100)
+  csob = Ucet('csob', 'heslo2', 30)
+  print('*** stav uctov:', mbank, csob, sep='\n')
+  mbank.vklad(csob.vyber(55))
+
+Po spustení a zadaní hesiel, dostávame takýto výpis:
+
+ ::
+ 
+  *** stav uctov:
+  ucet mbank -> 100 euro
+  ucet csob -> 30 euro
+  heslo pre csob? heslo2
+  heslo pre mbank? heslo1
+  *** stav uctov:
+  ucet mbank -> 130 euro
+  ucet csob -> 0 euro
+
+Zdá sa, že test prebehol v poriadku.
+
+Prepíšme riešenie s využitím výnimiek. Zadefinujeme pritom vlastnú výnimku ``ChybnaTransakcia`` a budeme sa snažiť ošetriť všetky možné chybové situácie:
+
+ ::
+
+  class ChybnaTransakcia(Exception): pass
+
+  class Ucet:
+      def __init__(self, meno, heslo, suma=0):
+          self.meno, self.heslo, self.suma = meno, heslo, suma
+
+      def __str__(self):
+          return 'ucet {} -> {} euro'.format(self.meno, self.suma)
+
+      def kontrola(self):
+          if self.heslo and self.heslo != input('heslo pre {}? '.format(self.meno)):
+              raise ChybnaTransakcia('chybne heslo pre vklad na ucet ' + self.meno)
+
+      def vklad(self, suma):
+          self.kontrola()
+          try:
+              if suma <= 0:
+                  raise TypeError
+              self.suma += suma
+          except TypeError:
+              raise ChybnaTransakcia('chybne zadana suma pre vklad na ucet ' + self.meno)
+
+      def vyber(self, suma):
+          self.kontrola()
+          try:
+              if suma <= 0:
+                  raise TypeError
+              suma = min(self.suma, suma)
+              self.suma -= suma
+              return suma
+          except TypeError:
+              raise ChybnaTransakcia('chybne zadana suma pre vyber z uctu ' + self.meno)
+
+  def prevod(ucet1, ucet2, suma):
+      '''prevedie sumu z ucet1 na ucet2'''
+      suma = ucet1.vyber(suma)
+      try:
+          ucet2.vklad(suma)
+      except ChybnaTransakcia:
+          ucet1.suma += suma   # vrati vybratu sumu na ucet1
+          raise
+
+  #---- test ----
+
+  mbank = Ucet('mbank', 'heslo1', 100)
+  csob = Ucet('csob', 'heslo2', 30)
+  print('*** stav uctov:', mbank, csob, sep='\n')
+  prevod(csob, mbank, 55)
+  print('*** stav uctov:', mbank, csob, sep='\n')
+  
+Všimnite si, že pomocná funkcia ``prevod()`` sa snaží pri neúspešnej transakcii vrátiť vybratú sumu peňazí - hoci to nerobí úplne korektne ...
+
+
+Cvičenie
+--------
+
+1. Nájdite čo najviac rôznych chybových správ, ktoré môžu vzniknúť pri práci so znakovými reťazcami (hľadajte aj chybové správy s volaniami funkcií a metód).
+
+   * napr.
+
+    ::
+    
+     >>> 'abc'[3]
+     IndexError: string index out of range
+     >>> 'abc'[3] = 'a'
+     TypeError: 'str' object does not support item assignment
+     >>> ...
+
+2. Napíšte funkcie ``cele(hodnota)`` a ``desatinne(hodnota)``, ktoré prevedú danú hodnotu na celé číslo (funkciou ``int()``), resp. desatinné (funkciou ``float()``) a ak sa to nedá, funkcie vrátia nulu.
+
+   * napr.
+
+    ::
+    
+     >>> cele(None)
+     0
+     >>> cele(3.14)
+     3
+     >>> desatinne('3,14')
+     0.0
+     >>> desatinne(abs)
+     0.0
+     
+     
+3. Napíšte funkciu ``priemer(pole)``, ktorá vypočíta priemer hodnôt v danom poli. Využite štandardnú funkciu ``sum()`` a to či je pole prázdne netestujte príkazom ``if`` ale odchyťte pomocou ``try`` - ``except``. Ak je pole neprázdne a nedá sa vypočítať súčet prvkov, funkcia ``priemer()`` vráti 0, ak je pole prázdne, funkcia vráti ``None``.
+
+   * napr.
+   
+    ::
+    
+     >>> priemer([1.5, 2, 3.14, 4])
+     2.66
+     >>> priemer([1, 2, [3], 4])
+     0
+     >>> print(priemer([]))
+     None
+     
+4. Napíšte funkciu ``suma(pole)``, ktorá zistí číselný súčet prvkov poľa. Zrejme bude postupne pripočítavať prvky poľa a ak sa nejaký pripočítať nedá (neprejde operácia ``+``), tento prvok vynechá.
+
+
+   * napr.
+   
+    ::
+    
+     >>> suma([1.5, 2, 3.14, 4])
+     10.64
+     >>> suma([1, 2, [3], 4])
+     7
+     >>> print(suma([]))
+     0
+
+5. Napíšte funkciu ``suma2(pole)``, ktorá zistí číselný súčet prvkov poľa. Ak je niektorý z prvkov pole (typ ``list`` alebo ``tuple``), funkcia sa rekurzívne zavolá na tomto prvku a jeho súčet pripočíta k výsledku. Ak sa nejaký prvok pripočítať nedá (neprejde operácia ``+``), tento prvok vynechá.
+
+
+   * napr.
+   
+    ::
+    
+     >>> suma2([1, 2, '3', 4])
+     7
+     >>> suma2([1, 2, [3], 4])
+     10
+     >>> suma2([[], [1], 2, (3, 4)])
+     10
+     >>> suma2([[[[42]]]])
+     42
+     >>> suma2(((((5.5, 6.5)))))
+     12.0
+
+6. Napíšte funkciu ``pocet_riadkov(meno_suboru)``, ktorá vráti počet riadkov zadaného súboru. Ak daný súbor neexistuje (nepodaril sa ``open()``), funkcia vráti ``-1``.
+
+   * napr.
+
+    ::
+    
+     >>> pocet_riadkov('cvicenie.py')
+     104
+     >>> pocet_riadkov('x.x')    # pre neexistujuci subor
+     -1
+     
+7. Napíšte funkciu ``daj_cislo(meno_suboru, index, inak=0)``, ktorá predpokladá, že daný súbor má v každom riadku po jednom celom čísle. Funkcia vráti číselnú hodnotu z tohto riadka a ak sa to nedá (napr. súbor neexistuje, nemá dosť riadkov, nie je v tomto riadku iba jediná celočíselná hodnota), vráti hodnotu tretieho parametra ``inak``.
+
+   * napr.       
+
+    ::
+    
+     >>> daj_cislo('cvicenie.py', 17, 'neviem')
+     'neviem'
+     
+     
+8. Napíšte funkciu ``sustavy(retazec)``, ktorá sa pokúsi daný reťazec previesť na číslo v rôznych číselných sústavách. Využite to, že štandardná funkcia ``int()`` môže byť zavolaná aj s druhým parametrom - číselnou sústavou, napr. ``int('ff',16)`` vráti 255, t.j. ``'ff'`` je v 16-ovej sústave číslo 255. Funkcia ``sustavy()`` vráti 17-prvkové pole, pričom i-ty prvok poľa obsahuje prevod daného reťazca na číslo v i-sústave. Ak sa to pre nejakú sústavu urobiť nedá, prvok poľa na danom mieste bude mať hodnotu ``None``.
+
+   * napr.   
+
+    ::
+    
+     >>> sustavy('11')
+     [11, None, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+     >>> sustavy('1a1')
+     [None, None, None, None, None, None, None, None, None, None, None, 232, 265, 300, 337, 376, 417]
+     >>> sustavy('FF')
+     [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, 255]
+     >>> sustavy('x')
+     [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]
+    
+9. Napíšte funkciu ``ako(hodnota1, hodnota2)``, ktorá najprv zistí typ prvého parametra ``hodnota1`` a potom sa pokúsi pretypovať na tento typ druhý parameter ``hodnota2`` (zrejme volaním ``typ(hodnota2)``). Ak sa toto pretypovanie úspešne podarí, funkcia vráti túto pretypovanú hodnotu, inak vráti ``None``.
+
+   * napr.
+
+    ::
+    
+     >>> ako('a', 123)
+     '123'
+     >>> ako(3.1, 123)
+     123.0
+     >>> ako((), '123')
+     ('1', '2', '3')
+     >>> print(ako((), 123))
+     None
+
+10. Napíšte funkciu ``sucet(pole)``, ktorá spočíta všetky prvky daného poľa. Pracovať bude tak, že najprv zoberie prvý prvok poľa a ten priradíme do ``vysl`` ako momentálny výsledok - k nemu budete postupne pripočítavať (použijete operáciu ``+``) ďalšie prvky poľa. Lenže tieto ďalšie prvky v poli nemusia byť rovnakého typu ako prvý prvok a preto ich budete postupne pretypovávať na rovnaký typ a až pri úspešnom pretypovaní ich pripočítame k výsledku ``vysl``, inak ich idignorujete.
+
+   * napr.
+
+    ::
+    
+     >>> sucet([1, 2, 3.1, '4'])
+     10
+     >>> sucet([1., 2, 3.1, '4'])
+     10.1
+     >>> sucet([('p', 'y'), 'tho', ['n']])
+     ('p', 'y', 't', 'h', 'o', 'n')
+     >>> sucet([1], (2, 3), 4)
+     [1, 2, 3]
+     

@@ -1,0 +1,861 @@
+Súbory
+======
+
+
+So súbormi súvisia znakové reťazce ale aj príkazy ``input()`` a ``print()`` na vstup a výstup:
+
+* znakové reťazce sú postupnosti znakov (v kódovaní Unicode), ktoré môžu obsahovať aj znaky konca riadka ``'\n'``
+* funkcia ``input()`` prečíta zo štandardného vstupu znakový reťazec, t.j. **číta** z klávesnice
+* funkcia ``print()`` **zapíše** reťazec na štandardný výstup, t.j. do textového konzolového okna
+
+.. topic:: Textový súbor
+
+   Je postupnosť znakov, ktorá môže obsahovať aj znaky konca riadka. Väčšinou je táto postupnosť uložená na disku v súbore.
+
+   Na textový súbor sa môžeme pozerať ako na postupnosť riadkov (môže to byť aj prázdna postupnosť), pričom každý riadok je postupnosťou znakov (znakový reťazec), ktorá je ukončená špeciálnym znakom ``'\n'``.
+
+So súbormi sa vo všeobecnosti pracuje takto:
+
+* najprv musíme vytvoriť spojenie medzi našim programom a súborom, ktorý je veľmi často v nejakej externej pamäti - tomuto hovoríme **otvoriť súbor**
+* teraz sa dá so súborom pracovať, t.j. môžeme z neho čítať, alebo do neho zapisovať
+* keď so súborom skončíme prácu, musíme zrušiť spojenie, hovoríme tomu **zatvoriť súbor**
+
+
+Čítanie zo súboru
+-----------------
+
+Najprv sa naučíme čítať zo súboru, čo označuje, že postupne sa náš program dozvedá, aký je obsah súboru.
+
+Otvorenie súboru na čítanie
+...........................
+
+Súbor otvárame volaním štandardnej funkcie ``open()``, ktorej oznámime meno súboru, ktorý chceme čítať. Táto funkcia vráti **referenciu** na súborový objekt (hovoríme tomu aj **dátový prúd**, t.j. **stream**):
+
+ ::
+
+  premenná = open('meno_súboru', 'r')
+
+Do **súborovej premennej** sa priradí **spojenie** s uvedeným súborom. Najčastejšie je tento súbor umiestnený v tom istom priečinku, v ktorom sa nachádza samotný Python skript. Meno súboru môže obsahovať aj celú cestu k súboru, prípadne môže byť relatívna k umiestneniu skriptu.
+
+Meno súborovej premennej je vhodné voliť tak, aby nejako zodpovedalo vzťahu k súboru, napr.
+
+ ::
+
+  subor = open('pribeh.txt', 'r')
+  kniha = open('c:/dokumenty/python.txt', 'r')
+  file = open('../texty/prvy.txt', 'r')
+
+V týchto príkladoch otvárania súborov vidíte, že meno súboru môže byť kompletná cesta ``'c:/dokumenty/python.txt'`` alebo relatívna k pozícii skriptu ``'../texty/prvy.txt'``.
+
+Čítanie zo súboru
+.................
+
+Najčastejšie sa informácie zo súboru čítajú po celých riadkoch. Možností, ako takto čítať je viac. Základný spôsob je:
+
+ ::
+
+  riadok = subor.readline()
+
+Funkcia ``readline()`` je **metódou** súborovej premennej, preto za meno súborovej premennej píšeme bodku a meno funkcie. Funkcia vráti znakový reťazec - prečítaný riadok aj s koncovým znakom ``'\n'``. Súborová premenná si zároveň zapamätá, kde v súbore sa práve nachádza toto čítanie, aby každé ďalšie zavolanie ``readline()`` čítalo ďalšie a ďalšie riadky.
+
+Funkcia vráti prázdny reťazec ``''``, ak sa už prečítali všetky riadky a teda pozícia čítania v súbore je na konci súboru.
+
+Zrejme prečítaný riadok nemusíme priradiť do premennej, ale môžeme ho spracovať aj inak, napr.
+
+ ::
+
+  subor = open('subor.txt', 'r')
+  print(subor.readline())
+  print('dlzka =', len(subor.readline()))
+  print(subor.readline()[::-1])
+
+V tomto programe sa najprv vypíše obsah prvého riadka, potom dĺžka druhého riadka (aj s koncovým znakom ``'\n'``) a na záver sa vypíše tretí riadok ale otočený (aj s koncovým znakom ``'\n'``, ktorý sa vypíše ako prvý).
+
+
+Zatvorenie súboru
+.................
+
+Keď skončíme prácu so súborom, **uzavrieme** otvorené spojenie volaním:
+
+ ::
+
+  subor.close()
+
+Tým sa uvoľnia všetky systémové zdroje (resources), ktoré boli potrebné pre otvorený súbor. Zrejme so zatvoreným súborom sa už nedá ďalej pracovať a napr. čítanie by vyvolalo chybovú správu.
+
+Ďalej ukážeme, ako môžeme pracovať s textovým súborom. Predpokladajme, že máme pripravený nejaký textový súbor, napr. ``'subor.txt'``:
+
+ ::
+
+  prvy riadok
+  druhy riadok
+      treti riadok
+
+  posledny riadok
+
+Tento súbor má 5 riadkov (štvrtý je prázdny) a preto ho môžeme celý prečítať a vypísať takto:
+
+ ::
+
+  t = open('subor.txt', 'r')
+
+  for i in range(5):
+      riadok = t.readline()
+      print(riadok)
+
+  t.close()
+
+program vypíše:
+
+ ::
+
+  prvy riadok
+
+  druhy riadok
+
+      treti riadok
+
+
+
+  posledny riadok
+
+
+Keďže metóda ``readline()`` prečíta zo súboru celý riadok aj s koncovým ``'\n'``, príkaz ``print()`` k tomu pridáva ešte jeden svoj ``'\n'`` a preto je za každým vypísaným riadkom ešte jeden prázdny. Buď príkazu ``print()`` povieme, aby na koniec riadka nevkladal prechod na nový riadok (napr. ``print(riadok, end='')``), alebo pred samotným výpisom z reťazca ``riadok`` vyhodíme posledný znak, napr.
+
+ ::
+
+  t = open('subor.txt', 'r')
+  for i in range(5):
+      riadok = t.readline()
+      print(riadok[:-1])
+  t.close()
+
+Takéto vyhadzovanie posledného znaku z reťazca môže nefungovať celkom správne pre posledný riadok súboru, ktorý nemusí byť ukončený znakom ``'\n'``.
+
+
+Zistenie konca súboru
+.....................
+
+Predchádzajúci program má najväčší nedostatok v tom, že predpokladá, že vstupný súbor obsahuje presne 5 riadkov. Ak by sme tento počet dopredu nepoznali, musíme použiť nejaký iný spôsob. Keďže metóda ``readline()`` vráti na konci súboru **prázdny reťazec** ``''`` (pozor, nie jednoznakový reťazec ``'\n'``), môžeme práve túto podmienku využiť na testovanie konca súboru:
+
+ ::
+
+  t = open('subor.txt', 'r')
+  riadok = t.readline()
+  while riadok != '':
+      print(riadok, end='')
+      riadok = t.readline()
+  t.close()
+
+Tento program už správne vypíše všetky riadky súboru, hoci nevidíme, či je tretí riadok prázdny alebo obsahuje aj nejaké medzery:
+
+ ::
+
+  prvy riadok
+  druhy riadok
+      treti riadok
+
+  posledny riadok
+  
+Môžeme to prepísať aj s použitím ``break``:  
+
+ ::
+
+  t = open('subor.txt', 'r')
+  while True:
+      riadok = t.readline()
+      if riadok == '':
+          break
+      print(riadok, end='')
+  t.close()
+  
+
+Niekedy sa nám môže hodiť taký výpis prečítaného reťazca, ktorý napr. zobrazí nielen medzery na konci reťazca, ale aj ukončovací znak ``'\n'``. Využijeme na to štandardnú funkciu ``repr()``.
+
+
+.. topic:: funkcia ``repr()``
+
+   Volanie štandardnej funkcie:
+
+   ::
+
+    repr(reťazec)
+
+   vráti takú reťazcovú reprezentáciu daného parametra, aby sme po jeho vypísaní (napr. funkciou ``print()``) dostali presný taký tvar, aký očakáva Python pri zadávaní konštanty, teda aj s apostrofmi, prípadne aj so znakom ``'\'`` pri špeciálnych znakoch.
+
+Môže sa použiť aj pri ladení a testovaní, lebo máme lepší prehľad o skutočnom obsahu reťazca. Napr.
+
+ ::
+
+  >>> a = 'ahoj   \naj "apostrof" \' v texte  \n'
+  >>> print(a)
+  ahoj
+  aj "apostrof" ' v texte
+
+  >>> print(repr(a))
+  'ahoj   \naj "apostrof" \' v texte  \n'
+
+
+Doplníme do while-cyklu o volanie funkcie ``repr()``:
+
+ ::
+
+  t = open('subor.txt', 'r')
+  riadok = t.readline()
+  while riadok != '':
+      print(repr(riadok))
+      riadok = t.readline()
+  t.close()
+
+Po spustení vidíme, že sa vypíše:
+
+ ::
+
+  'prvy riadok\n'
+  'druhy riadok\n'
+  '    treti riadok     \n'
+  '\n'
+  'posledny riadok\n'
+
+Namiesto ``while riadok != '':`` môžeme zapísať ``while riadok:``.
+
+
+Vidíme, že tretí riadok obsahuje medzery aj na konci riadka. Ak by sme pri čítaní súboru nepotrebovali informácie o medzerách na začiatku a konci riadkov, môžeme využiť reťazcovú metódu ``strip()``:
+
+ ::
+
+  t = open('subor.txt', 'r')
+  riadok = t.readline()
+  while riadok:
+      print(repr(riadok.strip()))
+      riadok = t.readline()
+  t.close()
+
+vypíše:
+
+ ::
+
+  'prvy riadok'
+  'druhy riadok'
+  'treti riadok'
+  ''
+  'posledny riadok'
+
+Všimnite si, že takto sme sa zbavili aj záverečného znaku ``'\n'``. Ak by sme namiesto ``riadok.strip()`` použili ``riadok.rstrip()``, vyhodia sa medzerové znaky len od konca reťazca (sprava) a na začiatku riadkov medzery ostávajú.
+
+
+.. rubric:: Použitie for-cyklu pre čítanie zo súboru
+
+Python umožňuje použiť for-cyklus, aj pre súbory, o ktorých dopredu nevieme, koľko majú riadkov. For-cyklus má vtedy tvar:
+
+ ::
+
+  for riadok in súborová_premenná:
+      prikazy
+
+kde ``riadok`` je ľubovoľná premenná cyklu, do ktorej sa budú postupne priraďovať všetky prečítané riadky - POZOR! aj s koncovým ``'\n'``, **súborová_premenná** musí byť otvoreným súborom na čítanie.
+
+Program sa teraz výrazne zjednoduší:
+
+ ::
+
+  t = open('subor.txt', 'r')
+  for riadok in t:
+      print(repr(riadok))
+  t.close()
+
+Takýto for-cyklus bude fungovať aj vtedy, keď sme už zo súboru niečo čítali a potrebujeme spracovať už len zvyšok súboru, napr.
+
+ ::
+
+  t = open('subor.txt', 'r')
+  riadok = t.readline()
+  print('najprv som precital:', repr(riadok.rstrip()))
+  print('v subore ostali este tieto riadky:')
+  for riadok in t:
+      print(repr(riadok.rstrip()))
+  t.close()
+
+Teraz sa vypíše:
+
+ ::
+
+  najprv som precital: 'prvy riadok'
+  v subore ostali este tieto riadky:
+  'druhy riadok'
+  '    treti riadok'
+  ''
+  'posledny riadok'
+
+
+
+.. rubric:: Prečítanie celého súboru do jedného reťazca
+
+Zapíšme takúto úlohu: do jednej reťazcovej premennej prečítame všetky riadky súboru, pričom im ponecháme koncové ``'\n'``. Zrejme, ak by sme takýto reťazec naraz celý vypísali (pomocou ``print()``), dostali by sme kompletný výpis. Napr.
+
+ ::
+
+  t = open('subor.txt', 'r')
+  cely_subor = ''
+  for riadok in t:
+      cely_subor = cely_subor + riadok
+  t.close()
+  print(cely_subor, end='')
+
+Všimnite si, že riadok programu ``cely_subor = cely_subor + riadok`` by sme mohli zapísať aj takto ``cely_subor += riadok``
+
+To, čo sme prácne skladali cyklom, za nás urobí metóda ``read()``, teda
+
+ ::
+
+  t = open('subor.txt', 'r')
+  cely_subor = t.read()
+  t.close()
+  print(cely_subor, end='')
+  
+Samozrejme, takéto skladanie súboru do jednej reťazcovej premennej môžeme urobiť len vtedy, ak spracovávaný súbor nie je väčší ako kapacita pamäte pre Python (závisí to od vášho počítača, ale je to od niekoľkých 100MB po GB).
+
+
+  
+Slovenčina v súbore
+...................
+
+Hoci znakové reťazce v Pythone sú ukladané v kódovaní **Unicode**, pri práci so súbormi, ktoré obsahujú znaky s diakritikou, musíme upresniť aj kódovanie v súbore. Samotné súbory môžu mať pri uložení na disku rôzne kódovania (závisí to aj od vášho operačného systému), napr. ``'cp1250'``, ``'iso88591'``, ``'utf-8'``, ... a pri ich otváraní treba toto kódovanie uvádzať ako parameter funkcie ``open()``. Súbory, ktoré dostanete na čítanie v tomto kurze, budú mať väčšinou kódovanie ``'utf-8'``, ale vaše vlastné súbory môžu mať aj iné kódovanie.
+
+Preto súbor s diakritikou najčastejšie otvárame takto:
+
+ ::
+
+  subor = open(meno_suboru, encoding='utf-8')  
+
+
+Zápis do súboru
+---------------
+
+Doteraz sme čítali už existujúci súbor. Teraz sa naučíme textový súbor aj vytvárať. Bude to veľmi podobné ako pri čítaní súboru.
+
+Otvorenie súboru
+................
+
+do **súborovej premennej** sa priradí **spojenie** so súborom:
+
+ ::
+
+  subor = open('meno_súboru', 'w')
+
+Súbor bude umiestnený v tom istom priečinku, kde sa nachádza samotný Python skript (resp. treba uviesť cestu). Ak tento súbor ešte neexistoval, tento príkaz ho vytvorí (vytvorí sa prázdny súbor). Ak takýto súbor už existoval, tento príkaz ho vyprázdni. Treba si dávať pozor, lebo omylom môžeme prísť o dôležitý súbor.
+
+Možností, ako zapisovať riadky do súboru je viac. My si postupne ukážeme dva z nich: zápis pomocou základnej metódy pre zápis ``write()`` a pomocou nám známej štandardnej funkcie ``print()``. Najprv metóda ``write()``:
+
+Zápis do súboru
+...............
+
+Zápis nejakého reťazca do súboru urobíme pomocou volania:
+
+ ::
+
+  subor.write(reťazec)
+
+Táto metóda zapíše zadaný reťazec na momentálny koniec súboru. Ak chceme, aby sa v súbore objavili aj koncové znaky ``'\n'``, musíme ich pridať do reťazca.
+
+Niekoľko za sebou idúcich zápisov do súboru môžeme spojiť do jedného, napr.
+
+ ::
+
+  subor.write('prvy')
+  subor.write(' riadok')
+  subor.write('\n')
+  subor.write('druhy riadok\n')
+
+môžeme zapísať jediným volaním metódy ``write()``:
+
+ ::
+
+  subor.write('prvy riadok\ndruhy riadok\n')
+
+
+Zatvorenie súboru
+.................
+
+Tak ako pri čítaní súboru sme na záver súbor zatvárali, musíme zatvárať súbor aj pri vytváraní súboru:
+
+ ::
+
+  subor.close()
+
+Metóda skončí prácu so súborom, t.j. zruší **spojenie** s fyzickým súborom na disku. Bez volania tejto metódy nemáme zaručené, že Python naozaj fyzicky stihol zapísať všetky reťazce z volania ``write()`` na disk. Tiež operačný systém by mohol mať problém so znovu otvorením ešte nezatvoreného súboru.
+
+
+Zápis do súboru ukážeme na príklade, v ktorom vytvoríme niekoľko riadkový súbor ``'subor1.txt'``:
+
+ ::
+
+  subor = open('subor1.txt', 'w')
+  subor.write('zoznam prvocisel:\n')
+  for ix in 2, 3, 5, 7, 11, 13:
+      subor.write('cislo {} je prvocislo\n'.format(ix))
+  subor.close()
+
+Program najprv do súboru zapísal jeden riadok 'zoznam prvocisel:' a za ním ďalších 6 riadkov:
+
+ ::
+
+  zoznam prvocisel:
+  cislo 2 je prvocislo
+  cislo 3 je prvocislo
+  cislo 5 je prvocislo
+  cislo 7 je prvocislo
+  cislo 11 je prvocislo
+  cislo 13 je prvocislo
+
+
+Zápis do súboru pomocou print()
+...............................
+
+Doteraz sme štandardný príkaz ``print()`` používali na výpis do textovej plochy Shellu. Veľmi jednoducho, môžeme presmerovať výstup z už odladeného programu do súboru.
+
+Program vytvorí súbor ``'nahodne_cisla.txt'``, do ktorého zapíše pod seba 100 náhodných čísel:
+
+ ::
+
+  import random
+  subor = open('nahodne_cisla.txt', 'w')
+  for i in range(100):
+      print(random.randint(1, 100), file=subor)
+  subor.close()
+
+Všimnite si nový parameter pri volaní funkcie ``print()``, pomocou ktorého presmerujeme výstup do nášho súboru (tu musíme uviesť súborovú premennú už otvoreného súboru na zápis).
+
+Ak by sme chceli, aby boli čísla v súbore nie v jednom stĺpci ale v jednom riadku oddelené medzerou, zapísali by sme:
+
+ ::
+
+  import random
+  subor = open('nahodne_cisla.txt', 'w')
+  for i in range(100):
+      print(random.randint(1, 100), end=' ', file=subor)
+  subor.close()
+
+
+.. rubric:: Kopírovanie súboru
+
+Ak potrebujeme obsah jedného súboru prekopírovať do druhého (pritom možno niečo spraviť s každým riadkom), môžeme použiť 2 súborové premenné, napr.
+
+ ::
+
+  odkial = open('subor.txt', 'r')
+  kam = open('subor2.txt', 'w')
+  for riadok in odkial:
+      riadok = riadok.strip()
+      if riadok != '':
+          kam.write(riadok + '\n')
+  odkial.close()
+  kam.close()
+
+Program postupne prečíta všetky riadky, vyhodí medzery zo začiatku a z konca každého riadka, a ak je takýto riadok neprázdny, zapíše ho do druhého súboru (keďže ``strip()`` vyhodil z riadka aj koncové ``'\n'``, museli sme ho tam vo ``write()`` pridať).
+
+Táto istá úloha by sa dala riešiť aj pomocou jednej súborovej premennej - najprv súbor čítame a do jednej reťazcovej premennej pripravujeme obsah nového súboru, nakoniec ho celý zapíšeme:
+
+ ::
+
+  t = open('subor.txt', 'r')
+  cely = ''
+  for riadok in t:
+      riadok = riadok.strip()
+      if riadok != '':
+          cely += riadok + '\n'
+  t.close()
+  t = open('subor2.txt', 'w')
+  t.write(cely)
+  t.close()
+
+Ak by sme pri kopírovaní riadkov nepotrebovali meniť nič, môžeme použiť metódu ``read()``, napr.
+
+ ::
+
+  t = open('subor.txt', 'r')
+  cely = t.read()
+  t.close()
+  t = open('subor2.txt', 'w')
+  t.write(cely)
+  t.close()
+
+Na prácu so súbormi môžeme využiť špeciálnu programovú konštrukciu, pomocou ktorej bude Python vedieť, že sme už so súborom skončili pracovať a teda ho treba zatvoriť. Samotný príkaz má aj iné využitie ako pre prácu so súbormi, ale v tomto kurze sa s tým nestretneme.
+
+Konštrukcia with
+----------------
+
+Všeobecný tvar príkazu je:
+
+ ::
+
+  with open(...) as premenna:
+      prikaz
+      prikaz
+      ...
+
+Touto príkazovou konštrukciou sa otvorí požadovaný súbor a referencia na súbor sa priradí do premennej uvedenej za ``as``. Ďalej sa vykonajú všetky príkazy v bloku a po ich skončení sa súbor **automaticky** zatvorí. Urobí sa skoro to isté, ako
+
+ ::
+
+  premenna = open(...)
+  prikaz
+  prikaz
+  ...
+  premenna.close()
+
+Odporúčame pri práci so súbormi používať čo najviac práve túto konštrukciu, čo oceníme napr. aj prácu so súbormi vo funkciách, v ktorých príkaz ``return``, ak sa použije vo vnútri bloku ``with``, automaticky zatvorí otvorené súbory.
+
+Ukážme niekoľko príkladov zápisu pomocou ``with``:
+
+1. Prečítaj a vypíš obsah celého súboru:
+
+  ::
+
+   with open('subor.txt') as subor:
+       print(subor.read())
+
+2. Vytvor súbor s tromi riadkami:
+
+  ::
+
+   with open('subor.txt','w') as file:
+       print('prvy\ndruhy\ntreti\n', file=file)
+
+  Všimnite si tu použitie mena súborovej premennej: nazvali sme ju ``file`` rovnako ako meno parametra vo funkcii ``print()``, preto musíme presmerovanie do súboru zapísať ako ``print(..., file=file)``: formálnemu parametru ``file`` priradíme hodnotu skutočného parametra ``file``.
+
+3. Vytvor súbor 100 náhodných čísel:
+
+  ::
+
+   import random
+   with open('cisla.txt','w') as file:
+       for i in range(100):
+           file.write(str(random.randrange(1000))+' ')
+
+
+
+.. rubric:: Automatické zatváranie súboru
+
+Python sa v jednoduchých prípadoch snaží korektne zatvoriť otvorené súbory, keď už sme s nimi skončili pracovať a pritom sme nepoužili metódu ``close()``. V serióznych aplikáciách toto nebudeme používať, ale pri jednoduchých testoch a ukážkach sa to objaviť môže.
+
+V nasledovných príkladoch využívame to, že funkcia ``open()`` vracia ako výsledok súborovú premennú, t.j. spojenie na súbor. Ak toto spojenie potrebujeme použiť len jednorázovo, nemusíme to priradíme do premennej, ale použijeme ho priamo napr. s volaním nejakej metódy.
+
+Ak do súboru zapisujeme len jedenkrát a hneď ho zatvárame, nemusíme na to vytvárať súborovú premennú, ale priamo pri otvorení urobíme jeden zápis. Vtedy sa súbor automaticky zatvorí. Napr.
+
+ ::
+
+  >>> open('subor2.txt', 'w').write('first line\nsecond line\nend of file\n')
+
+Týmto jedným príkazom sme vytvorili nový súbor ``'subor3.txt'``, zapísali sme do neho 3 riadky a automaticky sa na záver zatvoril (dúfajme...). Korektný zápis. ktorý by sme použili v programe:
+
+ ::
+
+  with open('subor2.txt', 'w') as f:
+      f.write('first line\nsecond line\nend of file\n')
+
+Podobne by sme to zapísali aj pomocou príkazu ``print()``:
+
+ ::
+
+  >>> print('first line\nsecond line\nend of file', file=open('subor3.txt', 'w'))
+
+alebo radšej korektne:
+
+ ::
+
+  with open('subor3.txt', 'w') as f:
+      print('first line\nsecond line\nend of file', file=f)
+
+Nezabudnite, že ak súbor ``'subor3.txt'`` niečo pred tým obsahoval, týmto príkazom sa celý prepíše.
+
+Vyššie uvedený príklad, ktorý kopíroval kompletný súbor:
+
+ ::
+
+  t = open('subor.txt', 'r')
+  cely = t.read()
+  t.close()
+  t = open('subor2.txt', 'w')
+  t.write(cely)
+  t.close()
+
+by sa dal úsporne zapísať takto:
+
+ ::
+
+  >>> open('subor2.txt', 'w').write(open('subor.txt', 'r').read())
+
+čo je zrejme veľmi ťažko čitateľné, a my to určite budeme zapisovať radšej takto korektne:
+
+ ::
+
+  with open('subor.txt', 'r') as r:
+      with open('subor2.txt', 'w') as w:
+          w.write(r.read())
+
+Niekedy to môžete vidieť aj v takomto tvare:
+
+ ::
+
+  with open('subor.txt', 'r') as r, open('subor2.txt', 'w') as w:
+      w.write(r.read())
+
+To znamená, že do príkazu ``with`` môžeme zadať naraz viac otvorených súborov (oddelených čiarkou). Po skončení bloku príkazov sa všetky takto otvorené súbory automaticky zatvoria.
+
+Hoci teraz už vieme zapísať príkaz, ktorý na konzolu vypíše obsah nejakého textového súboru takto:
+
+ ::
+
+  >>> print(open('readme.txt').read())
+
+budeme to zapisovať korektnejšie:
+
+ ::
+
+  >>> with open('readme.txt') as t:
+          print(t.read())
+
+alebo
+
+ ::
+
+  >>> with open('readme.txt') as t: print(t.read())
+
+Všimnite si, že sme pri ``open()`` nepoužili parameter ``'r'`` pre označenie otvorenia na čítanie. Keď totiž pri otváraní nezapíšeme ``'r'``, Python si domyslí práve otváranie súboru na čítanie.
+
+Ak očakávame, že otvorený súbor je príliš veľký a my ho naozaj nepotrebujeme vypísať celý, zapíšeme:
+
+ ::
+
+  >>> with open('readme.txt') as t: print(t.read()[:1000])
+
+
+Pridávanie riadkov do súboru
+............................
+
+Videli sme dva rôzne typy otvárania textového súboru:
+
+* ``t = open('subor.txt', 'r')`` - súbor sa otvoril na len čítanie, ak ešte neexistoval, program spadne
+* ``t = open('subor.txt', 'w')`` - súbor sa otvoril na len zapisovanie, ak ešte neexistoval, tak sa vytvorí prázdny, inak sa zruší doterajší obsah (zapíše sa prázdny obsah)
+
+Zoznámime sa s ešte jednou voľbou, pri ktorej sa súbor otvorí na zápis, ale nezruší sa jeho pôvodný obsah. Namiesto toho sa nové riadky budú pridávať na koniec súboru. Napr. ak máme súbor ``'subor3.txt'`` s tromi riadkami:
+
+ ::
+
+  first line
+  second line
+  end of file
+
+môžeme do neho pripísať ďalšie riadky, napr. takto: namiesto ``'r'`` a ``'w'`` pri otváraní súboru použijeme ``'a'``, ktoré označuje anglické **append**:
+
+ ::
+
+  t = open('subor3.txt', 'a')
+  t.write('pridany riadok na koniec\na este jeden\n')
+  t.close()
+
+v súbore je teraz:
+
+ ::
+
+  first line
+  second line
+  end of file
+  pridany riadok na koniec
+  a este jeden
+
+Zrejme by sme to zvládli naprogramovať aj bez tejto voľby, len pomocou pôvodného čítania a zápisu, ale bolo by to časovo náročnejšie riešenie, napr. takto:
+
+ ::
+
+  with open('subor3.txt', 'r') as t:
+      cely = t.read()                        # zapamätá si pôvodný obsah
+  with open('subor3.txt', 'w') as t:         # vymaže všetko
+      t.write(cely)                          # vráti tam pôvodný obsah
+      t.write('pridany riadok na koniec\na este jeden\n')
+
+Zistite čo urobí:
+
+ ::
+
+  for i in range(100):
+      with open('subor4.txt', 'a') as file:
+          print('vypisujem', i, 'riadok', file=file)
+
+Uvedomte si, že takéto riešenie je veľmi neefektívne.
+
+Cvičenie
+--------
+
+K zadaniam, ktoré čítajú textový súbor, pripravte nejaké vhodné testovacie súbory.
+
+1. Napíšte program, ktorý si vypýta meno súboru a potom vypíše prvé 3 znaky z prvého riadka tohto súboru.
+
+  * napr. ak súbor ``'text1.txt'`` obsahuje
+  
+   ::
+   
+    programujem v Pythone
+    
+  * spustenie programu:
+  
+   ::
+   
+    meno suboru: text1.txt
+    prve 3 znaky: 'pro'
+    
+2. Napíšte program, ktorý si vypýta meno súboru a potom vypíše počet riadkov a dĺžku najdlhšieho riadka tohto súboru.
+
+  * napr.
+  
+   ::
+   
+    meno suboru: text2.txt
+    pocet riadkov suboru: 13 
+    najdlhsi ma 40 znakov
+
+3. Napíšte program, ktorý si vypýta meno súboru a potom vypíše počet znakov, počet medzier a počet riadkov súboru (znakov ``'\n'``). Na čítanie súboru použite len metódu ``subor.read(1)``.
+
+  * napr.
+  
+   ::
+   
+    meno suboru: text3.txt
+    pocet znakov: 137
+    pocet medzier: 22
+    pocet riadkov: 12  
+
+4. Napíšte funkciu ``riadky_s_textom(meno_suboru, text)``, ktorá otvorí zadaný súbor a vypíše z neho len tie riadky, ktoré obsahujú zadaný text.
+
+  * napr.
+  
+   ::
+   
+    >>> riadky_s_textom('ries.py', 'if')
+    if a != b:
+    elif b < 7:
+        if x:
+
+5. Napíšte funkciu ``priemer(meno_suboru)``: funkcia číta súbor, v ktorom je v každom riadku jedno celé číslo, funkcia zistí priemer týchto hodnôt.
+
+  * napr. ak by súbor obsahoval 10 riadkov s číslami 1 až 10, tak po spustení dostávame
+  
+   ::
+   
+    >>> print('priemer =', priemer('cisla.txt'))
+    priemer = 5.5
+    
+6. Vypíšte obsah textového súboru do grafickej plochy. Súbor obsahuje niekoľko riadkov a funkcia ``vypis_subor(meno_suboru)`` tieto riadky vypíše pod sebou nejakým fontom. V globálnej premennej ``canvas`` je referencia na grafickú plochu.
+
+  * napr.
+  
+   ::
+   
+    import tkinter
+    canvas = ...
+    vypis_subor('subor6.txt')
+    
+   vypíše riadky súboru
+
+7. V každom riadku súboru sú dve celé čísla ``x`` a ``y`` (oddelené medzerami). Napíšte funkciu ``kresli(meno_suboru)``, ktorá otvorí tento súbor a do grafickej plochy nakreslí malé krúžky so stredmi v týchto bodoch.
+
+  * napr. ak súbor ``'subor7.txt'`` obsahuje
+  
+   ::
+   
+    100 50
+    150 100
+    100 150
+    50 100
+    
+   ::
+   
+    import tkinter
+    canvas = ...
+    kresli('subor7.txt')
+    
+   nakreslí 4 krúžky vo vrcholoch kosoštvorca
+   
+8. Textový súbor obsahuje v každom riadku jedno meno farby. Napíšte funkciu ``do_radov(meno_suboru, sirka)``, ktorá vypíše rad štvorčekov (veľkosti 10x10). Každý z týchto štvorčekov zafarbí prísluškou farbou zo súboru. Po vykreslení ``sirka`` štvorčekov, pokračuje pod týmito v ďalšom rade štvorčekov s ďalšími farbami zo súboru. Takto pokračuje, kým sa neminú všetky farby zo súboru.
+
+  * napr. ak súbor postupne obsahuje farby ``red``, ``blue``, ``red``, ``green``, ``yellow``, ...
+  
+   ::
+
+    import tkinter
+    canvas = ...
+    do_radov('subor8.txt', 3)
+    
+  * nakreslí najprv 3 štvorčeky vedľa seba s farbami: červená, modrá, červená; potom rad pod tým s farbami zelená, žltá, ...
+  * navrhnite vstupný textový súbor tak, aby sa nakreslil nejaký malý zaujímavý farebný obrázok 
+     
+9. V každom riadku súboru je po jednom slove. Napíšte funkciu ``vypis_slova(meno_suboru)``, ktorá postupne vypíše všetky slová súboru do viacerých riadkov takto: v prvom riadku bude iba prvé slovo, v druhom ďalšie dve (oddelené medzerou), v treťom ďalšie tri, ...
+
+  * napr. ak súbor postupne obsahuje riadky so slovami ``pon``, ``uto``, ``str``, ``stv``, ``pia``, ``sob``, ``ned``, funkcia vypíše:
+  
+   ::
+   
+    >>> vypis_slova('subor9.txt')
+    pon
+    uto str
+    stv pia sob
+    ned
+
+10. Treba otvoriť dva textové súbory a vytvoriť z nich tretí, v ktorom sa striedajú riadky z prvého a druhého súboru. Ak je niektorý zo súborov kratší, ďalej sa zapisujú len riadky z ďalšieho súboru. Napíšte funkciu ``zluc_subory(meno_suboru1, meno_suboru2, meno_suboru3)``, ktorá zo ``meno_suboru1`` a ``meno_suboru2`` vytvorí ``meno_suboru3`` 
+
+  * napr. ak vstupné súbory obsahujú riadky ``prvy subor 1``, ``prvy subor 2``, ... a ``druhy subor 1``, ``druhy subor 2``, ... zlúčený výstupný súbor bude onbsahovať
+   
+   ::
+   
+    prvy subor 1
+    druhy subor 1
+    prvy subor 2
+    druhy subor 2
+    prvy subor 3
+    druhy subor 3
+    ...
+
+11. Treba kopírovať vstupný súbor do výstupného tak, aby každý riadok mal presne zadanú šírku riadkov ``sirka`` znakov: dlhšie riadky sa orežú a kratšie sa sprava doplnia medzerami. Napíšte funkciu ``orezat(meno_suboru1, meno_suboru2, sirka)``
+
+  * napr. volanie
+  
+   ::
+   
+    >>> orezat('vstup.txt', 'vystup.txt', 9)
+    
+   vyrobí súbor ``'vystup.txt'`` (apostrofy sme tam pridali navyše)
+   
+    ::
+    
+     'prvy riad'
+     'druhy    '
+     '   treti '
+     'a posledn' 
+    
+
+12. Pre dané dva súbory funkcia ``rovnake(meno_suboru1, meno_suboru2)`` zistí, či tieto súbory majú identický obsah.
+
+  * napr.
+  
+   ::
+   
+    >>> rovnake('subor11.txt', 'subor12.txt')
+    True
+  
+13. To isté ako predchádzajúce zadanie (12), ale ignorujú sa medzery na začiatkoch a koncoch riadkov.
+  
+14. Napíšte funkciu ``kopiruj(meno_suboru1, meno_suboru2)``, ktorá kopíruje prvý súbor do druhého. Pritom sa číta len po jednom znaku (pomocou ``subor1.read(1)``) a zapisuje sa tiež len po jednom znaku (napr. ``subor2.write(znak)``). Funkcia odfiltruje všetky medzery ale len na začiatku a na konci každého riadka. Nepracujte so žiadnymi ďalšími znakovými reťazcami okrem premennej s prečítaným znakom.
+
+..
+  x. súbor rozdeliť na dva súbory: ``'parne.txt'`` a ``'neparne.txt'``. Do súboru ``'parne.txt'`` prekopírujete riadky 0., 2., 4., ... Do súboru ``'neparne.txt'`` zvyšné riadky
+  
+  x. opačný k predchádzajúcemu: z dvoch súborov ``'parne.txt'`` a ``'neparne.txt'`` zložiť pôvodný súbor (predpokladajte, že majú rovnakú dĺžku, prípadne ``'parne.txt'`` je o 1 riadok dlhší ako ``'neparne.txt'``)
+  
+  x. súbor obsahuje v každom riadku 3 slová oddelené medzerou - vytvorí 3 súbory, pričom prvý obsahuje v každom riadku všetky prvé slová z každého riadka, druhý druhé, tretí tretie
+  
+  x. súbor ``'subor.txt'`` treba rozdeliť (prekopírovať) do viacerých súborov: text v súbore je oddelený prázdnymi riadkami do viacerých blokov, každý z blokov sa postupne kopíruje do súborov ``'subor1.txt'``, ``'subor2.txt'``, ...
+  
+  x. kopírovať súbor, ale riadky, ktoré sú dlhšie ako zadaná hodnota ``sirka``, rozsekne na viac riadkov (vloží na správne miesta ``'\n'``) tak, aby všetky tieto mali dĺžku ``sirka``, len posledný z nich môže byť kratší
+  
+  x. prečítať zadaný súbor a vytvoriť z neho nový tak (), aby na disku zaberal aspoň 1GB: celý obsah vstupného súboru kopírujte do výstupného, kým jeho veľkosť nepresiahne požadovaný 1GB

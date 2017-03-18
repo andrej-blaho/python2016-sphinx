@@ -1,0 +1,850 @@
+Podmienky
+=========
+
+Podmienený príkaz
+-----------------
+
+Pri programovaní často riešime situácie, keď sa program má na základe nejakej podmienky rozhodnúť medzi viacerými možnosťami. Napr. program má vypísať, či zadaný počet bodov stačí na známku z predmetu. Preto si najprv vyžiada číslo - získaný počet bodov, **porovná** túto hodnotu s požadovanou hranicou, napr. 50 bodov a na základe toho vypíše, buď že je to dosť na známku, alebo nie je:
+
+ ::
+
+  body = int(input('Zadaj získaný počet bodov: '))
+  if body >= 50:
+      print(body, 'bodov je dostačujúci počet na známku')
+  else:
+      print(body, 'bodov je málo na získanie známky')
+
+Použili sme tu podmienený príkaz (príkaz vetvenia) ``if``. Jeho zápis vyzerá takto:
+
+ ::
+
+  if podmienka:    # ak podmienka platí, vykonaj 1. skupinu príkazov
+      prikaz
+      prikaz
+      ...
+  else:            # ak podmienka neplatí, vykonaj 2. skupinu príkazov
+      prikaz
+      prikaz
+      ...
+
+V našom príklade sú v oboch skupinách príkazov len po jednom príkaze ``print()``. Odsadenie skupiny príkazov (blok príkazov) má rovnaký význam ako vo for-cykle: budeme ich odsadzovať vždy presne o 4 medzery.
+
+V pravidlách predmetu programovanie máme takéto kritériá na získanie známky:
+
+* známka **A** za 90 a viac
+* známka **B** za 80
+* známka **C** za 70
+* známka **D** za 60
+* známka **E** za 50
+* známka **Fx** za menej ako 50
+
+Podmienka pre získanie známky **A**:
+
+ ::
+
+  if body >= 90:
+      print('za', body, 'bodov získavaš známku A')
+  else:
+      ...
+
+Ak je bodov menej ako 90, už to môže byť len horšia známka: dopíšeme testovanie aj známky **B**:
+
+ ::
+
+  if body >= 90:
+      print('za', body, 'bodov získavaš známku A')
+  else:
+      if body >= 80:
+          print('za', body, 'bodov získavaš známku B')
+      else:
+          ...
+
+Všetky riadky v druhej skupine príkazov (za ``else``) musia byť odsadené o 4 medzery, preto napr. ``print()``, ktorý vypisuje správu o známke **B** je odsunutý o 8 medzier. Podobným spôsobom zapíšeme všetky zvyšné podmienky:
+
+ ::
+
+  body = int(input('Zadaj získaný počet bodov: '))
+  if body >= 90:
+      print('za', body, 'bodov získavaš známku A')
+  else:
+      if body >= 80:
+          print('za', body, 'bodov získavaš známku B')
+      else:
+          if body >= 70:
+              print('za', body, 'bodov získavaš známku C')
+          else:
+              if body >= 60:
+                  print('za', body, 'bodov získavaš známku D')
+              else:
+                  if body >= 50:
+                      print('za', body, 'bodov získavaš známku E')
+                  else:
+                      print('za', body, 'bodov si nevyhovel a máš známku Fx')
+
+Takéto odsadzovanie príkazov je v Pythone veľmi dôležité a musíme byť pritom veľmi presní. Príkaz ``if``, ktorý sa nachádza vo vnútri niektorej vetvy iného ``if``, sa nazýva **vnorený príkaz if**.
+
+V Pythone existuje konštrukcia, ktorá uľahčuje takúto vnorenú sériu ``if``-ov:
+
+ ::
+
+  if podmienka_1:      # ak podmienka_1 platí, vykonaj 1. skupinu príkazov
+      prikaz
+      ...
+  elif podmienka_2:    # ak podmienka_1 neplatí, ale platí podmienka_2, ...
+      prikaz
+      ...
+  elif podmienka_3:    # ak ani podmienka_1 ani podmienka_2 neplatia, ale platí podmienka_3, ...
+      prikaz
+      ...
+  else:                # ak žiadna z podmienok neplatí, ...
+      prikaz
+      ...
+
+Predchádzajúci program môžeme zapísať aj takto:
+
+ ::
+
+  body = int(input('Zadaj získaný počet bodov: '))
+  if body >= 90:
+      print('za', body, 'bodov získavaš známku A')
+  elif body >= 80:
+      print('za', body, 'bodov získavaš známku B')
+  elif body >= 70:
+      print('za', body, 'bodov získavaš známku C')
+  elif body >= 60:
+      print('za', body, 'bodov získavaš známku D')
+  elif body >= 50:
+      print('za', body, 'bodov získavaš známku E')
+  else:
+      print('za', body, 'bodov si nevyhovel a máš známku Fx')
+
+Ukážme ešte jedno riešenie tejto úlohy - jednotlivé podmienky zapíšeme ako intervaly:
+
+ ::
+
+  body = int(input('Zadaj získaný počet bodov: '))
+  if body >= 90:
+      print('za', body, 'bodov získavaš známku A')
+  if 80 <= body < 90:
+      print('za', body, 'bodov získavaš známku B')
+  if 70 <= body < 80:
+      print('za', body, 'bodov získavaš známku C')
+  if 60 <= body < 70:
+      print('za', body, 'bodov získavaš známku D')
+  if 50 <= body < 60:
+      print('za', body, 'bodov získavaš známku E')
+  if body < 50:
+      print('za', body, 'bodov si nevyhovel a máš známku Fx')
+
+V tomto riešení využívame to, že ``else``-vetva v príkaze ``if`` môže chýbať a teda pri neplatnej podmienke, sa nevykoná nič:
+
+ ::
+
+  if podmienka:        # ak podmienka platí, vykonaj skupinu príkazov
+      prikaz
+      prikaz
+      ...              # ak podmienka neplatí, nevykonaj nič
+
+Zrejme každý príkaz ``if`` po kontrole podmienky (a prípadnom výpise správy) pokračuje na ďalšom príkaze, ktorý nasleduje za ním (a má rovnaké odsadenie ako ``if``). Okrem toho vidíme, že teraz sú niektoré podmienky trochu zložitejšie, lebo testujeme, či sa hodnota nachádza v nejakom intervale. (podmienku ``80 <= body < 90`` sme mohli zapísať aj takto ``90 > body >= 80``)
+
+V Pythone môžeme zapisovať podmienky podobne, ako je to bežné v matematike:
+
+====================== =========================================================================
+``body < 90``          je menšie ako
+``body <= 50``         je menšie alebo rovné
+``body == 50``         rovná sa
+``body != 77``         nerovná sa
+``body > 100``         je väčšie ako
+``body >= 90``         je väčšie alebo rovné
+``40 < body <= 50``    je väčšie ako ... a zároveň menšie alebo rovné ...
+``a < b < c``          ``a`` je menšie ako ``b`` a zároveň je ``b`` menšie ako ``c``
+====================== =========================================================================
+
+Ukážme použitie podmieneného príkazu aj v grafickom programe. Program na náhodné pozície nakreslí 1000 malých krúžkov, pričom tie z nich, ktoré sú v ľavej polovici plochy budú červené a zvyšné v pravej polovici (teda ``else`` vetva) budú modré:
+
+ ::
+
+  import tkinter
+  import random
+
+  canvas = tkinter.Canvas(bg='white', width=300, height=300)
+  canvas.pack()
+
+  for i in range(1000):
+      x = random.randrange(300)
+      y = random.randrange(300)
+      if x < 150:
+          farba = 'red'
+      else:
+          farba = 'blue'
+      canvas.create_oval(x-5, y-5, x+5, y+5, fill=farba, outline='')
+
+..
+  obrazok
+
+Skúsme pridať ešte jednu podmienku: všetky bodky v spodnej polovici (``y > 150``) budú zelené, takže rozdelenie na červené a modré bude len v hornej polovici. Jedno z možných riešení:
+
+ ::
+
+  import tkinter
+  import random
+
+  canvas = tkinter.Canvas(bg='white', width=300, height=300)
+  canvas.pack()
+
+  for i in range(1000):
+      x = random.randrange(300)
+      y = random.randrange(300)
+      if y < 150:
+          if x < 150:
+              farba = 'red'
+          else:
+              farba = 'blue'
+      else:
+          farba = 'green'
+      canvas.create_oval(x-5, y-5, x+5, y+5, fill=farba, outline='')
+
+..
+  obrazok
+
+Podobne, ako sme to robili s intervalmi bodov pre rôzne známky, môžeme aj toto riešenie zapísať tak, že použijeme komplexnejšiu podmienku:
+
+ ::
+
+  import tkinter
+  import random
+
+  canvas = tkinter.Canvas(bg='white', width=300, height=300)
+  canvas.pack()
+
+  for i in range(1000):
+      x = random.randrange(300)
+      y = random.randrange(300)
+      if y < 150 and x < 150:
+          farba = 'red'
+      elif y < 150 and x >= 150:
+          farba = 'blue'
+      else:
+          farba = 'darkgreen'
+      canvas.create_oval(x-5, y-5, x+5, y+5, fill=farba, outline='')
+
+..
+  obrazok
+
+Podmienky v Pythone môžu obsahovať logické operácie - majú obvyklý význam z matematiky:
+
+* podmienka1 ``and`` podmienka2 ... (a súčasne) znamená, že musia platiť obe podmienky
+* podmienka1 ``or`` podmienka2 ... (alebo) znamená, že musí platiť aspoň jedna z podmienok
+* ``not`` podmienka ... (neplatí) znamená, že daná podmienka neplatí
+
+Otestovať rôzne kombinácie podmienok môžeme napr. takto:
+
+ ::
+
+  >>> a = 10
+  >>> b = 7
+  >>> a < b
+  False
+  >>> a >= b + 3
+  True
+  >>> b < a < 2 * b
+  True
+  >>> a != 7 and b == a - 3
+  True
+  >>> a == 7 or b == 10
+  False
+  >>> not a == b
+  True
+  >>> 1 == '1'
+  False
+  >>> 1 < '2'
+  ...
+  TypeError: unorderable types: int() < str()
+
+Všimnite si, že podmienky ktoré platia, majú hodnotu ``True`` a ktoré neplatia, majú ``False`` - sú to dve špeciálne hodnoty, ktoré Python používa ako výsledky porovnávania - tzv. logických výrazov. Sú **logického typu**, tzv. ``bool``. Môžeme to skontrolovať:
+
+ ::
+
+  >>> type(1 + 2)
+  <class 'int'>
+  >>> type(1 / 2)
+  <class 'float'>
+  >>> type('12')
+  <class 'str'>
+  >>> type(1 < 2)
+  <class 'bool'>
+
+
+Logické operácie
+................
+
+Pozrime sa podrobnejšie na logické operácie ``and``, ``or`` a ``not``. Tieto operácie samozrejme fungujú pre logické hodnoty ``True`` a ``False``.
+
+Logický súčin **a súčasne**:
+
+=========  =========  =========
+A          B          A and B
+=========  =========  =========
+``False``  ``False``  ``False``
+``True``   ``False``  ``False``
+``False``  ``True``   ``False``
+``True``   ``True``   ``True``
+=========  =========  =========
+
+Logický súčet **alebo**:
+
+=========  =========  =========
+A          B          A or B
+=========  =========  =========
+``False``  ``False``  ``False``
+``True``   ``False``  ``True``
+``False``  ``True``   ``True``
+``True``   ``True``   ``True``
+=========  =========  =========
+
+Negácia:
+
+=========  =========
+A          not A
+=========  =========
+``False``  ``True``
+``True``   ``False``
+=========  =========
+
+Logické operácie fungujú nielen pre logický typ ale aj pre skoro všetky ďalšie typy. V tomto prípade Python pre každý typ definuje prípady, ktoré sa chápu ako ``False`` a tým je aj určené, že všetky ďalšie hodnoty tohto typu sa chápu ako ``True``. Ukážme prípady pre doteraz známe typy, ktoré označujú logickú hodnotu ``False``:
+
+========== ================ ============
+typ        ``False``        ``True``
+========== ================ ============
+``int``    ``x == 0``       ``x != 0``
+``float``  ``x == 0.0``     ``x != 0.0``
+``str``    ``x == ''``      ``x != ''``
+========== ================ ============
+
+Toto znamená, že v prípadoch, keď Python očakáva logickú hodnotu (napr. v príkaze ``if``, alebo v operáciách ``and``, ``or``, ``not``) môžeme uvádzať aj hodnoty iných typov. Napr.
+
+ ::
+
+  pocet = int(input('zadaj:'))
+  if pocet:
+      print('pocet je rôzny od 0')
+  else:
+      print('pocet je 0')
+  meno = input('zadaj:')
+  if meno:
+      print('meno nie je prázdny reťazec')
+  else:
+      print('meno je prázdny reťazec')
+
+Logické operácie majú v skutočnosti trochu rozšírenú interpretáciu:
+
+.. topic:: operácia: prvý ``and`` druhý
+
+   * ak **prvý** nie je ``False``, tak
+      * výsledkom je **druhý**
+   * inak (teda **prvý** je ``False``)
+      * výsledkom je **prvý**
+
+.. topic:: operácia: prvý ``or`` druhý
+
+   * ak **prvý** nie je ``False``, tak
+      * výsledkom je **prvý**
+   * inak (teda **prvý** je ``False``)
+      * výsledkom je **druhý**
+
+.. topic:: operácia: ``not`` prvý
+
+   * ak **prvý** nie je ``False``, tak
+      * výsledkom je ``False``
+   * inak
+      * výsledkom je ``True``
+
+Napr.
+
+ ::
+
+  >>> 1 + 2 and 3 + 4       # keďže 1+2 nie je False, výsledkom je 3+4
+  7
+  >>> 'ahoj' or 'Python'    # keďže 'ahoj' nie je False, výsledkom je 'ahoj'
+  'ahoj'
+  >>> '' or 'Python'        # keďže '' je False, výsledkom je 'Python'
+  'Python'
+  >>> 3 < 4 and 'kuk'       # keďže 3<4 nie je False, výsledkom je 'kuk'
+  'kuk'
+
+Podmienený príkaz sa často používa pri náhodnom rozhodovaní. Napr. hádžeme mincou (náhodné hodnoty 0 a 1) a ak padne 1, kreslíme náhodnú kružnicu, inak náhodný štvorec. Toto opakujeme 10-krát:
+
+ ::
+
+  import tkinter
+  import random
+
+  canvas = tkinter.Canvas(bg='white', width=300, height=300)
+  canvas.pack()
+
+  for i in range(10):
+      x = random.randrange(300)
+      y = random.randrange(300)
+      a = random.randrange(5, 50)
+
+      if random.randrange(2):               # t.j. random.randrange(2) != 0
+          canvas.create_oval(x-a, y-a, x+a, y+a)
+      else:
+          canvas.create_rectangle(x-a, y-a, x+a, y+a)
+
+Približne rovnaké výsledky by sme dostali, ak by sme hádzali kockou so 6 možnosťami (``random.randrange(1, 7)``) a pre čísla 1, 2, 3 by sme kreslili kružnicu inak štvorec.
+
+Túto ideu môžeme využiť aj pre takúto úlohu: vygenerujte 1000 farebných štvorčekov - modré a červené, pričom ich pomer je **1:50**, t.j. na 50 červených štvorčekov pripadne približne 1 modrý:
+
+ ::
+
+  import tkinter
+  import random
+
+  canvas = tkinter.Canvas(bg='white', width=300, height=300)
+  canvas.pack()
+
+  for i in range(1000):
+      x = random.randrange(300)
+      y = random.randrange(300)
+      if random.randrange(50):             # t.j. random.randrange(50) != 0
+          farba = 'red'
+      else:
+          farba = 'blue'
+      canvas.create_rectangle(x-5, y-5, x+5, y+5, fill=farba, outline='')
+
+..
+  obrazok
+  
+Ďalší príklad zisťuje, akých deliteľov má zadané číslo:
+
+ ::
+
+  cislo = int(input('Zadaj číslo: '))
+  pocet = 0
+  print('delitele:', end=' ')
+  for delitel in range(1, cislo+1):
+      if cislo % delitel == 0:
+          pocet += 1
+          print(delitel, end=' ')
+  print()
+  print('počet deliteľov:', pocet)
+
+Výstup môže byť napríklad takýto:
+
+ ::
+
+  Zadaj číslo: 100
+  delitele: 1 2 4 5 10 20 25 50 100
+  počet deliteľov: 9
+
+Malou modifikáciou tejto úlohy vieme urobiť ďalšie dva programy. Prvý zisťuje, či je číslo prvočíslo:
+
+ ::
+
+  cislo = int(input('Zadaj číslo: '))
+  pocet = 0
+  for delitel in range(1, cislo+1):
+      if cislo % delitel == 0:
+          pocet += 1
+  if pocet == 2:
+      print(cislo, 'je prvočíslo')
+  else:
+      print(cislo, 'nie je prvočíslo')
+      
+Po spustení napr.:
+
+ ::
+ 
+  Zadaj číslo: 101
+  101 je prvočíslo
+
+Druhý program zisťuje, či je nejaké číslo dokonalé, t.j. súčet všetkých deliteľov menších ako samotné číslo sa rovná samotnému číslu. Na základe tohto nájde (postupne preverí) všetky dokonalé čísla do 10000:
+
+ ::
+
+  print('dokonalé čísla do 10000 sú', end=' ')
+  for cislo in range(1,10001):
+      sucet = 0
+      for delitel in range(1, cislo):
+          if cislo % delitel == 0:
+              sucet += delitel
+      if sucet == cislo:
+          print(cislo, end=' ')
+  print()
+  print('=== viac ich už nie je ===')
+
+Program vypíše:
+
+ ::
+
+  dokonalé čísla do 10000 sú 6 28 496 8128
+  === viac ich už nie je ===
+
+
+Podmienený cyklus
+-----------------
+
+V Pythone existuje konštrukcia cyklu, ktorá opakuje vykonávanie postupnosti príkazov v závislosti od nejakej podmienky:
+
+ ::
+
+  while podmienka:              # opakuj príkazy, kým platí podmienka
+      prikaz
+      prikaz
+      ...
+
+Vidíme podobnosť s podmieneným príkazom ``if`` - vetvením. Tento nový príkaz postupne:
+
+* zistí hodnotu podmienky, ktorá je zapísaná za slovom ``while``
+* ak má táto podmienka hodnotu ``False``, blok príkazov, ktorý je telom cyklu, sa preskočí a pokračuje sa na nasledovnom príkaze za celým while-cyklom (podobne ako v príkaze ``if``), hovoríme, že sa ukončilo vykonávanie cyklu
+* ak má podmienka hodnotu ``True``, vykonajú sa všetky príkazy v tele cyklu (odsunutom bloku príkazov)
+* a znovu sa testuje podmienka za slovom ``while``, t.j. celé sa to opakuje
+
+Najprv zapíšeme pomocou tohto cyklu, to čo už vieme pomocou for-cyklu:
+
+ ::
+
+  for i in range(1, 21):
+      print(i, i * i)
+
+Vypíše tabuľku druhých mocnín čísel od 1 do 20. Prepis na cyklus ``while`` znamená, že zostavíme podmienku, ktorá bude testovať, napr. premennú ``i``: tá nesmie byť väčšia ako 20. Samozrejme, že už pred prvou kontrolou premennej ``i`` v podmienke cyklu ``while``, musí mať nejakú hodnotu:
+
+ ::
+
+  i = 1
+  while i < 21:
+      print(i, i * i)
+      i += 1
+
+V cykle sa vykoná ``print()`` a zvýši sa hodnota premennej ``i`` o jedna.
+
+``while``-cykly sa ale častejšie používajú vtedy, keď zápis pomocou ``for``-cyklu je príliš komplikovaný, alebo sa ani urobiť nedá.
+
+Ukážeme to na programe, ktorý bude vedľa seba kresliť stále sa zväčšujúce štvorce postupne so stranami 10, 20, 30, ... Pritom bude dávať pozor, aby naposledy nakreslený štvorec "nevypadol" z plochy - teda chceme skončiť skôr, ako by sme nakreslili štvorec, ktorý sa už celý nezmestí do grafickej plochy. Štvorce so stranou ``a`` budeme kresliť takto:
+
+ ::
+
+  canvas.create_rectangle(x, 200, x+a, 200-a)
+
+vďaka čomu, všetky ležia na jednej priamke (``y=200``). Keď teraz budeme posúvať x-ovú súradnicu vždy o veľkosť nakresleného štvorca, ďalší bude ležať tesne vedľa neho.
+
+Program pomocou while-cyklu zapíšeme takto:
+
+ ::
+
+  sirka = int(input('šírka plochy: '))
+
+  import tkinter
+  canvas = tkinter.Canvas(bg='white', width=sirka)
+  canvas.pack()
+
+  x = 5
+  a = 10
+  while x + a < sirka:
+      canvas.create_rectangle(x, 200, x+a, 200-a)
+      x = x + a
+      a = a + 10
+  # príkazy za cyklom
+      
+..
+  obrázok
+  
+Program pracuje korektne pre rôzne šírky grafickej plochy. Ak zväčšovanie strany štvorca ``a = a + 10`` nahradíme ``a = 2 * a``, program bude pracovať aj s takto zväčšovanými štvorcami (strany budú postupne 10, 20, 40, 80, ...).
+
+Zhrňme, ako funguje tento typ cyklu:
+
+1. vyhodnotí sa podmienka ``x + a < sirka``, t.j. pravý okraj štvorca, ktorý práve chceme nakresliť, sa ešte celý zmestí do grafickej plochy
+2. ak je podmienka splnená (pravdivá), postupne sa vykonajú všetky príkazy, t.j. nakreslí sa ďalší štvorec so stranou ``a`` a potom sa posunie ľavý okraj budúceho štvorca o veľkosť práve nakresleného štvorca ``a`` a tiež sa ešte zmení veľkosť budúceho štvorca ``a`` o 10
+3. po vykonaní tela cyklu sa pokračuje v 1. kroku, t.j. opäť sa vyhodnotí podmienka
+4. ak podmienka nie je splnená (nepravda), cyklus končí a ďalej sa pokračuje v príkazoch za cyklom
+
+Uvedomte si, že podmienka nehovorí, kedy má cyklus skončiť, ale naopak - kým podmienka platí, vykonávajú sa všetky príkazy v tele cyklu.
+
+Vyššie sme zostavili program, ktorý zisťoval, či je zadané číslo prvočíslo. Použili sme for-cyklus, v ktorom sme zadané číslo postupne delili všetkými číslami, ktoré sú menšie ako samotné číslo. Ak si uvedomíme, že na zisťovanie prvočísla nepotrebujeme skutočný počet deliteľov, ale malo by nám stačiť zistenie, či existuje aspoň jeden deliteľ. Keď sa vyskytne prvý deliteľ (t.j. platí ``cislo % delitel != 0``), cyklus môžeme ukončiť a vyhlásiť, že číslo nie je prvočíslo. Ak ani jedno číslo nie je deliteľom nášho čísla, hodnota premennej ``delitel`` dosiahne ``cislo`` a to je situácia, keď cyklus tiež skončí (t.j. keď ``delitel == cislo``, našli sme prvočíslo). Zapíšeme to while-cyklom:
+
+ ::
+
+  cislo = int(input('Zadaj číslo: '))
+  delitel = 2
+  while delitel < cislo and cislo % delitel != 0:
+      delitel = delitel + 1
+
+  if delitel == cislo:
+      print(cislo, 'je prvočíslo')
+  else:
+      print(cislo, 'nie je prvočíslo')
+
+Do podmienky while-cyklu sme pridali novú časť. Operátor ``and`` tu označuje to, že aby sa cyklus opakoval, musia byť splnené obe časti. Uvedomte si, že **cyklus skončí vtedy**, keď prestane platiť zadaná podmienka, t.j. (a ďalej to matematicky upravíme):
+
+* ``not (delitel < cislo and cislo % delitel != 0)``
+* ``not delitel < cislo or not cislo % delitel != 0``
+* ``delitel >= cislo or cislo % delitel == 0``
+
+while-cyklus teda skončí vtedy, keď ``delitel >= cislo``, alebo ``cislo % delitel == 0``.
+
+
+Zisťovanie druhej odmocniny
+...........................
+
+Ukážeme, ako zistíme druhú odmocninu čísla aj bez volania funkcie ``math.sqrt(x)``, resp. umocňovaním na jednu polovicu ``x**0.5``.
+
+Prvé riešenie:
+
+ ::
+
+  cislo = float(input('zadaj cislo:'))
+
+  x = 1
+  while x ** 2 < cislo:
+      x = x + 1
+
+  print('odmocnina', cislo, 'je', x)
+
+Takto nájdené riešenie je veľmi nepresné, lebo ``x`` zvyšujeme o 1, takže, napr. odmocninu z 26 vypočíta ako 6. Skúsme zjemniť krok, o ktorý sa mení hľadané ``x``:
+
+ ::
+
+  cislo = float(input('zadaj cislo:'))
+
+  x = 1
+  while x ** 2 < cislo:
+      x = x + 0.001
+
+  print('odmocnina', cislo, 'je', x)
+
+Teraz dáva program lepšie výsledky, ale pre väčšiu zadanú hodnotu mu to citeľne dlhšie trvá - skúste zadať napr. 10000000. Keďže mu vyšiel výsledok približne 3162.278 a dopracoval sa k nemu postupným pripočítavaním čísla 0.001 k štartovému 1, musel urobiť vyše 3 miliónov pripočítaní a tiež toľkokrát testov vo while-cykle (podmienky ``x ** 2 < cislo``). Kvôli tomuto je takýto algoritmus nepoužiteľne pomalý.
+
+Využijeme inú ideu:
+
+* zvolíme si interval, v ktorom sa určite bude nachádzať hľadaný výsledok (hľadaná odmocnina), napr. nech je to interval ``<1, cislo>`` (pre čísla väčšie ako 1 je aj odmocnina väčšia ako 1 a určite je menšia ako samotne ``cislo``)
+* ako ``x`` (prvý odhad nášej hľadanej odmocniny) zvolíme stred tohto intervalu
+* zistíme, či je druhá mocnina tohto ``x`` väčšia ako zadané ``cislo`` alebo menšia
+* ak je väčšia, tak upravíme predpokladaný interval, tak že jeho hornú hranicu zmeníme na ``x``
+* ak je ale menšia, upravíme dolnú hranicu intervalu na ``x``
+* tým sa nám interval zmenšil na polovicu
+* toto celé opakujeme, kým už nie je nájdené ``x`` dostatočne blízko k hľadanému výsledku, t.j. či sa nelíši od výsledku menej ako zvolený rozdiel (epsilón)
+
+Zapíšme to:
+
+ ::
+
+  cislo = float(input('zadaj cislo:'))
+
+  od = 1
+  do = cislo
+
+  x = (od + do)/2
+
+  pocet = 0
+  while abs(x ** 2 - cislo) > 0.001:
+      if x ** 2 > cislo:
+          do = x
+      else:
+          od = x
+      x = (od + do) / 2
+      pocet += 1
+
+  print('druhá odmocnina', cislo, 'je', x)
+  print('počet prechodov while-cyklom bol', pocet)
+
+Ak spustíme program pre 10000000 dostávame:
+
+ ::
+
+  zadaj cislo:10000000
+  druhá odmocnina 10000000.0 je 3162.2776600480274
+  počet prechodov while-cyklom bol 44
+
+čo je výrazné zlepšenie oproti predchádzajúcemu riešeniu, keď prechodov while-cyklom (hoci jednoduchších) bolo vyše 3 miliónov.
+
+
+Nekonečný cyklus
+................
+
+Cyklus s podmienkou, ktorá má stále hodnotu ``True``, bude nekonečný. Napr.
+
+ ::
+ 
+  i = 0
+  while i < 10:
+      i -= 1
+      
+Nikdy neskončí, lebo premenná ``i`` bude stále menšia ako 10. Takéto výpočty môžeme prerušiť stlačením klávesov **Ctrl/C**.
+
+Aj nasledovný cyklus je úmyselne nekonečný:
+
+ ::
+ 
+  while 1:
+      pass
+      
+V Pythone existuje príkaz ``break``, ktorý môžeme použiť v tele cyklu a vtedy sa zvyšok cyklu nevykoná. V tomto prípade sa bude pokračovať až na príkazoch za cyklom (funguje to aj pre cyklus ``for`` nielen pre ``while``). Najčastejšie sa ``break`` vyskytuje v príkaze ``if``, napr.
+
+ ::
+ 
+  sucet = 0
+  while True:
+      retazec = input('zadaj cislo: ')
+      if retazec == '':
+          break
+      sucet += int(retazec)
+  print('sucet precitanych cisel =', sucet)
+  
+V tomto príklade sa čítajú čísla zo vstupu, kým nezadáme prázdny reťazec: vtedy cyklus končí a program vypíše súčet prečítaných čísel.
+
+
+
+
+Cvičenie
+--------
+
+1. Zistite, akú hodnotu ``True`` alebo ``False`` (alebo inú) majú tieto výrazy:
+
+  * najprv to skúste bez počítača, potom to skontrolujte v Pythone
+
+    ::
+   
+     x, y = 7, 'ab'
+     8 < x <= 7
+     x <= 3 + x // 2
+     y != 2 * x or 2 * y == 'abab'
+     x < x + 1 < 2 * x
+     
+     x // 8 or x * y
+     x or y
+     x and y
+     not y
+     not x % 2
+
+2. Napíšte program, ktorý najprv prečíta 3 desatinné čísla ``a``, ``b``, ``c`` a potom vypíše, koľko reálnych ale rôznych koreňov má kvadratická rovnica so zadanými koeficientami (zrejme výsledkom bude 0, alebo 1, alebo 2)
+
+   * napr.
+
+     ::
+     
+      zadaj a: 1
+      zadaj b: 2
+      zadaj c: 1
+      kvadraticka rovnica ma jeden koren
+
+      zadaj a: 1
+      zadaj b: 0
+      zadaj c: 1
+      kvadraticka rovnica nema realne korene
+
+      zadaj a: 1
+      zadaj b: 2
+      zadaj c: -3
+      kvadraticka rovnica ma dva rozne korene
+
+3. Máme daný tento program.
+
+   * ručne bez počítača zistite, čo vypočíta pre vstupnú hodnotu **11**:
+
+     ::
+
+      cislo1 = 0
+      cislo2 = int(input('? '))
+      while cislo2 > 0:
+          if cislo2 % 2 == 0:
+              cislo2 //= 2
+          else:
+              cislo2 -= 1
+          cislo1 += 1
+      print(cislo1)
+
+   * Vedeli by ste matematikovi, ktorý nevie programovať ale pozná dvojkovú sústavu, vysvetliť, čo tento program vypočíta?
+
+4. Napíšte program, ktorý najprv prečíta celé číslo a potom opakuje blok príkazov, kým je toto číslo väčšie ako 0: teda vypíše jeho poslednú cifru a potom ho ešte vydelí 10. Takto by ste mali dosiahnuť postupný výpis všetkých cifier vstupného čísla ale od konca (od poslednej cifry).
+
+  * napr.
+
+    ::
+    
+     zadaj cislo: 50273
+     3
+     7
+     2
+     0
+     5
+
+5. Prerobte riešenie predchádzajúceho príkladu (4) tak, že cifry sa nebudú vypisovať, ale sčitovať. Takto by ste mali dostať **ciferný súčet** daného čísla
+
+  * napr.
+
+    ::
+
+     zadaj cislo: 50273
+     ciferny sucet je 17
+
+6. Využite ideu riešenia predchádzajúceho príkladu a vyriešte: program zistí, koľkokrát sa v zadanom čísle objaví nejaká konkrétna cifra
+
+  * napr.
+
+    ::
+    
+     zadaj cislo: 123456789123456781234567
+     zadaj cifru: 8
+     cifra 8 sa vyskytla 2 krat
+     
+     zadaj cislo: 123456789123456781234567
+     zadaj cifru: 0
+     cifra 0 sa vyskytla 0 krat
+     
+  * vyskúšajte to aj pre nejaké veľké číslo, napr. ``2 ** 1000``
+
+
+7. Napíšte program, ktorý najprv prečíta celé číslo a vypíše jeho rozklad na prvočinitele.
+
+   * snažte sa vyrobiť výpis v takomto tvare:
+
+     ::
+
+      zadaj cislo: 24
+      24 = 2 * 2 * 2 * 3
+
+      zadaj cislo: 31
+      31 = 31
+
+      zadaj cislo: 65536
+      65536 = 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2
+
+
+8. Napíšte program, ktorý nájde také najväčšie ``n``, pre ktoré ``n!`` (faktoriál) je menší ako 1000000.
+
+  * použite while-cyklus
+
+9. **Fibonacciho postupnosť** sa skladá z čísel 0,1,1,2,3,5,8,13,21, ..., teda každé ďalšie v postupnosti je súčtom dvoch predchádzajúcich. Napíšte program, ktorý zistí najväčšie fibonacciho číslo, ktoré nie je väčšie ako 1000000.
+
+  * použite while-cyklus
+
+10. Máme daný tento program.
+
+   * najprv bez počítača odhadnite čo urobí
+
+     ::
+     
+      for i in range(10):
+          while random.randrange(4):
+              print(end='x')
+          print()
+          
+   * uvažujte nad tým, čo nové ste sa na tomto príklade naučili
+
+11. Grafická plocha má veľkosť ``vel`` x ``vel`` (``vel`` je konštanta, napr. ``vel = 500``). Generujeme do nej ``n`` náhodných bodiek (malé krúžky s polomerom 3), pričom súradnice ``x`` a ``y`` sú z intervalu <0, ``vel``). Ak vzdialenosť vygenerovanej bodky od bodu (0, 0) je menšia ako ``vel``, bodka bude červená, inak bude modrá. Počet bodiek ``n`` prečítajte zo vstupu. Počas generovania bodiek spočítajte, koľko z nich je červených. Na záver program vypíše pomer počtu červených bodiek ku všetkým vygenerovaným krát 4.
+
+  * Vedeli by ste zdôvodniť, prečo sa tento pomer pre veľké ``n`` blíži k číslu ``pi``?
+
+12. Grafická plocha má veľkosť 300x200 a generujeme do nej náhodné bodky (malé krúžky s polomerom 3), pričom súradnica ``x`` je z intervalu <0,300) a ``y`` <0, 200). Ak vzdialenosť vygenerovanej bodky od bodu (100, 100) je menšia ako 80, bodka bude červená, inak ak vzdialenosť od bodu (180, 100) je menšia ako 90, bodka bude modrá, inak bodka bude čierna. Vygenerujte ``n`` takýchto bodiek.
+
+  * ``n`` prečítajte zo vstupu
+
+13. Nastavte grafickú plochu na veľkosť ``sirka, vyska = 250, 250``. Nakreslite do nej šachovnicu 8x8 štvorčekov každý bude veľkosti 30x30, pričom ľavý horný štvorček má ľavý horný roh na súradniciach (5, 5). Pri kreslení striedavo zafarbujte políčka šachovnice dvomi farbami, napr. červenou a modrou (dajte pozor na rozostavenie farieb ako na šachovnici).
+
+  * riešte dvomi vnorenými for-cyklami
+
+14. Predchádzajúci príklad (13) riešte tak, že sa nenakreslí šachovnica veľkosti 8x8, ale šachovnica, v ktorej je len toľko štvorčekov v riadku, resp. v stĺpci, aby sa každý z nich zmestil do grafickej plochy. Napr. pre ``sirka, vyska = 200, 150`` bude mať šachovnica v každom riadku len 6 štvorčekov a riadky budú len 4.
+
+  * namiesto dvoch vnorených for-cyklov použite while-cykly
+

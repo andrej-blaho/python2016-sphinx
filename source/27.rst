@@ -1,0 +1,947 @@
+Spájané zoznamy
+===============
+
+Predchádzajúca prednáška sa venovala spájanej dátovej štruktúre, v ktorej mal každý prvok svojho nasledovníka (okrem posledného). Takejto štruktúre sme hovorili **spájaný zoznam** (linked list).
+
+Zhrňme z minulej prednášky najdôležitejšie funkcie, ktoré pracujú so spájanými zoznamami. Používali sme túto deklaráciu triedy ``Vrchol``:
+
+ ::
+
+  class Vrchol:
+      def __init__(self, data, next=None):
+          self.data = data
+          self.next = next
+
+Takýto ``Vrchol`` využívali všetky ďalšie funkcie:
+
+ ::
+
+  def vypis(zoznam):                      # vypise prvky zoznamu
+      while zoznam is not None:
+          print(zoznam.data, end=' -> ')
+          zoznam = zoznam.next
+      print(None)
+
+  def vyrob(postupnost):                  # z prvkov danej postupnosti vytvori novy zoznamu
+      zoz = None
+      for hodnota in reversed(postupnost):
+          zoz = Vrchol(hodnota, zoz)
+      return zoz
+
+  def pocet(zoznam):                      # zisti pocet prvkov zoznamu
+      vysl = 0
+      while zoznam is not None:
+          vysl += 1
+          zoznam = zoznam.next
+      return vysl
+
+  def zisti(zoznam, hodnota):             # zisti, ci je prvok v zozname
+      while zoznam is not None:
+          if zoznam.data == hodnota:
+              return True
+          zoznam = zoznam.next
+      return False
+
+  def pridaj_zaciatok(zoz, hodnota):      # pridaj prvok na zaciatok zoznamu
+      return Vrchol(hodnota, zoz)
+
+  def pridaj_koniec(zoz, hodnota):        # pridaj prvok na koniec zoznamu
+      if zoz is None:
+          return Vrchol(hodnota)
+      posledny = zoz
+      while posledny.next is not None:
+          posledny = posledny.next
+      posledny.next = Vrchol(hodnota)
+      return zoz
+
+V podobnom duchu boli aj ďalšie funkcie, ktoré ste programovali na cvičeniach. Keď sa vytvára nejaká nová dátová štruktúra, veľmi často sa všetky funkcie zapuzdria do jedného celku - do jednej triedy, pričom sa skryjú realizačné detaily a aj nejaké pomocné funkcie a atribúty (tzv. **enkapsulácia**).
+
+Trieda spájaný zoznam
+---------------------
+
+Navrhneme novú triedu ``Zoznam`` (v anglickej verzii my sme ju nazvali ``LinkedList``), pre ktorú zadefinujeme najdôležitejšie metódy. Všimnite si, že definíciu **pomocnej triedy** ``Vrchol`` sme vnorili do triedy ``Zoznam``. Tým, že sme definíciu tejto triedy vnorili, oznamujeme, že patrí do triedy ``Zoznam`` a zrejme sa bude využívať v metódach tejto triedy. Všetky funkcie, ktoré pracovali so spájaným zoznamom, mali prvý parameter referenciu na prvý prvok zoznamu. Teraz tento parameter zastúpi atribút ``zac``, teda **začiatok zoznamu**. Už vieme, že si bude treba dať pozor, aby sem túto referenciu nepokazili. Tiež si všimnite, že funkciu ``vyrob(postupnost)`` sme zakomponovali priamo inicializácie zoznamu:
+
+ ::
+
+  class Zoznam:
+
+      #----- vnorena trieda -----
+      class Vrchol:
+          def __init__(self, data, next=None):
+              self.data = data
+              self.next = next
+
+      #----- koniec vnorenej definicie triedy -----
+
+      def __init__(self, postupnost=None):
+          self.zac = None                   # zaciatok zoznamu
+          if postupnost is not None:
+              for hodnota in reversed(postupnost):
+                  self.pridaj_zaciatok(hodnota)
+
+      def vypis(self):                      # vypise prvky zoznamu
+          pom = self.zac
+          while pom is not None:
+              print(pom.data, end=' -> ')
+              pom = pom.next
+          print(None)
+
+      def pocet(self):                      # zisti pocet prvkov zoznamu
+          vysl = 0
+          pom = self.zac
+          while pom is not None:
+              vysl += 1
+              pom = pom.next
+          return vysl
+
+      def zisti(self, hodnota):             # zisti, ci je prvok v zozname
+          pom = self.zac
+          while pom is not None:
+              if pom.data == hodnota:
+                  return True
+              pom = pom.next
+          return False
+
+      def pridaj_zaciatok(self, hodnota):   # pridaj prvok na zaciatok zoznamu
+          self.zac = self.Vrchol(hodnota, self.zac)
+
+      def pridaj_koniec(self, hodnota):     # pridaj prvok na koniec zoznamu
+          if self.zac is None:
+              self.zac = self.Vrchol(hodnota)
+          pom = self.zac
+          while pom.next is not None:
+              pom = pom.next
+          pom.next = self.Vrchol(hodnota)
+
+Skôr ako to budeme testovať, všimnite si, že metódy ``pridaj_zaciatok()`` a ``pridaj_koniec()`` už nie sú také funkcie, ktoré vždy vracali novú referenciu na začiatok zoznamu - teraz túto referenciu už nepotrebujeme ako výsledok funkcie. Samotné metódy zmenia referenciu na začiatok v atribúte ``zac``. Tiež vidíte použite vnorenej triedy ``Vrchol``: aby sme mohli vytvoriť nový vrchol, musíme zapísať ``self.Vrchol(hodnota)``. Zapíšme nejaký jednoduchý test, aby sem si zvykli na prácu s touto dátovou štruktúrou:
+
+ ::
+
+  >>> zoz = Zoznam()
+  >>> zoz.pridaj_zaciatok(7)
+  >>> zoz.pridaj_koniec('abc')
+  >>> zoz.pridaj_zaciatok((1, 2))
+  >>> zoz.vypis()
+  (1, 2) -> 7 -> abc -> None
+  >>> zoz.pocet()
+  3
+  >>> zoz.zisti('abc')
+  True
+
+Funguje to podľa očakávania dobre. Len by to mohlo byť viac pythonovské:
+
+* namiesto metódy ``vypis()`` by mohlo byť radšej ``__repr__()`` alebo ``__str__()`` a teda by fungovalo napr. ``print(zoz)``
+* namiesto ``pocet()`` radšej ``__len__()`` a teda by fungovalo ``len(zoz)``
+* namiesto ``pridaj_koniec()`` radšej ``append()``, aby sa to podobalo pythonovskému pridávaniu na koniec poľa
+* namiesto ``zisti()`` radšej ``__contains__()`` a teda by fungovalo ``hodnota in zoz``
+
+Budeme sa snažiť aj ďalšie metódy zapisovať tak, aby sa so spájaným zoznamom pracovalo podobne ako s inými dátovými typmi. Prepíšme triedu ``Zoznam``:
+
+ ::
+
+  class Zoznam:
+      class Vrchol:
+          def __init__(self, data, next=None):
+              self.data = data
+              self.next = next
+
+      def __init__(self, postupnost=None):
+          self.zac = None                   # zaciatok zoznamu
+          if postupnost is not None:
+              for hodnota in reversed(postupnost):
+                  self.insert0(hodnota)
+
+      def __repr__(self):
+          vysl, pom = [], self.zac
+          while pom is not None:
+              vysl.append(repr(pom.data))
+              pom = pom.next
+          vysl.append('None')
+          return ' -> '.join(vysl)
+
+      def __len__(self):
+          vysl, pom = 0, self.zac
+          while pom is not None:
+              vysl += 1
+              pom = pom.next
+          return vysl
+
+      def __contains__(self, hodnota):
+          pom = self.zac
+          while pom is not None:
+              if pom.data == hodnota:
+                  return True
+              pom = pom.next
+          return False
+
+      def insert0(self, hodnota):
+          self.zac = self.Vrchol(hodnota, self.zac)
+
+      def append(self, hodnota):
+          if self.zac is None:
+              self.zac = self.Vrchol(hodnota)
+          pom = self.zac
+          while pom.next is not None:
+              pom = pom.next
+          pom.next = self.Vrchol(hodnota)
+
+Pristavme sa na dvoch posledných metódach:
+
+* metóda ``insert0()``, ktorá pridáva nový prvok na začiatok zoznamu, je veľmi rýchla, lebo obsahuje len jedno priradenie a bude trvať rovnaký čas bez ohľadu na to, či je doterajší zoznam krátky alebo obsahuje už veľa prvkov
+* metóda ``append()``, ktorá pridáva nový prvok na koniec zoznamu, je v niektorých prípadoch **veľmi pomalá**: ak už doterajší zoznam obsahuje obrovské množstvo prvkov (napr. 100000), pridať nový prvok na koniec bude trvať už citeľne nejaký nezanedbateľný čas (napr. 0.01 sekundy); keď takéto pridávanie urobíme 1000 krát, už to môžu byť desiatky sekúnd.
+
+Zrejme, čo v tejto metóde závisí od momentálnej veľkosti zoznamu, je vnútorný while-cyklus. Ak by sme sa ho dokázali zbaviť, aj metóda ``append()`` by mohla byť dostatočne rýchla. Tento cyklus nerobí nič iné, len hľadá momentálne posledný vrchol v zozname. Ak by sme ale okrem referencie na začiatok zoznamu zabezpečili pamätanie aj referencie na posledný vrchol, všetko by sa vyriešilo.
+
+Do inicializácie pridáme vytvorenie ďalšieho atribútu ``kon``, v ktorom vždy bude referencia na posledný vrchol zoznamu. Pri všetkých metódach, ktoré nejako modifikujú samotný spájaný zoznam, bude treba zabezpečiť, aby sa správne nastavila aj táto koncové referencia. V našom programe sa okrem inicializácie a metódy ``append()`` musí opraviť aj metóda ``insert0()``:
+
+ ::
+
+  class Zoznam:
+      class Vrchol:
+          def __init__(self, data, next=None):
+              self.data = data
+              self.next = next
+
+      def __init__(self, postupnost=None):
+          self.zac = self.kon = None                   # zaciatok a koniec zoznamu
+          if postupnost is not None:
+              for hodnota in postupnost:
+                  self.append(hodnota)
+
+      ...
+
+      def insert0(self, hodnota):
+          self.zac = self.Vrchol(hodnota, self.zac)
+          if self.kon is None:
+              self.kon = self.zac
+
+      def append(self, hodnota):
+          if self.zac is None:
+              self.kon = self.zac = self.Vrchol(hodnota)
+          else:
+              self.kon.next = self.Vrchol(hodnota)
+              self.kon = self.kon.next
+
+V tejto novej verzii v metóde ``append()`` už nie je žiaden cyklus a obsahuje len jeden test a niekoľko priradení. Môžete otestovať rýchlosť tejto metódy napr. takto:
+
+ ::
+
+  >>> zoz = Zoznam(range(100000))
+  >>> for i in range(100000):
+          zoz.append(i)
+  >>> len(zoz)
+  200000
+
+Doplňme do tejto implementácie triedy ``Zoznam`` aj metódy ``pop0()`` a ``pop()``, ktoré vyhodia a vrátia 1. prvok, resp. posledný prvok zoznamu (podobne, ako to robia metódy  ``list.pop(0)`` a ``list.pop()``):
+
+ ::
+
+  class Zoznam:
+      ...
+
+      def pop0(self):
+          if self.zac is None:
+              raise EmptyError
+          vysl = self.zac.data
+          self.zac = self.zac.next
+          if self.zac is None:
+              self.kon = None
+          return vysl
+
+      def pop(self):
+          if self.zac is None:
+              raise EmptyError
+          if self.zac.next is None:     # jednoprvkovy zoznam
+              vysl = self.zac.data
+              self.zac = self.kon = None
+              return vysl
+          self.kon = self.zac
+          while self.kon.next.next is not None:
+              self.kon = self.kon.next
+          vysl = self.kon.next.data
+          self.kon.next = None
+          return vysl
+
+Vidíme, že vyhodenie prvého prvku zoznamu (metóda ``pop0()``) je veľmi jednoduché a rýchle (nezávisí od momentálnej veľkosti zoznamu). Metóda na vyhodenie posledného prvku je už náročnejšia a obsahuje while-cyklus na nájdenie predposledného vrcholu zoznamu. Preto je táto metóda veľmi pomalá a už nám tu nepomôže ani *finta* s udržiavaním si referencie na posledný vrchol.
+
+Otestujme:
+
+ ::
+
+  >>> zoz = Zoznam(range(10000))
+  >>> for i in range(10000):
+          x = zoz.pop()
+
+Zhrňme základné metódy, ktoré pridávajú, resp. odoberajú prvok zo začiatku alebo konca zoznamu:
+
+* metóda ``insert0()`` vloží na začiatok zoznamu - je veľmi rýchla
+* metóda ``append()`` vloží na koniec zoznamu - je veľmi rýchla len ak využíva pomocnú referenciu na koniec zoznamu (inak je pomalá)
+* metóda ``pop0()`` vyberie zo začiatku zoznamu - je veľmi rýchla
+* metóda ``pop()`` vyberie z konca zoznamu - je veľmi pomalá a pre jednosmerný spájaný zoznam neexistuje spôsob, ako to urýchliť
+
+Keď sa budete niekedy rozhodovať, ako budete pracovať s nejakým spájaným zoznamom, spomeňte si na toto porovnanie rýchlostí a ak sa bude dať, snažte sa vyhnúť odoberaniu prvku z konca zoznamu.
+
+
+.. rubric:: Mapovacie metódy
+
+Zapíšme metódu, ktorá postupne prejde všetky vrcholy spájaného zoznamu a každému zmení hodnotu podľa zadanej funkcie:
+
+ ::
+
+  class Zoznam:
+      ...
+
+      def mapuj(self, funkcia):
+          pom = self.zac
+          while pom is not None:
+              pom.data = funkcia(pom.data)
+              pom = pom.next
+
+Otestujeme:
+
+ ::
+
+  >>> def fun(x): return x * x
+  >>> zoz = Zoznam(range(5))
+  >>> zoz.mapuj(fun)
+  >>> zoz
+  0 -> 1 -> 4 -> 9 -> 16 -> None
+
+Funguje to aj s ``lambda`` konštrukciou, napr.
+
+ ::
+
+  >>> zoz = Zoznam('Python')
+  >>> zoz.mapuj(lambda x: x.upper())
+  >>> zoz
+  'P' -> 'Y' -> 'T' -> 'H' -> 'O' -> 'N' -> None
+
+Parametrom funkcie môže byť aj nejaká podmienka, napr. takáto verzia ``mapuj``:
+
+ ::
+
+  class Zoznam:
+      ...
+
+      def mapuj(self, podmienka, funkcia):
+          pom = self.zac
+          while pom is not None:
+              if podmienka(pom.data):
+                  pom.data = funkcia(pom.data)
+              pom = pom.next
+
+napr.
+
+ ::
+
+  >>> zoz = Zoznam(range(1, 20, 2))
+  >>> zoz
+  1 -> 3 -> 5 -> 7 -> 9 -> 11 -> 13 -> 15 -> 17 -> 19 -> None
+  >>> zoz.mapuj(lambda x: x%3, lambda x: x*x)
+  >>> zoz
+  1 -> 3 -> 25 -> 49 -> 9 -> 121 -> 169 -> 15 -> 289 -> 361 -> None
+
+Ďalšia metóda vytvorí pole prvkov z prvkov spájaného zoznamu, ktoré spĺňajú nejakú podmienku:
+
+ ::
+
+  class Zoznam:
+      ...
+
+      def tolist(self, podmienka=None):
+          pole = []
+          pom = self.zac
+          while pom is not None:
+              if podmienka is None or podmienka(pom.data):
+                  pole.append(pom.data)
+              pom = pom.next
+          return pole
+
+napr.
+
+ ::
+
+  >>> zoz = Zoznam((1, 2, 'A', 4, 'B'))
+  >>> zoz.tolist(lambda x: isinstance(x, int))
+  [1, 2, 4]
+  >>> zoz.tolist()
+  [1, 2, 'A', 4, 'B']
+  >>> def podm(x): return type(x) == str
+  >>> zoz.tolist(podm)
+  ['A', 'B']
+
+
+.. rubric:: Spájaný zoznam a for-cyklus
+
+Už sme si zvykli, že prvky spájaného zoznamu môžeme prechádzať while cyklom, napr.
+
+ ::
+
+  class Zoznam:
+      ...
+
+      def sucet(self):
+          pom = self.zac
+          vysl = 0
+          while pom is not None:
+              vysl += pom.data
+              pom = pom.next
+          return vysl
+
+Žiaľ, prechádzať prvky spájaného zoznamu tak, ako to vie Python s poľom, n-ticou, množinou, atď. sa zatiaľ nedá. Ak by sme vyskúšali:
+
+ ::
+
+  >>> zoz = Zoznam((2, 3, 5, 7, 11))
+  >>> for prvok in zoz:
+          print(prvok)
+  ...
+  TypeError: 'Zoznam' object is not iterable
+
+alebo
+
+ ::
+
+  >>> for prvok in zoz.zac:
+          print(prvok.data)
+  ...
+  TypeError: 'Vrchol' object is not iterable
+
+Python vyhlási chybu ``TypeError``, lebo nevie, akým spôsobom by mal postupne prechádzať (iterovať) všetky prvky spájaného zoznamu. Uvidíme, že Python to dokáže, ale potrebuje na to, aby sme mu niečo o našej štruktúre prezradili.
+
+.. rubric:: Rekurzia v metóde
+
+Na cvičeniach ste zostavovali rekurzívnu funkciu, ktorá zisťovala počet prvkov spájaného zoznamu. Vaše riešenie mohlo vyzerať napr. takto:
+
+ ::
+
+  def pocet(zoz):
+      if zoz is None:
+          return 0
+      return pocet(zoz.next) + 1
+
+Ak by sme túto rekurziu chceli zapísať ako metódu triedy ``Zoznam``, najlepšie to urobíme ako vnorenú rekurzívnu funkciu do príslušnej metódy:
+
+ ::
+
+  class Zoznam:
+      ...
+
+      def pocet(self):
+          #----- vnorena funkcia
+          def pocet_rek(zoz):
+              if zoz is None:
+                  return 0
+              return pocet_rek(zoz.next) + 1
+          #----- koniec vnorenej funkcie
+
+          return pocet_rek(self.zac)
+
+Hoci táto rekurzívna funkcia nemá žiaden praktický význam (funguje len pre zoznamy kratšie ako 1000), ideu vnorených a hlavne rekurzívnych funkcií budeme neskôr používať veľmi často.
+
+Realizácia zásobníka
+....................
+
+V prednáške :doc:`25` sme sa zoznámili s dátovou štruktúrou zásobník. Využili sme ho hlavne pri spracovávaní aritmetických výrazov, ale aj ako mechanizmus, pomocou ktorého vieme nahradiť rekurziu zásobníkom.
+
+Zásobník sme realizovali pomocou poľa (typ ``list``):
+
+* operácia ``push()`` pridávala nový prvok na koniec poľa pomocou metódy ``pole.append()``
+* operácia ``pop()`` odoberala z poľa posledný prvok pomocou metódy ``pole.pop()``
+* operácia ``empty()`` zisťovala, či je pole prázdne
+
+Zásobník sa dá veľmi elegantne realizovať aj pomocou spájaného zoznamu:
+
+* v tomto prípade bude vrch zásobníka na začiatku zoznamu
+* operácia ``push()`` pridá nový prvok **na začiatok** spájaného zoznamu
+* operácia ``pop()`` odoberie prvok **zo začiatku** spájaného zoznamu
+* operácia ``empty()`` zistí, či je spájaný zoznam prázdny
+* operácia ``top()`` bude veľmi jednoduchá
+* opäť použijeme novú výnimku ``EmptyError``
+
+Zapíšme kompletný kód:
+
+ ::
+
+  class EmptyError(Exception): pass
+
+  class Stack:
+      class _Vrchol:
+          def __init__(self, data, next):
+              self.data = data
+              self.next = next
+
+      def __init__(self):
+          self._zac = None
+
+      def push(self, hodnota):
+          self._zac = self._Vrchol(hodnota, self._zac)
+
+      def pop(self):
+          if self.empty():
+              raise EmptyError
+          vysl = self._zac.data
+          self._zac = self._zac.next
+          return vysl
+
+      def top(self):
+          if self.empty():
+              raise EmptyError
+          return self._zac.data
+
+      def empty(self):
+          return self._zac is None
+
+Vidíte, že trieda ``Stack`` je veľmi zjednodušená verzia triedy ``Zoznam``.
+
+Realizácia radu
+...............
+
+V prednáške :doc:`25` sme sa zoznámili aj s ďalšou dátovou štruktúrou rad: využili sme ho v domácom zadaní.
+
+Aj rad sme realizovali pomocou poľa (typ ``list``):
+
+* operácia ``enqueue()`` pridávala nový prvok na koniec poľa pomocou metódy ``pole.append()``
+* operácia ``dequeue()`` odoberala z poľa prvý prvok pomocou metódy ``pole.pop(0)``
+* operácia ``empty()`` zisťovala, či je pole prázdne
+
+Pri realizovaní radu pomocou spájaného zoznamu sa musíme zamyslieť nad tým, či:
+
+a) bude začiatok radu na začiatku spájaného zoznamu
+
+  * pridávať budeme na koniec zoznamu a odoberať budeme zo začiatku
+
+b) bude začiatok radu na konci spájaného zoznamu
+
+  * pridávať budeme na začiatok zoznamu a odoberať budeme z konca
+
+My už vieme, že pridávanie, resp. odoberanie zo začiatku spájaného zoznamu sú rýchle operácie. Ale pridávanie na koniec je rýchle len s pomocnou referencie na koniec zoznamu a odoberanie z konca je vždy pomalé. Preto si zvolíme variant (a), pri ktorom vieme rýchlo pridávať na koniec a rýchlo odoberať zo začiatku zoznamu:
+
+* operácia ``enqueue()`` pridá nový prvok **na koniec** spájaného zoznamu (použije referenciu na posledný vrchol zoznamu)
+* operácia ``dequeue()`` odoberie prvok **zo začiatku** spájaného zoznamu
+* operácia ``empty()`` zistí, či je spájaný zoznam prázdny
+* operácia ``front()`` bude veľmi jednoduchá
+* opäť použijeme výnimku ``EmptyError``
+
+Zapíšme kompletný kód:
+
+ ::
+
+  class EmptyError(Exception): pass
+
+  class Queue:
+      class _Vrchol:
+          def __init__(self, data):
+              self.data = data
+              self.next = None
+
+      def __init__(self):
+          self._zac = self._kon = None
+
+      def enqueue(self, hodnota):
+          novy = self._Vrchol(hodnota)
+          if self._zac is None:
+              self._zac = self._kon = novy
+          else:
+              self._kon.next = novy
+              self._kon = novy
+
+      def dequeue(self):
+          if self.empty():
+              raise EmptyError
+          vysl = self._zac.data
+          self._zac = self._zac.next
+          if self._zac is None:
+              self._kon = None
+          return vysl
+
+      def front(self):
+          if self.empty():
+              raise EmptyError
+          return self._zac.data
+
+      def empty(self):
+          return self._zac is None
+
+Vidíte, že aj trieda ``Queue`` je veľmi zjednodušená verzia triedy ``Zoznam``.
+
+
+Operátory indexovania
+---------------------
+
+Pre pythonovské pole (typ ``list``) sú veľmi typické operácie indexovania, t.j. keď vieme zistiť hodnotu nejakého prvku podľa jeho indexu (pozície v poli), resp. keď vieme zmeniť hodnotu prvku zadaného indexom. Zapíšme tieto dve operácie ako metódy triedy ``Zoznam``:
+
+ ::
+
+  class Zoznam:
+      ...
+      def _ity(self, index):
+          if index < 0:
+              raise IndexError
+          pom = self.zac
+          while pom is not None and index > 0:
+              pom = pom.next
+              index -= 1
+          if pom is None:
+              raise IndexError
+          return pom
+
+      def daj_ity(self, index):
+          return self._ity(index).data
+
+      def zmen_ity(self, index, hodnota):
+          self._ity(index).data = hodnota
+
+Vytvorili sme pomocnú metódu ``_ity()``, ktorá vráti referenciu na príslušný vrchol (alebo spadne na chybe ``IndexError``). Opäť tu prvý znak mena ``_`` označuje, že je to pomocná metóda, ktorú by sme radšej nemali používať mimo metód samotnej triedy.
+
+Budeme to testovať takto - najprv zapíšeme pomocou bežného poľa:
+
+ ::
+
+  >>> pole = list(range(1, 20, 2))
+  >>> for i in range(len(pole)):
+          pole[i] = pole[i] ** 2
+  >>> pole
+  [1, 9, 25, 49, 81, 121, 169, 225, 289, 361]
+
+a prepíšeme to pre spájaný zoznam:
+
+ ::
+
+  >>> zoz = Zoznam(range(1, 20, 2))
+  >>> for i in range(len(zoz)):
+          zoz.zmen_ity(i, zoz.daj_ity(i) ** 2)
+  >>> zoz
+  1 -> 9 -> 25 -> 49 -> 81 -> 121 -> 169 -> 225 -> 289 -> 361 -> None
+
+Vidíme, že v oboch prípadoch dostávame rovnakú postupnosť čísel, len zápis ``pole[i] = pole[i] ** 2`` je výrazne lepšie čitateľný ako ``zoz.zmen_ity(i, zoz.daj_ity(i) ** 2)``.
+
+Hodilo by sa nám, keby sme
+
+* namiesto volania ``zoz.daj_ity(i)`` mohli **zapísať** ``zoz[i]`` a Python by to pochopil ako vyhľadanie i-teho prvku zoznamu a vrátil by príslušnú hodnotu
+* namiesto volania ``zoz.zmen_ity(i, hodnota)`` mohli **zapísať** ``zoz[i] = hodnota`` a Python by to pochopil ako vyhľadanie i-teho prvku zoznamu a zmenu jeho hodnoty
+
+Naozaj toto v Pythone funguje. Rovnako ako sme prekryli, teda **preťažili** (overload) operácie súčtu pomocou magickej metódy ``__add__()``, ako sme preťažili operáciu ``in`` pomocou ``__contains__()``, atď. môžeme preťažiť aj **operácie indexovania**. Funguje to takto:
+
+* keď v Pythone zapíšeme napr. ``pole[i]``, toto sa Pythonom prepíše na magické volanie ``pole.__getitem__(i)`` a až táto magická metóda vykoná výber hodnoty
+* keď v Pythone zapíšeme napr. ``pole[i] = hodnota``, toto sa prepíše na magické volanie ``pole.__setitem__(i, hodnota)`` a až táto magická metóda vykoná zmenu hodnoty
+* keď v Pythone zapíšeme napr. ``del pole[i]``, toto sa prepíše na magické volanie ``pole.__delitem__(i)`` a až táto magická metóda vykoná zrušenie hodnoty
+
+Môžete to otestovať:
+
+ ::
+
+  >>> pole = list(range(1, 20, 2))
+  >>> for i in range(len(pole)):
+          pole.__setitem__(i, pole.__getitem__(i) ** 2)
+
+Tomuto v programovacích jazykoch hovoríme `syntaktický cukor <https://cs.wikipedia.org/wiki/Syntaktick%C3%BD_cukr>`_ a slúži len na uľahčenie zápisu a čitateľnosť kódu. Už sme sa s tým stretli pri aritmetických operáciách, keď ``a+b`` často označuje ``a.__add__(b)``.
+
+Takže prepíšme naše dve metódy ``daj_ity()`` a ``zmen_ity()`` na magické ``__getitem__()`` a ``__setitem__()``:
+
+ ::
+
+  class Zoznam:
+      ...
+      def _ity(self, index):
+          if index < 0:
+              raise IndexError
+          pom = self.zac
+          while pom is not None and index > 0:
+              pom = pom.next
+              index -= 1
+          if pom is None:
+              raise IndexError
+          return pom
+
+      def __getitem__(self, index):
+          return self._ity(index).data
+
+      def __setitem__(self, index, hodnota):
+          self._ity(index).data = hodnota
+
+Samozrejme, že môžeme písať aj bez "syntaktického cukru":
+
+ ::
+
+  >>> zoz.__setitem__(i, zoz.__getitem__(i) ** 2)
+
+ale určite čitateľnejšie to bude "osladené":
+
+ ::
+
+  >>> zoz[i] = zoz[i] ** 2
+
+Treba si ale pri tomto zápise uvedomiť, že pre dlhé spájané zoznamy a pre veľký index toto nevinne vyzerajúce priradenie dvakrát prelieza spájaný zoznam, aby našiel i-ty prvok. Už by sme si mohli pamätať, že napr. hľadanie posledného prvku v zozname môže naozaj trvať veľmi dlho.
+
+.. rubric:: Spájaný zoznam a for-cyklus
+
+Python je pre programátora veľmi ústretový a snaží sa mu čo najviac vychádzať v ústrety. Keď zadefinujeme magickú metódu ``__getitem__()``, Python z vlastnej iniciatívy "pochopí", že takáto štruktúra by sa mohla dať prechádzať aj for-cyklom (iterovať). Veď zrejme mu stačí postupne indexovať s indexom 0, potom 1, potom 2, atď. až kým to nespadne na chybe a vtedy ukončí aj for-cyklus. Otestujme:
+
+ ::
+
+  >>> zoz = Zoznam(x**2 for x in range(1, 20, 2))
+  >>> for prvok in zoz:
+          print(prvok, end=' -> ')
+  1 -> 9 -> 25 -> 49 -> 81 -> 121 -> 169 -> 225 -> 289 -> 361 ->
+
+Teda to naozaj urobí presne to, čo sme očakávali. Ale **pozor**! Tento for-cyklus pre každý prvok zoznamu prelieza celý zoznam vždy od začiatku. Pre krátke zoznamy to asi vadiť nebude, ale pre dlhé to bude neprijateľne pomalé!
+
+Na rovnakom princípe potom funguje aj rozbaľovací parameter, napr.
+
+ ::
+
+  >>> print(*zoz)
+  1 9 25 49 81 121 169 225 289 361
+
+A vy už teraz viete, že tento "syntaktický cukor" za sebou skrýva **veľmi neefektívny** kód.
+
+
+Dvojsmerný a cyklický spájaný zoznam
+------------------------------------
+
+Zatiaľ sme sa zoznámili s tzv. **jednosmerným spájaným zoznamom** (Singly Linked List). Slovo "jednosmerný" tu označuje, že v každom vrchole sa uchováva jedna referencia na **nasledovný** vrchol. Vďaka tejto vlastnosti, vždy keď potrebujeme zistiť predchodcu nejakého vrcholu (napr. predchodcu posledného), musíme prejsť zoznam od začiatku až po hľadaný vrchol. O tomto už vieme, že je to **drahá operácia**.
+
+V situáciách, keď naozaj budeme často potrebovať pre nejaké vrcholy zisťovať ich predchodcov, využijeme alternatívnu organizáciu spájaných zoznamov, tzv. **dvojsmerné spájané zoznamy** (Doubly Linked List). Každý vrchol v takomto zozname si okrem referencie na nasledovníka uchováva aj referenciu na svojho predchodcu. A zrejme prvý vrchol má svojho predchodcu ``None``. Zapíšme niekoľko metód:
+
+ ::
+
+  class DvojsmernyZoznam:
+      class Vrchol:
+          def __init__(self, data, prev=None, next=None):
+              self.data = data
+              self.prev = prev
+              self.next = next
+
+      def __init__(self, postupnost):
+          self.zac = self.kon = None
+          for prvok in postupnost:
+              self.append(prvok)
+
+      def __repr__(self):
+          vysl, pom = [], self.zac
+          while pom is not None:
+              vysl.append(repr(pom.data))
+              pom = pom.next
+          vysl.append('None')
+          return ' <-> '.join(vysl)
+
+
+      def insert0(self, hodnota):
+          self.zac = self.Vrchol(hodnota, None, self.zac)
+          if self.kon is None:
+              self.kon = self.zac
+          else:
+              self.zac.next.prev = self.zac
+
+      def append(self, hodnota):
+          if self.zac is None:
+              self.insert0(hodnota)
+          else:
+              novy = self.Vrchol(hodnota, self.kon)
+              self.kon.next = novy
+              self.kon = novy
+
+V rámci cvičení si vyskúšate naprogramovať aj ďalšie metódy.
+
+.. rubric:: Cyklický spájaný zoznam
+
+Spomenieme ešte jeden variant spájaných zoznamov, ktorý sa reálne využíva v niektorých špeciálnych situáciách. **Cyklický spájaný zoznam** (Circular Linked List) môže byť jednosmerný aj dvojsmerný - my sa tu budeme zaoberať len jednosmerným zoznamom. Označuje, že posledný vrchol v zozname nemá svojho nasledovníka označeného ako ``None`` ale nejaký iný vrchol v zozname. Najčastejšie to býva práve prvý vrchol zoznamu. Pri cyklickom zozname si musíte dať veľmi dobrý pozor na to, aby ste nevytvorili nekonečný cyklus. Zapíšme na ukážku niekoľko metód:
+
+ ::
+
+  class CyklickyZoznam:
+      class Vrchol:
+          def __init__(self, data, next=None):
+              self.data = data
+              self.next = next
+
+      def __init__(self, postupnost=None):
+          self.zac = self.kon = None
+          if postupnost is not None:
+              for hodnota in postupnost:
+                  self.append(hodnota)
+
+      def __repr__(self):
+          vysl, pom = [], self.zac
+          while pom is not None:
+              vysl.append(repr(pom.data))
+              pom = pom.next
+              if pom == self.zac:
+                  break
+          vysl.append('...')
+          return ' -> '.join(vysl)
+
+      def __len__(self):
+          vysl, pom = 0, self.zac
+          while pom is not None:
+              vysl += 1
+              pom = pom.next
+              if pom == self.zac:
+                  break
+          return vysl
+
+      def insert0(self, hodnota):
+          if self.zac is None:
+              self.zac = self.kon = self.Vrchol(hodnota)
+              self.zac.next = self.zac
+          else:
+              self.kon.next = self.Vrchol(hodnota, self.zac)
+              self.zac = self.kon.next
+
+      def append(self, hodnota):
+          if self.zac is None:
+              self.insert0(hodnota)
+          else:
+              self.kon.next = self.Vrchol(hodnota, self.zac)
+              self.kon = self.kon.next
+
+
+
+
+Cvičenie
+--------
+
+.. topic:: L.I.S.T.
+
+   * riešenia odovzdávajte na úlohový server http://capek.ii.fmph.uniba.sk/list
+
+..
+  #################################################################################################
+
+1. Poskladajte triedu ``Zoznam`` z prednašky s týmito metódami:
+
+  * ``__repr__()``, ``__len__()``, ``__contains__(hodnota)``, ``insert0(hodnota)``, ``append(hodnota)`` - rýchla verzia, ``pop0()`` a ``pop()``
+  * odmerajte, koľkokrát je rýchlejšia metóda ``pop0()`` v porovnaní s ``pop()`` pre rôzne veľké zoznamy
+
+   ::
+
+    >>> zoz = Zoznam(range(n))  # pre n = 1000, 2000, 4000, 8000
+    >>> for i in range(n):
+            x = zoz.pop()
+
+  * na meranie času použite funkciu ``time.time()``
+
+2. Do triedy ``Zoznam`` zapíšte metódu ``count(hodnota)``, ktorá zistí počet výskytov nejakej hodnoty v zozname
+
+  * napr.
+
+   ::
+
+    >>> zoz = Zoznam((2,5,8,6,4,5,7,6,5,2))
+    >>> zoz.count(5)
+    3
+    >>> zoz.count(3)
+    0
+
+3. Zistite, čo robí táto metóda.
+
+  * otestujte ju pre rôzne dlhé spájané zoznamy
+
+   ::
+
+    class Zoznam:
+        ...
+
+        def co_robi(self):
+            pom = self.zac
+            while pom and pom.next:
+                pom.next = pom.next.next
+                pom = pom.next
+
+  * zamyslite sa nad tým, či by sa v prípade, že udržiavame referenciu na koniec ``self.kon``, malo niečo v tomto kóde upraviť
+
+4. Zapíšte metódu ``vkladaj()``, ktorá pre spájané zoznamy čísel s aspoň dvomi prvkami pracuje takto:
+
+  * medzi každé dva susedné vrcholy vloží nový, ktorého hodnotou je súčet týchto dvoch vrcholov, medzi kroeé sa vkladá
+  * začnite so zoznamom ``Zoznam((1, 1))`` a postupne päťkrát na neho aplikujte metódu ``vkladaj()``, zakaždým vypíšte obsah zoznamu (vypíšete najprv dvojprvkový zoznam, potom troj, potom päť, potom deväť, ...)
+
+5. Do triedy ``Zoznam`` doplňte metódy ``mapuj1()`` (metóda má jeden parameter ``funkcia`` bez parametra ``podmienka``), ``mapuj2()`` (metóda má oba parametre ``funkcia`` aj ``podmienka``) a ``tolist()``
+
+  * doplňte ``...???...`` a otestujte:
+
+   ::
+
+    >>> zoz = Zoznam('nejaky text')
+    >>> zoz.mapuj1(...???...)          # prerobi samohlasky na velke ostatne na male pismena
+    >>> ''.join(zoz.tolist())
+    'nEjAkY tExt'
+    >>> zoz = Zoznam(...???...)
+    >>> zoz.mapuj2(lambda x: x%2, lambda x: 2*x+1)
+    >>> zoz
+    8 -> 7 -> 6 -> 4 -> 3 -> 2 -> None
+
+6. Do triedy ``Zoznam`` zadefinujte dvojicu metód bez parametrov ``start()`` a ``dalsi()``, ktoré umožnia postupne prechádzať prvky zoznamu:
+
+  * metóda ``start()`` inicializuje prechádzanie, t.j. umožní, aby nasledovné volanie ``dalsi()`` vrátilo hodnotu v prvom vrchole
+  * metóda ``dalsi()`` pri každom svojom volaní vráti buď hodnotu vo vrchole alebo ``None``, keď sa už prešli všetky vrcholy, po každom zavolaní si nastaví, že ďalšie jej volanie bude už s nasledovným vrcholom
+  * pomocou týchto dvoch metód zapíšte funkcie, ktorá vypočítajú počet prvkov zoznamu, súčet prvkov, minimálnu hodnotu - parametrom týchto funkcií bude inštancia triedy ``Zoznam``
+
+   ::
+
+    def pocet(zoz):
+        ...
+
+    def sucet(zoz):
+        ...
+
+    def minimum(zoz):
+        ...
+
+7. Do triedy ``Zoznam`` dopíšte tieto metódy:
+
+  * ``reverse()`` prevráti poradie prvkov v zozname (nevytvára nové ``Vrchol()``, ale len vrcholom mení atribút ``next``)
+  * ``min()`` a ``max()`` vrátia príslušnú hodnotu
+  * ``vyber_max()`` odstráni zo zoznamu maximálnu hodnotu (prvý výskyt) a vráti referenciu na tento odstránený vrchol
+
+8. Do triedy ``Zoznam`` dopíšte metódu ``sort()``, ktorá preusporiada zoznam od najmenšieho po najväčší - využije metódu ``vyber_max()`` zo (7) úlohy. Bude pracovať takto:
+
+  * bude vytvárať nový zoznam - na začiatku bude prázdny ``zoz = None``
+  * kým je pôvodný zoznam neprázdny, vyberie z neho maximálny prvok (pomocou metódy ``vyber_max()``) a zaradí ho na začiatok nového vytváraného zoznamu
+  * novovytvorený zoznam je už usporiadaný pôvodný zoznam - zapíše si ho ako svoj aktuálny
+
+9. Doplňte metódy ``__getitem__()`` a ``__setitem__()``.
+
+  * odmerajte čas pre rôzne vľké zoznamy a pre obe verzie zvyšovania hodnôt prvkov zoznamu o 1:
+
+   ::
+
+    >>> zoz1 = Zoznam(range(10000))
+    >>> zoz1.mapuj(lambda x: x+1)
+
+    >>> zoz2 = Zoznam(range(10000))
+    >>> for i in range(len(zoz2)):
+            zoz2[i] = zoz2[i] + 1
+
+  * zamyslite sa, prečo ``list(Zoznam(range(10000)))`` je pomalé a ``Zoznam(range(10000)).tolist()`` je rýchle?
+
+10. Do triedy ``DvojsmernyZoznam`` dopíšte metódy ``pop()``, ``pop0()``, ``__delitem__(index)`` a ``kontrola()``
+
+  * metóda ``kontrola()`` prejde celý spájaný zoznam a zistí, či sú všetky referencie ``prev`` a ``next`` korektné (t.j. napr. či platí ``pom.next,prev==pom``)
+  * otestujte správnosť fungovania týchto nových metód
+
+11. Implementujte metódy triedy ``Queue`` pomocou cyklického spájaného zoznamu: udržiavajte jedinú referenciu a to na posledný vrchol (jeho nasledovníkom je začiatok zoznamu)
+
+  * otestujte rýchlosť práce s takýmto radom v porovnaní s realizáciou pomocou poľa
+  * najprv vytvoríte ``n`` prvkový rad a potom postupne z neho všetky prvky vybráte - testujte napr. pre veľké ``n``  =100000
+
+
+
+
+Domáce zadanie
+--------------
+
+.. topic:: L.I.S.T.
+
+   * riešenia odovzdávajte na úlohový server http://capek.ii.fmph.uniba.sk/list do **1.apríla 2017**
+
+..
+  #################################################################################################
+
+  Zapíšte triedu ``Zoznam`` s týmito metódami:
+
+  * ``__init__(postupnost)`` - ak je v postupnosti ``list`` alebo ``tuple`` nahradí sa opäť ``Zoznam``
+  * ``append(hodnota)``
+  * ``tolist()``
+  * ``totuple()``
+  * ``__repr__()`` prvky, ktoré sú opäť zoznamy, uzátvorkuje, napr. 1-> 2 -> (3 -> 4 ->5) -> 6

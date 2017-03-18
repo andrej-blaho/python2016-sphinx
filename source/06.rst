@@ -1,0 +1,1062 @@
+Znakové reťazce
+===============
+
+Typ string
+----------
+
+Čo už vieme o znakových reťazcoch:
+
+* reťazec je postupnosť znakov uzavretá v apostrofoch ``''`` alebo v úvodzovkách ``""``
+* vieme priradiť reťazec do premennej
+* zreťaziť (zlepiť) dva reťazce
+* násobiť (zlepiť viac kópií) reťazca
+* načítať zo vstupu (pomocou ``input()``) a vypisovať (pomocou ``print()``)
+* vyrobiť z čísla reťazec (``str()``), z reťazca číslo (``int()``, ``float()``)
+* rozobrať reťazec vo ``for``-cykle
+
+Postupne prejdeme tieto možnosti práce s reťazcami a doplníme ich o niektoré novinky.
+
+Keďže znakový reťazec je postupnosť znakov uzavretá v apostrofoch ``''`` alebo v úvodzovkách ``""``, platí:
+
+* môže obsahovať ľubovoľné znaky (okrem znaku apostrof ``'`` v  ``''`` reťazci, a znaku úvodzovka ``"`` v úvodzovkovom ``""`` reťazci)
+* musí sa zmestiť do jedného riadka (nesmie prechádzať do druhého riadka)
+* môže obsahovať špeciálne znaky (zapisujú sa dvomi znakmi, ale pritom v reťazci reprezentujú len jeden), vždy začínajú znakom ``'\'`` (opačná lomka):
+
+  * ``\n`` - nový riadok
+  * ``\t`` - tabulátor
+  * ``\'`` - apostrof
+  * ``\"`` - úvodzovka
+  * ``\\`` - opačná lomka
+
+Napríklad
+
+ ::
+
+  >>> 'Monty\nPython'
+  'Monty\nPython'
+  >>> print('Monty\nPython')
+  Monty
+  Python
+  >>> print('Monty\\nPython')
+  Monty\nPython
+
+.. rubric:: Viacriadkové reťazce
+
+Už vieme, že
+
+* reťazec, ktorý začína trojicou buď apostrofov ``'''`` alebo úvodzoviek ``"""`` môže obsahovať aj ``'`` a ``"``, môže prechádzať cez viac riadkov (automaticky sa sem doplní ``\n``)
+* musí byť ukončený rovnakou trojicou  ``'''`` alebo ``"""``
+
+  ::
+
+   >>> macek = '''Išiel Macek
+   do Malacek
+   šošovičku mlácic'''
+   >>> macek
+   'Išiel Macek\ndo Malacek\nšošovičku mlácic'
+   >>> print(macek)
+   Išiel Macek
+   do Malacek
+   šošovičku mlácic
+   >>> '''tento retazec obsahuje " aj ' a funguje'''
+   'tento retazec obsahuje " aj \' a funguje'
+   >>> print('''tento retazec obsahuje " aj ' a funguje''')
+   tento retazec obsahuje " aj ' a funguje
+
+
+.. rubric:: Dĺžka reťazca
+
+Štandardná funkcia ``len()`` vráti dĺžku reťazca (špeciálne znaky ako ``'\n'``, ``'\''``, a pod. reprezentujú len 1 znak):
+
+ ::
+
+  >>> a = 'Python'
+  >>> len(a)
+  6
+  >>> len('Peter\'s dog')
+  11
+  >>> len('\\\\\\')
+  3
+
+Túto funkciu už vieme naprogramovať aj sami, ale v porovnaní so štandardnou funkciou ``len()`` bude oveľa pomalšia:
+
+ ::
+
+  def dlzka(retazec):
+      pocet = 0
+      for znak in retazec:
+          pocet += 1
+      return pocet
+
+ ::
+ 
+  >>> dlzka('Python')
+  6
+  >>> a = 'x' * 100000000
+  >>> dlzka(x)
+  100000000
+  >>> len(x)
+  100000000
+  
+.. rubric:: Operácia in
+
+Aby sme zistili, či sa v reťazci nachádza nejaký konkrétny znak, doteraz sme to museli riešiť takto:
+
+ ::
+ 
+  def zisti(znak, retazec):
+      for z in retazec:
+          if z == znak:
+              return True
+      return False
+      
+ ::
+ 
+  >>> zisti('y', 'Python')
+  True
+  >>> zisti('T', 'Python')
+  False
+
+Pritom existuje binárna operácia ``in``, ktorá zisťuje, či sa zadaný podreťazec nachádza v nejakom konkrétnom reťazci. Jej tvar je
+
+ ::
+
+  podretazec in retazec
+
+Najčastejšie sa bude využívať v príkaze ``if`` a v cykle ``while``, napr.
+
+ ::
+
+  >>> 'nt' in 'Monty Python'
+  True
+  >>> 'y P' in 'Monty Python'
+  True
+  >>> 'tyPy' in 'Monty Python'
+  False
+  >>> 'pyt' in 'Monty Python'
+  False
+  
+Na rozdiel od našej vlastnej funkcie ``zisti()``, operácia ``in`` funguje nielen pre zisťovanie jedného znaku, ale aj pre ľubovoľne dlhý podreťazec.
+
+Ak niekedy budeme potrebovať negáciu tejto podmienky, môžeme zapísať
+
+ ::
+
+  if not 'a' in retazec:
+      ...
+  if 'a' not in retazec:
+      ...
+
+Pričom sa odporúča druhý spôsob zápisu ``not in``.
+
+
+.. rubric:: Operácia indexovania [ ]
+
+Pomocou tejto operácie vieme pristupovať k jednotlivým znakom postupnosti (znakový reťazec je postupnosť znakov). Jej tvar je
+
+ ::
+
+  reťazec[číslo]
+
+Celému číslu v hranatých zátvorkách hovoríme **index**:
+
+* znaky v reťazci sú indexované od ``0`` do ``len()-1``, t.j. prvý znak v reťazci má index 0, druhý 1, ... posledný má index ``len()-1``
+* výsledkom indexovania je vždy 1-znakový reťazec (čo je nový reťazec s kópiou 1 znaku z pôvodného reťazca) alebo chybová správa, keď indexujeme mimo znaky reťazca
+
+Očíslujme znaky reťazca:
+
+ ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
+ ``M`` ``o`` ``n`` ``t`` ``y``       ``P`` ``y`` ``t`` ``h`` ``o`` ``n``
+ ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
+   0     1     2     3     4     5     6     7     8     9    10    11
+ ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
+
+Napr. do premennej ``abc`` priradíme reťazec 12 znakov a pristupujeme ku niektorým znakom pomocou indexu:
+
+ ::
+
+  >>> abc = 'Monty Python'
+  >>> abc[3]
+  't'
+  >>> abc[9]
+  'h'
+  >>> abc[12]
+  ...
+  IndexError: string index out of range
+  >>> abc[len(abc)-1]
+  'n'
+
+Vidíme, že posledný znak v reťazci má index **dĺžka reťazca-1**. Ak indexujeme väčším číslom ako 11, vyvolá sa chybová správa **IndexError: string index out of range**.
+
+Často sa indexuje v cykle, kde premenná cyklu nadobúda správneho správne hodnoty indexov, napr.
+
+ ::
+
+  >>> a = 'Python'
+  >>> for i in range(len(a)):
+  	print(i, a[i])
+
+  0 P
+  1 y
+  2 t
+  3 h
+  4 o
+  5 n
+
+Funkcia ``range(len(a))`` zabezpečí, že cyklus prejde postupne pre všetky ``i`` od ``0`` do ``len(a)-1``.
+
+
+.. rubric:: Indexovanie so zápornými indexmi
+
+Keďže často potrebujeme pristupovať ku znakom na konci reťazca, môžeme to zapisovať pomocou záporných indexov:
+
+ ::
+
+  abc[-5] == abc[len(abc)-5]
+
+Znaky reťazca sú indexované od ``-1`` do ``-len()`` takto:
+
+ ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
+ ``M`` ``o`` ``n`` ``t`` ``y``       ``P`` ``y`` ``t`` ``h`` ``o`` ``n``
+ ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
+   0     1     2     3     4     5     6     7     8     9    10    11
+   -12 -11   -10    -9    -8    -7    -6    -5    -4    -3    -2    -1
+ ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
+
+Napríklad:
+
+ ::
+
+  >>> abc = 'Monty Python'
+  >>> abc[len(abc)-1]
+  'n'
+  >>> abc[-1]
+  'n'
+  >>> abc[-7]
+  ' '
+  >>> abc[-13]
+  ...
+  IndexError: string index out of range
+
+alebo aj for-cyklom:
+
+ ::
+
+  >>> a = 'Python'
+  >>> for i in range(1, len(a)+1):
+  	print(-i, a[-i])
+
+  -1 n
+  -2 o
+  -3 h
+  -4 t
+  -5 y
+  -6 P
+
+alebo for-cyklom so záporným krokom:
+
+ ::
+
+  >>> a = 'Python'
+  >>> for i in range(-1, -len(a)-1, -1):
+  	print(i, a[i])
+
+  -1 n
+  -2 o
+  -3 h
+  -4 t
+  -5 y
+  -6 P
+
+
+.. rubric:: Podreťazce
+
+Indexovať môžeme nielen jeden znak, ale aj nejaký podreťazec celého reťazca, Opäť použijeme operátor indexovani, ale index obsahuje znak ``':'``:
+
+ ::
+
+  reťazec[prvý : posledný]
+
+kde
+
+* ``prvý`` je index začiatku podreťazca
+* ``posledný`` je index prvku **jeden za**, t.j. musíme písať index prvku o 1 viac
+* takejto operácii hovoríme **rez** (alebo po anglicky **slice**)
+* ak takto indexujeme mimo reťazec, nenastane chyba, ale prvky mimo sú prázdny reťazec
+
+Ak indexujeme rez od 6. po 11. prvok:
+
+ ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
+ ``M`` ``o`` ``n`` ``t`` ``y``       ``P`` ``y`` ``t`` ``h`` ``o`` ``n``
+ ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
+  `\ `  `\ `  `\ `  `\ `  `\ `  `\ `   ↑    `\ `  `\ `  `\ `  `\ `   ↑
+   0     1     2     3     4     5     6     7     8     9    10    11
+ ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
+
+prvok s indexom 11 už vo výsledku nebude:
+
+ ::
+
+  >>> abc = 'Monty Python'
+  >>> abc[6:11]
+  'Pytho'
+  >>> abc[6:12]
+  'Python'
+  >>> abc[6:len(abc)]
+  'Python'
+  >>> abc[6:12]
+  'Python'
+  >>> abc[10:16]
+  'on'
+
+
+Podreťazce môžeme vytvárať aj v cykle:
+
+ ::
+
+  >>> a = 'Python'
+  >>> for i in range(len(a)):
+          print('{}:{} {}'.format(i,i+3,a[i:i+3]))
+
+  0:3 Pyt
+  1:4 yth
+  2:5 tho
+  3:6 hon
+  4:7 on
+  5:8 n
+
+alebo
+
+ ::
+
+  >>> a = 'Python'
+  >>> for i in range(len(a)):
+          print('{}:{} {}'.format(i,len(a),a[i:len(a)]))
+
+  0:6 Python
+  1:6 ython
+  2:6 thon
+  3:6 hon
+  4:6 on
+  5:6 n
+
+
+.. rubric:: Predvolená hodnota
+
+Ak neuvedieme prvý index v podreťazci, bude to označovať rez **od začiatku reťazca**. Zápis je takýto:
+
+   ::
+
+    reťazec[ : posledný]
+
+Ak neuvedieme druhý index v podreťazci, označuje to, že chceme rez **až do konca reťazca**. Teda:
+
+   ::
+
+    reťazec[prvý : ]
+
+Ak neuvedieme ani jeden index v podreťazci, označuje to, že chceme **celý reťazec**, t.j. vytvorí sa kópia pôvodného reťazca
+
+   ::
+
+    reťazec[ : ]
+
+===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
+``M`` ``o`` ``n`` ``t`` ``y``       ``P`` ``y`` ``t`` ``h`` ``o`` ``n``
+===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
+  0     1     2     3     4     5     6     7     8     9    10    11
+  -12 -11   -10    -9    -8    -7    -6    -5    -4    -3    -2    -1
+===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
+
+napríklad
+
+ ::
+
+  >>> abc = 'Monty Python'
+  >>> abc[6:]                  # od 6. znaku do konca
+  'Python'
+  >>> abc[:5]                  # od začiatku po 4. znak
+  'Monty'
+  >>> abc[-4:]                 # od 4. od konca až do konca
+  'thon'
+  >>> abc[16:]                 # indexujeme mimo reťazca
+  ''
+
+
+.. rubric:: Podreťazce s krokom
+
+Podobne ako vo funkcii ``range()`` aj pri indexoch podreťazca môžeme určiť aj krok indexov:
+
+ ::
+
+  reťazec[prvý : posledný : krok]
+
+kde ``krok`` určuje o koľko sa bude index v reťazci posúvať od ``prvý`` po ``posledný``. Napríklad:
+
+ ::
+
+  >>> abc = 'Monty Python'
+  >>> abc[2:10:2]
+  'nyPt'
+  >>> abc[::3]
+  'MtPh'
+  >>> abc[9:-7:-1]
+  'htyP'
+  >>> abc[::-1]
+  'nohtyP ytnoM'
+  >>> abc[6:] + ' ' + abc[:5]
+  'Python Monty'
+  >>> abc[4::-1] + ' ' + abc[:5:-1]
+  'ytnoM nohtyP'
+  >>> (abc[6:] + ' ' + abc[:5])[::-1]
+  'ytnoM nohtyP'
+  >>> 'kobyla ma maly bok'[::-1]
+  'kob ylam am alybok'
+  >>> abc[4:9]
+  'y Pyt'
+  >>> abc[4:9][2]          # ej podreťazce môžeme ďalej indexovať
+  'P'
+  >>> abc[4:9][2:4]
+  'Py'
+  >>> abc[4:9][::-1]
+  'tyP y'
+
+
+.. rubric:: Reťazce sú v pamäti nemenné (nemeniteľné)
+
+Typ ``str``, t.j. znakové reťazce, je nemenný typ (**immutable**). To znamená, že hodnota reťazca sa v pamäti zmeniť nedá. Ak budeme potrebovať reťazec, v ktorom je nejaká zmena, budeme musieť skonštruovať nový. Napr.
+
+ ::
+
+  >>> abc[6] = 'K'
+  TypeError: 'str' object does not support item assignment
+
+Všetky doterajšie manipulácie s reťazcami nemenili reťazec, ale zakaždým vytvárali úplne nový (niekedy to bola len kópia pôvodného), napr.
+
+ ::
+
+  >>> cba = abc[::-1]
+  >>> abc
+  'Monty Python'
+  >>> cba
+  'nohtyP ytnoM'
+
+
+Takže, keď chceme v reťazci zmeniť nejaký znak, budeme musieť skonštruovať nový reťazec, napr. takto:
+
+ ::
+
+  >>> abc[6] = 'K'
+  ...
+  TypeError: 'str' object does not support item assignment
+  >>> novy = abc[:6] + 'K' + abc[7:]
+  >>> novy
+  'Monty Kython'
+  >>> abc
+  'Monty Python'
+
+Alebo, ak chceme opraviť prvý aj posledný znak:
+
+ ::
+
+  >>> abc = 'm' + abc[1:-1] + 'N'
+  >>> abc
+  'monty PythoN'
+
+
+.. rubric:: Porovnávanie jednoznakových reťazcov
+
+Jednoznakové reťazce môžeme porovnávať relačnými operátormi ``==``, ``!=``, ``<``, ``<=``, ``>``, ``>=``, napr.
+
+ ::
+
+  >>> 'x' == 'x'
+  True
+  >>> 'm' != 'M'
+  True
+  >>> 'a' > 'm'
+  False
+  >>> 'a' > 'A'
+  True
+
+Python na porovnávanie používa vnútornú reprezentáciu **Unicode (UTF-8)**. S touto reprezentáciou môžeme pracovať pomocou funkcií ``ord()`` a ``chr()``:
+
+* funkcia ``ord(znak)`` vráti vnútornú reprezentáciu znaku (kódovanie v pamäti počítača)
+
+  ::
+
+   >>> ord('a')
+   97
+   >>> ord('A')
+   65
+
+* opačná funkcia ``chr(číslo)`` vráti jednoznakový reťazec, pre ktorý má tento znak danú číselnú reprezentáciu
+
+  ::
+
+   >>> chr(66)
+   'B'
+   >>> chr(244)
+   'ô'
+
+Pri porovnávaní dvoch znakov sa porovnávajú ich vnútorné reprezentácie, t.j.
+
+  ::
+
+   >>> ord('a') > ord('A')
+   True
+   >>> 97 > 65
+   True
+   >>> 'a' > 'A'
+   True
+
+Vnútornú reprezentáciu niektorých znakov môžeme zistiť napr. pomocou for-cyklu:
+
+ ::
+
+  >>> for i in range(ord('A'), ord('J')):
+  	print(i, chr(i))
+
+  65 A
+  66 B
+  67 C
+  68 D
+  69 E
+  70 F
+  71 G
+  72 H
+  73 I
+
+
+.. rubric:: Porovnávanie dlhších reťazcov
+
+Dlhšie reťazce Python porovnáva postupne po znakoch:
+
+* kým sú v oboch reťazcoch rovnaké znaky, preskakuje ich
+* pri prvom rôznom znaku, porovná tieto dva znaky
+
+Napr. pri porovnávaní dvoch reťazcov 'kocur' a 'kohut':
+
+    * porovná 0. znaky: ``'k' == 'k'``
+    * porovná 1. znaky: ``'o' == 'o'``
+    * porovná 2. znaky: ``'c' <  'h'`` a tu aj skončí porovnávanie týchto reťazcov
+
+Preto platí, že ``'kocur' < 'kohut'``. Treba si dávať pozor **na znaky s diakritikou**, lebo, napr. ``ord('č') = 269 > ord('h') = 104``. Napr.
+
+ ::
+
+  >>> 'kocúr' < 'kohút'
+  True
+  >>> 'kočka' < 'kohut
+  False
+  >>> 'PYTHON' < 'Python' < 'python'
+  True
+
+
+.. rubric:: Prechádzanie reťazca v cykle
+
+Už sme videli, že prvky znakového reťazca môžeme prechádzať for-cyklom, v ktorom indexujeme celý reťazec postupne od '''0''' do '''len()-1''':
+
+ ::
+
+  >>> a = 'Python'
+  >>> for i in range(len(a)):
+          print('.' * i, a[i])
+
+   P
+  . y
+  .. t
+  ... h
+  .... o
+  ..... n
+
+Tiež vieme, že for-cyklom môžeme prechádzať nielen postupnosť indexov (t.j. ``range(len(a))``), ale priamo postupnosť znakov, napr.
+
+ ::
+
+  >>> for znak in 'python':
+          print(znak * 5)
+
+  ppppp
+  yyyyy
+  ttttt
+  hhhhh
+  ooooo
+  nnnnn
+
+Zrejme reťazec vieme prechádzať aj while-cyklom, napr.
+
+ ::
+
+  >>> a = '.....veľa bodiek'
+  >>> print(a)
+  .....veľa bodiek
+  >>> while len(a) != 0 and a[0] == '.':
+          a = a[1:]
+
+  >>> print(a)
+  veľa bodiek
+
+Cyklus sa opakoval, kým bol reťazec neprázdny a kým boli na začiatku reťazca znaky bodky ``'.'``. Vtedy sa v tele cyklu reťazec skracoval o prvý znak.
+
+
+.. rubric:: Reťazcové funkcie
+
+Už poznáme tieto štandardné funkcie:
+
+* ``len()`` - dĺžka reťazca
+* ``int()`` - prevod reťazca na celé číslo
+* ``float()`` - prevod reťazca na desatinné číslo
+* ``str()`` - prevod čísla (aj ľubovoľnej inej hodnoty) na reťazec
+* ``ord()``, ``chr()`` - prevod do a z unicode
+
+Okrem nich existujú ešte aj tieto tri užitočné štandardné funkcie:
+
+* ``bin()`` - prevod celého čísla do reťazca, ktorý reprezentuje toto číslo v dvojkovej sústave
+* ``hex()``   prevod celého čísla do reťazca, ktorý reprezentuje toto číslo v šestnástkovej sústave
+* ``oct()`` - prevod celého čísla do reťazca, ktorý reprezentuje toto číslo v osmičkovej sústave
+
+Napríklad
+
+ ::
+
+  >>> bin(123)
+  '0b1111011'
+  >>> hex(123)
+  '0x7b'
+  >>> oct(123)
+  '0o173'
+
+Zápisy celého čísla v niektorej z týchto sústav fungujú ako celočíselné konštanty:
+
+ ::
+
+  >>> 0b1111011
+  123
+  >>> 0x7b
+  123
+  >>> 0o173
+  123
+
+
+.. rubric:: Vlastné funkcie
+
+Môžeme vytvárať vlastné funkcie, ktoré majú aj reťazcové parametre, resp. môžu vracať reťazcovú návratovú hodnotu. Niekoľko námetov:
+
+* funkcia vráti ``True`` ak je daný znak (jednoznakový reťazec) číslicou:
+
+  ::
+
+   def je_cifra(znak):
+       return '0' <= znak <= '9'
+
+  alebo inak
+
+  ::
+
+   def je_cifra(znak):
+       return znak in '0123456789'
+
+* funkcia vráti ``True`` ak je daný znak (jednoznakový reťazec) malé alebo veľké písmeno (anglickej abecedy)
+
+  ::
+
+   def je_pismeno(znak):
+       return 'a' <= znak <= 'z' or 'A' <= znak <= 'Z'
+
+* parametrom funkcie je reťazec s menom a priezviskom (oddelené sú práve jednou medzerou) - funkcia vráti reťazec priezvisko a meno (oddelené medzerou)
+
+  ::
+
+   def meno(r):
+       ix = 0
+       while ix < len(r) and r[ix] != ' ':     # nájde medzeru
+           ix += 1
+       return r[ix+1:] + ' ' + r[:ix]
+
+* funkcia vráti prvé slovo vo vete, ktoré obsahuje len malé a veľké písmená (využijeme funkciu ``je_pismeno``)
+
+  ::
+
+   def slovo(veta):
+       for i in range(len(veta)):
+           if not je_pismeno(veta[i]):
+               return veta[:i]
+       return veta
+
+
+Reťazcové metódy
+----------------
+
+Je to špeciálny spôsob zápisu volania funkcie:
+
+   ::
+
+    reťazec.metóda(parametre)
+
+kde ``metóda`` je meno niektorej z metód, ktoré sú v systéme už definované pre znakové reťazce. My si ukážeme niekoľko užitočných metód, s niektorými ďalšími sa zoznámime neskôr:
+
+* ``reťazec.count(podreťazec)`` - zistí počet výskytov podreťazca v reťazci
+* ``reťazec.find(podreťazec)`` - zistí index prvého výskytu podreťazca v reťazci
+* ``reťazec.lower()`` - vráti reťazec, v ktorom prevedie všetky písmená na malé
+* ``retazec.upper()`` - vráti reťazec, v ktorom prevedie všetky písmená na veľké
+* ``reťazec.replace(podreťazec1, podreťazec2)`` - vráti reťazec, v ktorom nahradí všetky výskyty ``podreťazec1`` iným reťazcom ``podreťazec2``
+* ``reťazec.strip()`` - vráti reťazec, v ktorom odstráni medzery na začiatku a na konci reťazca (odfiltruje pritom aj iné oddeľovacie znaky ako ``'\n'`` a ``'\t'``)
+* ``reťazec.format(hodnoty)`` - vráti reťazec, v ktorom nahradí formátovacie prvky ``'{}'`` zadanými hodnotami
+
+Ak chceme o niektorej z metód získať **help**, môžeme zadať, napr.
+
+ ::
+
+  >>> help(''.find)
+  Help on built-in function find:
+
+  find(...) method of builtins.str instance
+      S.find(sub[, start[, end]]) -> int
+
+      ...
+
+.. topic:: metóda ``reťazec.count()``
+
+   .. function:: reťazec.count(podreťazec)
+
+      :param reťazec: reťazec, v ktorom sa budú hľadať všetky výskyty nejakého zadaného podreťazca
+      :param podreťazec:  hľadaný podreťazec
+
+   Metóda zistí počet všetkých výskytov podreťazca v danom reťazci. Napr.
+
+   ::
+
+    >>> 'Python'.count('th')
+    1         # reťazec 'th' sa nachádza v 'Python' iba raz
+    >>> 'Python'.count('to')
+    0         # reťazec 'to' sa v 'Python' nenachádza ani raz
+    >>> 'Pyp ypY Ypy yPy yPY'.count('Py')
+    2         # reťazec 'Py' sa tu nachádza na 2 miestach
+
+
+.. topic:: metóda ``reťazec.find()``
+
+   .. function:: reťazec.find(podreťazec)
+
+      :param reťazec: reťazec, v ktorom sa budú hľadať prvý výskyt nejakého zadaného podreťazca
+      :param podreťazec:  hľadaný podreťazec
+
+   Metóda nájde prvý najľavejší výskyt podreťazca v danom reťazci. Napr.
+
+   ::
+
+    >>> 'Python'.find('th')
+    2         # reťazec 'th' sa nachádza v 'Python' od 2. indexu
+    >>> 'Python'.find('to')
+    -1        # reťazec 'to' sa v 'Python' nenachádza
+    >>> 'abcd ce abced'.find('c')
+    5         # prvý výskyt reťazca 'ce' je na indexe 5
+
+.. topic:: metóda ``reťazec.lower()``
+
+   .. function:: reťazec.lower()
+
+      :param reťazec: reťazec, z ktorého sa vyrobí nový ale s malými písmenami
+
+   Metóda vyrobí kópiu daného reťazca, v ktorej všetky veľké písmená prerobí na malé. Nepísmenové znaky nemení. Napr.
+
+   ::
+
+    >>> 'PyTHon'.lower()
+    'python'
+    >>> '1+2'.lower()
+    '1+2'
+
+
+
+.. rubric:: Formátovanie reťazca
+
+Možnosti formátovania pomocou metódy ``format()`` sme už videli predtým. Teraz ukážeme niekoľko užitočných formátovacích prvkov. Volanie má tvar:
+
+   ::
+
+    'formátovací reťazec'.format(parametre)
+
+* kde ``'formátovací reťazec'`` môže obsahovať ľubovoľný text, ale pre metódu ``format()`` sú zaujímavé len dvojice znakov ``'{}'``
+* ``parametre`` pri volaní metódy ``format()`` sú ľubovoľné hodnoty (teda môžu byť ľubovoľných typov), týchto parametrov by malo byť presne rovnaký počet ako dvojíc ``'{}'`` (špeciálnymi prípadmi sa tu zaoberať nebudeme)
+* metóda ``format()`` potom dosadí hodnoty svojich parametrov za zodpovedajúce dvojice ``'{}'``
+
+
+.. rubric:: Špecifikácia formátu
+
+V zátvorkách ``'{}'`` sa môžu nachádzať rôzne upresnenia formátovania, napr.:
+
+* ``'{:10}'`` - šírka výpisu 10 znakov
+* ``'{:>7}'`` - šírka 7, zarovnané vpravo
+* ``'{:<5d}'`` - šírka 5, zarovnané vľavo, parameter musí byť celé číslo (bude sa vypisovať v 10-ovej sústave)
+* ``'{:12.4f}'`` - šírka 12, parameter desatinné číslo vypisované na 4 desatinné miesta
+* ``'{:06x}'`` - šírka 6, zľava doplnená nulami, parameter celé číslo sa vypíše v 16-ovej sústave
+* ``'{:^20s}'`` - šírka 20, vycentrované, parametrom je reťazec
+
+Zhrňme najpoužívanejšie písmená pri označovaní typu parametra:
+
+* ``d`` - celé číslo v desiatkovej sústave
+* ``b`` - celé číslo v dvojkovej sústave
+* ``x`` - celé číslo v šestnástkovej sústave
+* ``s`` - znakový reťazec
+* ``f`` - desatinné číslo (možno špecifikovať počet desatinných miest, inak default 6)
+* ``g`` - desatinné číslo vo všeobecnom formáte
+
+
+Dokumentačný reťazec pri definovaní funkcie
+-------------------------------------------
+
+Ak funkcia vo svojom tele hneď ako **prvý riadok** obsahuje znakový reťazec (zvykne byť viacriadkový s ``'''``), tento sa stáva, tzv. **dokumentačným reťazcom** (**docstring**). Pri vykonávaní tela funkcie sa takéto reťazce ignorujú (preskakujú). Tento reťazec (docstring) sa ale môže neskôr vypísať, napr. štandardnou funkciou ``help()``.
+
+Zadefinujme reťazcovú funkciu a hneď do nej dopíšeme aj niektoré základné informácie:
+
+ ::
+
+  def pocet_vyskytov(podretazec, retazec):
+      '''funkcia vráti počet výskytov podreťazca v reťazci
+
+      prvý parameter podretazec - ľubovoľný neprázdny reťazec, o ktorom sa
+                                  bude zisťovať počet výskytov
+      druhý parameter retazec - reťazec, v ktorom sa hľadajú výskyty
+
+      ak je prvý parameter podretazec prázdny reťazec, funkcia vráti len(retazec)
+      '''
+      pocet = 0
+      for ix in range(len(retazec)):
+          if retazec[ix:ix+len(podretazec)] == podretazec:
+              pocet += 1
+      return pocet
+
+Takto definovaná funkcia funguje rovnako, ako keby žiaden dokumentačný reťazec neobsahovala, ale teraz bude fungovať aj:
+
+ ::
+
+  >>> help(pocet_vyskytov)
+  Help on function pocet_vyskytov in module __main__:
+
+  pocet_vyskytov(podretazec, retazec)
+      funkcia vráti počet výskytov podreťazca v reťazci
+
+      prvý parameter podretazec - ľubovoľný neprázdny reťazec, o ktorom sa
+                                  bude zisťovať počet výskytov
+      druhý parameter retazec - reťazec, v ktorom sa hľadajú výskyty
+
+      ak je prvý parameter podretazec prázdny reťazec, funkcia vráti len(retazec)
+
+Tu môžeme vidieť užitočnú vlastnosť Pythonu: programátor, ktorý vytvára nejaké nové funkcie, môže hneď vytvárať aj malú dokumentáciu o jej používaní pre ďalších programátorov.  Asi ľahko uhádneme, ako funguje napr. aj toto:
+
+ ::
+
+  >>> help(hex)
+  Help on built-in function hex in module builtins:
+
+  hex(number, /)
+      Return the hexadecimal representation of an integer.
+
+      >>> hex(12648430)
+      '0xc0ffee'
+
+
+
+Pri takomto spôsobe samodokumentácie funkcií si treba uvedomiť, že Python v tele funkcie ignoruje nielen všetky reťazce, ale aj iné konštanty:
+
+* ak napr. zavoláme funkciu, ktorá vracia nejakú hodnotu a túto hodnotu ďalej nespracujeme (napr. priradením do premennej, použitím ako parametra inej funkcie, ...), vyhodnocovanie funkcie takúto návratovú hodnotu ignoruje
+* ak si uvedomíme, že meno funkcie bez okrúhlych zátvoriek nespôsobí volanie tejto funkcie, ale len hodnotu referencie na funkciu, tak aj takýto zápis sa ignoruje
+
+Napr. všetky tieto zápisy sa v tele funkcie (alebo aj v programovom režime mimo funkcie) ignorujú:
+
+ ::
+
+  s.replace('a', 'b')
+  print
+  g.pack
+  pocet + 1
+  i == i + 1
+  math.sin(uhol)
+
+Python pri nich nehlási ani žiadnu chybu.
+
+
+
+Cvičenie
+--------
+
+1. Ručne zistite, čo sa vypíše:
+
+  * najprv bez počítača
+
+   ::
+   
+    >>> x, y = 'Bratislava', 'Praha'
+    >>> y[1] + x[4] + y[3] + x[-4] + y[-5]
+    ...
+    >>> x[5:8] + 3 * x[3] + y[2:]
+    ...
+    >>> y[:2] + x[-2:]
+    ...
+    >>> x[1::2] + y[2::2] + x[2::3]
+    ...
+
+2. Napíšte program, ktorý najprv prečíta 2 znakové reťazce a potom ich vypíše usporiadané podľa abecedy: najprv prvé v abecede a potom druhé.
+
+  * napr.
+
+   ::
+   
+    zadaj prvy: Jeden
+    zadaj druhy: Dva
+    poradie: Dva Jeden
+
+3. Napíšte funkciu ``rozdel_na_slova(veta)``, ktorá zo zadaného znakového reťazca vypíše všetky slová. Predpokladáme, že v tomto reťazci sú slová oddelené po jednej medzere, kde slovo je postupnosť znakov rôzna od medzery.
+
+  * napr.
+
+   ::
+   
+    >>> rozdel_na_slova('isiel Macek do Malaciek')
+    isiel
+    Macek
+    do
+    Malaciek
+    >>> rozdel_na_slova('Juraj_Janosik')
+    Juraj_Janosik
+
+4. Napíšte program, ktorý si vyžiada znakový reťazec s menom priezviskom (oddelené jednou medzerou). Potom vypíše najprv priezvisko a za tým meno, ale tak, aby obe začínali len veľkým písmeno a obsahovali len malé písmená. Môžete použiť metódy ``reťazec.find(' ')`` a ``reťazec.capitalize()``.
+
+  * napr.
+
+   ::
+   
+    zadaj meno a priezvisko: JURAJ jAnOsIk
+    priezvisko a meno: Janosik Juraj
+    
+5. Metóda ``'reťazec'.count(podreťazec)`` zistí počet výskytov podreťazca v reťazci. Napíšte funkciu ``pocet(retazec, podretazec)``, ktorá robí to isté, ale bez použitia tejto metódy.
+
+  * napr.
+
+   ::
+   
+    >>> pocet('mama ma emu a ema ma mamu', 'a ')
+    5
+    
+6. Znakový reťazec vieme prevrátiť pomocou zápisu ``retazec[::-1]``. Napíšte funkciu ``prevrat(retazc)``, ktorá len pomocou cyklu a zreťazovania prevráti zadaný reťazec. Funkcia nič nevypisuje, jej výsledkom (``return``) je znakový reťazec.
+
+  * napr.
+
+   ::
+
+    >>> prevrat('tseb eht si nohtyP')
+    'Python is the best'
+   
+7. Napíšte funkciu ``bez_medzier(text)``, ktorá z daného textu vyhodí všetky medzery. Funkcia nič nevypisuje, jej výsledkom (``return``) je znakový reťazec.
+
+  * napr.
+
+   ::
+   
+    >>> bez_medzier('  Mon  tyPy thon   ')
+    'MontyPython'
+    
+8. Napíšte funkciu ``dopln(text, znaky)``, ktorá postupne v zadanom texte hľadá všetky výskyty znaku ``'.'`` nahradzuje ich znakmi z parametra ``znaky`` (predpokladáme, že je ich tam dosť). T.j. prvý výskyt ``'.'`` sa nahradí prvým znakom z ``znaky``, druhý výskyt druhým znakom, atď.
+
+  * napr.
+
+   ::
+   
+    >>> dopln('.on.. P.t.on', 'Mtyyh')
+    'Monty Python'
+    
+9. Napíšte funkciu ``nahrad_samo(text, znak)``, ktorá v zadanom texte nahradí všetky samohlásky (``'aeiouy'``) zadaným znakom.
+
+  * napr.
+
+   ::
+   
+    >>> nahrad_samo('sedi mucha na stene', 'i')
+    'sidi michi ni stini'
+    >>> nahrad_samo('sedi mucha na stene', '*')
+    's*d* m*ch* n* st*n*'
+
+10. Napíšte funkciu ``do_desiatkovej(cislo)``, ktorá prevedie zadané celé číslo do znakového reťazca v desiatkovej sústave. Nepoužite pritom funkciu ``str()``.
+
+  * napr.
+
+   ::
+
+    >>> do_desiatkovej(370042)
+    '370042'
+    >>> do_desiatkovej(-13)
+    '-13'
+
+11. Malou modifikáciou funkcie ``do_desiatkovej(cislo)`` vyrobte funkciu ``do_dvojkovej(cislo)``. Nepoužite štandardnú funkciu ``bin()`` (môžete ju použiť na kontrolu správnosti výsledku).
+
+  * napr.
+
+   ::
+
+    >>> do_dvojkovej(3700)
+    '111001110100'
+    >>> do_dvojkovej(-13)
+    '-1101'
+
+12. Napíšte funkciu ``zo_sestnastkovej(retazec)``, ktorá z reťazca, ktorý reprezentuje číslo v 16-ovej sústave, vráti celé číslo. Nepoužite štandardnú funkciu ``int()`` (môžete ju použiť na kontrolu správnosti výsledku).
+
+  * napr.
+
+   ::
+
+    >>> zo_sestnastkovej('a9EF')
+    43503
+    >>> zo_sestnastkovej('64')
+    100
+
+13. Napíšte funkciu ``rozsekaj(text, sirka)``, ktorá vypíše zadaný text do viacerých riadkov, pričom každý (možno okrem posledného) má presne ``sirka`` znakov.
+
+  * napr.
+
+   ::
+   
+    >>> rozsekaj('Anicka dusicka, kde si bola', 5)
+    Anick
+    a dus
+    icka,
+     kde
+    si bo
+    la
+
+14. Vymysleli sme takéto tajné zašifrovanie text: v celom texte sa rozdelí na dvojice znakov a v každej sa navzájom oba znaky vymenia, teda prvý s druhým, tretí so štvrtým, piaty so šiestym, atď. Ak je nepárny počet znakov, tak posledný znak sa nevymieňa. Napíšte funkciu ``sifra2(text)``, ktorá takto zašifruje (zrejme aj odšifruje) zadaný text.
+
+  * napr.
+
+   ::
+
+    >>> sifra2('programujem')
+    rpgoarumejm
+    >>> sifra2('rpgoarumejm')
+    programujem
+   
+15. Naprogramujte iné šifrovanie: predpokladajme, že šifrovaný text má presne 16 znakov (ak menej, tak ho sprava doplníme znakom ``'x'``). Ak by sme ho teraz zapísali do štvorcovej tabuľky 4x4 po riadkoch, mohli by sme ho poskladať prečítaním po stĺpcoch a takto vytvoriť novú šifru. Ak by sme takto zašifrovaný text rovnakým postupom zašifrovali, dostali by sme pôvodný text. Napíšte funkciu ``sifra4(text)``, ktorá takto zašifruje (teda aj odšifruje) zadaný text.
+
+  * napr.
+
+   ::
+
+    >>> sifra4('pekna bratislava')
+    'paale takbivnrsa'
+    >>> sifra4('paale takbivnrsa')
+    'pekna bratislava'
+    
+16. Ďalší typ šifrovania bude modifikovať každý jeden znak v zadanom texte: ak je týmto znakom malé alebo veľké písmeno, tak ho v abecede cyklicky posunie o ``x`` pozícii vpravo (za písmenom ``'z'`` nasleduje ``'a'``). Ak znakom v text nie je písmeno, tak takýto znak ostáva bez zmeny. Napíšte funkciu ``sifra1(text, x)``, ktorá takto zašifruje (teda aj odšifruje) zadaný text. Ak je ``x`` záporné, posun v abecede je v opačnom smere.
+
+  * napr.
+
+   ::
+   
+    >>> sifra1('Python', 1)
+    'Qzuipo'
+    >>> sifra1('Qzuipo', -1)
+    'Python'
+    >>> sifra1(sifra1('Why Python?', 20), 6)
+    'Why Python?'
+

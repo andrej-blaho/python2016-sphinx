@@ -1,0 +1,876 @@
+Udalosti v grafickej ploche
+===========================
+
+Naučíme sa v našich programoch využívať tzv. **udalosti**, ktoré vznikajú v bežiacej grafickej aplikácii buď aktivitami používateľa (klikanie myšou, stláčanie klávesov) alebo operačného systému (tikanie časovača). Na úvod si pripomeňme, čo už vieme o grafickej ploche. Pomocou metód grafickej plochy ``Canvas`` (definovanej v module ``tkinter``) kreslíme grafické objekty:
+
+* ``canvas.create_line()`` - kreslí úsečku alebo krivku z nadväzujúcich úsečiek
+* ``canvas.create_oval()`` - kreslí elipsu
+* ``canvas.create_rectangle()`` - kreslí obdĺžnik
+* ``canvas.create_text()`` - vypíše text
+* ``canvas.create_polygon()`` - kreslí vyfarbený útvar zadaný bodmi na obvode
+* ``canvas.create_image()`` - kreslí obrázok (prečítaný zo súboru .gif alebo .png)
+
+Ďalšie pomocné metódy manipulujú s už nakreslenými objektami:
+
+* ``canvas.delete()`` - zruší objekt
+* ``canvas.move()`` - posunie objekt
+* ``canvas.coords()`` - zmení súradnice objektu
+* ``canvas.itemconfig()`` - zmení ďalšie parametre objektu (napr. farba, hrúbka, text, obrázok, ...)
+
+Ďalšie metódy umožňujú postupne zobrazovať vytváranú kresbu:
+
+* ``canvas.update()`` - zobrazí nové zmeny v grafickej ploche
+* ``canvas.after()`` - pozdrží beh programu o zadaný počet milisekúnd
+
+
+.. topic:: Udalosť
+
+   Udalosťou voláme akciu, ktorá vznikne mimo behu programu a program môže na túto situáciu reagovať. Najčastejšie sú to udalosti od pohybu a klikania myši, od stláčania klávesov, od časovača (vnútorných hodín OS), od rôznych zariadení ... V programe potom môžeme nastaviť, čo sa má udiať pri ktorej udalosti. Tomuto sa zvykne hovoriť **udalosťami riadené programovanie** (event-driven programming).
+
+Naučíme sa, ako v našich grafických programoch reagovať na udalosti od myši a klávesnice.
+
+Aby grafická plocha reagovala na klikania myšou, musíme ju zviazať (**bind**) s príslušnou udalosťou (**event**).
+
+.. topic:: metóda ``bind()``
+
+   Táto metóda grafickej plochy slúži na zviazanie niektorej konkrétnej udalosti s nejakou funkciou, ktorá sa bude v programe starať o spracovanie tejto udalosti. Jej formát je:
+
+   ::
+
+    canvas.bind(meno_udalosti, funkcia)
+
+   kde ``meno_udalosti`` je znakový reťazec s popisom udalosti (napr. pre kliknutie tlačidlom myši) a ``funkcia`` sa spustí pri vzniku tejto udalosti. Táto funkcia, musí byť definovaná s práve jedným parametrom, v ktorom nám systém prezradí detaily vzniknutej udalosti.
+
+
+Klikanie a ťahanie myšou
+------------------------
+
+Ukážme tieto tri "myšacie" udalosti:
+
+* **kliknutie** (zatlačenie tlačidla myši) - reťazec ``'<Button-1>'`` - **1** označuje ľavé tlačidlo myši, **2** by tu znamenala stredné tlačidlo, **3** pravé tlačidlo
+* **ťahanie** (posúvanie myšou so zatlačeným tlačidlo) - reťazec ``'<B1-Motion>'``
+* **pustenie myši** - reťazec ``'<ButtonRelease-1>'``
+
+Klikanie myšou
+..............
+
+Kliknutie myšou do grafickej plochy vyvolá udalosť s menom ``'<Button-1>'``. Ukážme ako vyzerá samotné zviazanie funkcie:
+
+ ::
+
+  import tkinter
+
+  canvas = tkinter.Canvas()
+  canvas.pack()
+
+  canvas.bind('<Button-1>', print)
+  
+Druhý parameter metódy ``bind()`` musí byť **referencia na funkciu**, ale nie hocijakú, na funkciu, ktorá má jeden parameter. Tu sme použili funkciu ``print`` a keďže do ``bind()`` treba poslať referenciu na túto funkciu, nesmieme za ``print`` písať zátvorky ``()``.
+
+Keď teraz tento malý testovací program spustíte, objaví sa prázdne grafické okno a program čaká, čo sa bude diať (Ak budete tento program spúšťať mimo IDLE, nezabudnite na záver pripísať volanie ``mainloop()``, napr. ``canvas.mainloop()``). Keďže sme grafickej ploche udalosť kliknutie myšou **zviazali** s funkciou ``print()``, každé kliknutie do plochy automaticky vyvolá túto funkciu. Pri klikaní dostávame nejaký takýto podobný výpis (pri každom kliknutí do plochy sa vypíše jeden riadok):
+
+ ::
+ 
+  <tkinter.Event object at 0x0293D290>
+  <tkinter.Event object at 0x0293D250>
+  <tkinter.Event object at 0x0293D210>
+
+Zviazanie udalosti s nejakou funkciou teda znamená, že každé vyvolanie udalosti (kliknutie ľavým tlačidlom myši do grafickej plochy) automaticky zavolá zviazanú funkciu. To, čo nám pritom vypisuje ``print()``, je ten jeden parameter, ktorý ``tkinter`` posiela pri každom jeho zavolaní.
+
+Vytvorme si teraz vlastnú funkciu, ktorú zviažeme s udalosťou kliknutia:
+
+ ::
+
+  import tkinter
+
+  canvas = tkinter.Canvas()
+  canvas.pack()
+
+  def klik(parameter):
+      print('klik')
+
+  canvas.bind('<Button-1>', klik)
+  
+Vytvorili sme funkciu ``klik()``, ktorá sa bude automaticky volať pri každom kliknutí do plochy. Nezabudli sme do hlavičky funkcie pridať jeden formálny parameter, inak by Python pri vzniku udalosti protestoval, že našu funkciu ``klik()`` chcel zavolať s jedným parametrom a my sme ho nezadeklarovali. Ak by sme tento program spustili, pri každom kliknutí do plochy by sa do textovej plochy shellu mal vypísať text ``'klik'``.
+
+Teraz k samotnému parametru v našej funkcii ``klik()``: tento parameter slúži na to, aby nám tkinter mohol nejakým spôsobom posielať informácie o udalosti. My vieme, že funkcia ``klik()`` sa zavolá vždy, keď sa niekam klikne, ale nevieme, kde presne do plochy sa kliklo. Práve na toto slúži tento parameter: z neho vieme vytiahnuť, napr. x-ovú a y-ovú súradnicu kliknutého miesta. V nasledovnom príklade vidíme, ako sa to robí. Ešte sme tento ``parameter`` premenovali na ``event`` (udalosť po anglicky), aby sme lepšie rozlíšili to, že s týmto parametrom prišla udalosť. Preto tieto súradnice získame ako ``event.x`` a ``event.y``:
+
+ ::
+
+  import tkinter
+
+  canvas = tkinter.Canvas()
+  canvas.pack()
+
+  def klik(event):
+      print('klik', event.x, event.y)
+
+  canvas.bind('<Button-1>', klik)
+
+V tomto programe sa pri každom kliknutí vypíšu do shellu aj súradnice kliknutého miesta.
+
+V ďalšom príklade ukážeme, ako využijeme súradnice kliknutého bodu v ploche:
+
+ ::
+
+  import tkinter
+
+  canvas = tkinter.Canvas()
+  canvas.pack()
+
+  def klik(event):
+      x, y = event.x, event.y
+      canvas.create_oval(x-10, y-10, x+10, y+10, fill='red')
+
+  canvas.bind('<Button-1>', klik)
+
+Teraz sa pri kliknutí nakreslí červený kruh a využijú sa pritom súradnice kliknutého miesta: stred kruhu je kliknuté miesto.
+
+Akcia, ktorá sa vykoná pri kliknutí môže byť veľmi jednoduchá, napr. spájanie kliknutého bodu s nejakým bodom grafickej plochy:
+
+ ::
+
+  import tkinter
+
+  canvas = tkinter.Canvas()
+  canvas.pack()
+
+  def klik(event):
+      canvas.create_line(100, 200, event.x, event.y)
+
+  canvas.bind('<Button-1>', klik)
+
+..
+  obrazok
+  
+Ale môžu sa nakresliť aj komplexnejšie kresby, napr. 10 sústredných farebných kruhov:
+
+ ::
+
+  import tkinter
+  import random
+
+  canvas = tkinter.Canvas()
+  canvas.pack()
+
+  def klik(event):
+      x, y = event.x, event.y
+      for r in range(50, 0, -5):
+          farba = '#{:06x}'.format(random.randrange(256**3))
+          canvas.create_oval(x-r, y-r, x+r, y+r, fill=farba)
+
+  canvas.bind('<Button-1>', klik)
+
+Vráťme sa k príkladu, v ktorom sme kreslili malé krúžky:
+
+ ::
+
+  import tkinter
+
+  canvas = tkinter.Canvas()
+  canvas.pack()
+
+  def klik(event):
+      x, y = event.x, event.y
+      canvas.create_oval(x-5, y-5, x+5, y+5, fill='red')
+
+  canvas.bind('<Button-1>', klik)
+
+Chceme do tohto programu pridať takéto správanie: tieto kliknuté body (červené krúžky) sa budú postupne spájať úsečkami (zrejme sa bude úsečka kresliť až od druhého kliknutia). Pridáme dve globálne premenné ``xx`` a ``yy``, v ktorých si budeme pamätať predchádzajúci kliknutý bod. Pred prvým kliknutím sme do ``xx`` priradili ``-1``, čo bude označovať, že predchádzajúci vrchol ešte nebol:
+
+ ::
+
+  import tkinter
+
+  canvas = tkinter.Canvas()
+  canvas.pack()
+
+  xx = yy = -1
+
+  def klik(event):
+      x, y = event.x, event.y
+      canvas.create_oval(x-5, y-5, x+5, y+5, fill='red')
+      if xx >= 0:
+          canvas.create_line(xx, yy, x, y)
+      xx, yy = x, y
+
+  canvas.bind('<Button-1>', klik)
+
+Žiaľ to nefunguje: po spustení a kliknutí sa dozvieme:
+
+ ::
+
+  ...
+  File ..., line 11, in klik
+      if xx >= 0:
+  UnboundLocalError: local variable 'xx' referenced before assignment
+
+Problémom su tu **globálne premenné**. Používať globálne premenné vo vnútri funkcii môžeme, len dovtedy, kým ich **nemeníme**. Priraďovací príkaz vo funkcii totiž znamená, že vytvárame novú **lokálnu premennú** (v mennom priestore funkcie ``klik()``). Takže Python to v tejto funkcii pochopil takto: do premenných ``xx`` a ``yy`` sa vo vnútri funkcie priraďuje nejaká hodnota, takže obe sú lokálne premenné. Keď ale príde vykonávanie funkcie na podmienený príkaz ``if  xx >= 0:``, Python už vie, že ``xx`` je lokálna premenná, ktorá nemá zatiaľ priradenú žiadnu hodnotu. A preto nám oznámil túto chybovú správu: ``UnboundLocalError: local variable 'xx' referenced before assignment``.
+Takže s globálnymi premennými vo funkcii sa bude musieť pracovať nejako inak. Zrejme, keď do takejto premennej nepotrebujeme vo funkcii nič priradzovať, iba ju používať, problémy nie sú.
+
+Tento problém nám pomôže vyriešiť nový príkaz ``global``:
+
+.. topic:: príkaz ``global``
+
+   príkaz má tvar:
+
+   ::
+
+    global premenná
+    global premenná, premenná, premenná, ...
+
+   Príkaz sa používa vo funkcii vtedy, keď v nej chceme pracovať s globálnou premennou (alebo aj s viac premennými) a my nechceme, aby ju Python vytvoril aj v lokálnom mennom priestore, ale ponechal len v globálnom.
+
+Po doplnení tohto príkazu do predchádzajúceho príkladu všetko funguje tak, ako má:
+
+ ::
+
+  import tkinter
+
+  canvas = tkinter.Canvas()
+  canvas.pack()
+
+  xx = yy = -1
+
+  def klik(event):
+      global xx, yy
+      x, y = event.x, event.y
+      canvas.create_oval(x-5, y-5, x+5, y+5, fill='red')
+      if xx >= 0:
+          canvas.create_line(xx, yy, x, y)
+      xx, yy = x, y
+
+  canvas.bind('<Button-1>', klik)
+
+..
+  po spustení dostávame takýto obrázok:
+  
+.. warning::
+   Príkaz **global** umožňuje modifikovať globálne premenné vo funkciách, teda vlastne robiť **vedľajší účinok** na globálnych premenných. Toto je ale veľmi **nesprávny spôsob programovania** (*bad programming practice*) a väčšinou svedčí o programátorovi začiatočníkovi, amatérovi.
+
+Kým sa nenaučíme, ako to obísť, budeme to používať veľmi opatrne. Neskôr to využijeme veľmi výnimočne, najmä pri ladení. Správne sa takéto problémy riešia najčastejšie definovaním vlastných tried a použitím atribútov tried.
+
+Ťahanie myšou
+.............
+
+Obsluha udalosti ťahanie myšou (pohyb myši so zatlačeným tlačidlom) je veľmi podobná klikaniu. Udalosť ma meno ``'<B1-Motion>'``. Pozrime, čo sa zmení, keď kliknutie ``'<Button-1>'`` nahradíme ťahaním ``'<B1-Motion>'``:
+
+ ::
+
+  import tkinter
+
+  canvas = tkinter.Canvas()
+  canvas.pack()
+
+  def klik(event):
+      x, y = event.x, event.y
+      canvas.create_oval(x-10, y-10, x+10, y+10, fill='red')
+
+  canvas.bind('<B1-Motion>', klik)      # '<B1-Motion>' namiesto '<Button-1>'
+
+Funguje to veľmi dobre: pri ťahaní sa na pozícii myši kreslia červené kruhy. Pri pomalom ťahaní sú kruhy nakreslené veľmi nahusto. Často v našich programoch budeme spracovávať obe udalosti: kliknutie aj ťahanie. Niekedy je to tá istá funkcia, inokedy sú rôzne a preto je dobre ich pomenovať zodpovedajúcimi názvami, napr.
+
+ ::
+ 
+  import tkinter
+
+  canvas = tkinter.Canvas()
+  canvas.pack()
+
+  def klik(event):
+      x, y = event.x, event.y
+      canvas.create_oval(x-10, y-10, x+10, y+10, fill='red')
+
+  def tahanie(event):
+      x, y = event.x, event.y
+      canvas.create_oval(x-5, y-5, x+5, y+5, fill='blue')
+
+  canvas.bind('<Button-1>', klik)
+  canvas.bind('<B1-Motion>', tahanie)
+
+Pri kliknutí (ešte bez ťahania) sa nakreslí červený kruh, pri ťahaní sa kreslia už len malé modré kruhy. Na podobnom princípe môžeme upraviť aj kreslenie lúčov z bodu (100, 200) do pozície myši:
+
+ ::
+
+  import tkinter
+
+  canvas = tkinter.Canvas()
+  canvas.pack()
+
+  def klik(event):
+      canvas.create_line(100, 200, event.x, event.y, fill='red', width=3)
+
+  def tahanie(event):
+      canvas.create_line(100, 200, event.x, event.y)
+
+  canvas.bind('<Button-1>', klik)
+  canvas.bind('<B1-Motion>', tahanie)
+
+Pri kliknutí sa nakreslí červená úsečka, pri ťahaní sa kreslia už len čierne.
+
+Ďalej nadviažeme na program, v ktorom sme postupne spájali kliknuté body. Pri tomto programe sme využili nový príkaz ``global``, aby sme sa dostali ku globálnym premenným. Tento nie najvhodnejší príkaz môžeme obísť, keď využijeme meniteľný (**mutable**) typ pole (``list``).
+
+Budeme ťahať (ťahaním myši) jednu dlhú lomenú čiaru, pričom si súradnice prijaté z udalosti budeme ukladať do poľa čísel.
+
+ ::
+
+  import tkinter
+
+  canvas = tkinter.Canvas()
+  canvas.pack()
+
+  pole = []
+  ciara = canvas.create_line(0, 0, 0, 0)
+
+  def klik(event):
+      pole[:] = [event.x, event.y]
+
+  def tahanie(event):
+      pole.extend([event.x, event.y])
+      canvas.coords(ciara, pole)
+
+  canvas.bind('<Button-1>', klik)
+  canvas.bind('<B1-Motion>', tahanie)
+
+Všimnite si, že vo funkciách používame 3 globálne premenné:
+
+* ``canvas`` - referencia na grafickú plochu
+* ``ciara`` - identifikátor objektu čiara, potrebujeme ho pre neskoršie menenie postupnosti súradníc príkazom ``coords()``
+* ``pole`` - pole súradníc je meniteľný objekt, teda môžeme meniť obsah poľa bez toho, aby sme do premennej ``pole`` priraďovali (priraďujeme buď do rezu alebo voláme metódu ``extend()``, t. j. prilep nejakú postupnosť na koniec poľa)
+
+  * modifikovanie poľa vo funkcii, pričom pole nie je parametrom funkcie, tiež nie je najvhodnejším spôsobom programovania, tiež je to nevhodný **vedľajší účinok** podobne ako príkaz ``global``, zatiaľ to inak robiť nevieme, tak je to dočasne akceptovateľné
+
+Ťahanie čiary v predchádzajúcom príklade žiaľ kreslí jedinú čiaru: každé ďalšie kliknutie a ťahanie začne kresliť novú čiaru, pričom stará čiara zmizne. Vyriešime to tak, že pri kliknutí začneme kresliť novú čiaru a tú starú necháme tak:
+
+ ::
+
+  import tkinter
+
+  canvas = tkinter.Canvas()
+  canvas.pack()
+
+  pole = []
+
+  def klik(event):
+      global ciara
+      pole[:] = [event.x, event.y]
+      ciara = canvas.create_line(0, 0, 0, 0)
+
+  def tahanie(event):
+      pole.extend([event.x, event.y])
+      canvas.coords(ciara, pole)
+
+  canvas.bind('<Button-1>', klik)
+  canvas.bind('<B1-Motion>', tahanie)
+
+Malou zmenou dosiahneme veľmi zaujímavý efekt. Vyskúšajte a poštudujte:
+
+ ::
+ 
+  import tkinter
+  import random
+
+  canvas = tkinter.Canvas()
+  canvas.pack()
+
+  pole = []
+
+  def klik(event):
+      global ciara
+      pole[:] = [event.x, event.y]
+      farba = '#{:06x}'.format(random.randrange(256**3))
+      ciara = canvas.create_polygon(0, 0, 0, 0, fill=farba)
+
+  def tahanie(event):
+      pole.extend([event.x, event.y])
+      canvas.coords(ciara, pole)
+
+  canvas.bind('<Button-1>', klik)
+  canvas.bind('<B1-Motion>', tahanie)
+
+
+Udalosti od klávesnice
+----------------------
+
+Každé zatlačenie nejakého klávesu na klávesnici môže tiež vyvolať udalosť. Základnou univerzálnou udalosťou je ``'<Key>'``, ktorá sa vyvolá pri každom zatlačení nejakého klávesu. Môžeme otestovať:
+
+ ::
+
+  import tkinter
+
+  canvas = tkinter.Canvas()
+  canvas.pack()
+
+  def test(event):
+      print(event.keysym)
+
+  canvas.bind_all('<Key>', test)
+
+Všimnite si, že sme museli zapísať ``bind_all()`` namiesto ``bind()``.
+
+Každý jeden kláves môže vyvolať ale aj samostatnú udalosť. Ako meno udalosti treba uviesť meno klávesu v ``'<...>'`` zátvorkách alebo samostatný znak, napr.
+
+ ::
+
+  import tkinter
+
+  canvas = tkinter.Canvas()
+  canvas.pack()
+
+  def test_vlavo(event):
+      print('sipka vlavo')
+
+  def test_a(event):
+      print('stlacil si klaves a')
+
+  canvas.bind_all('a', test_a)
+  canvas.bind_all('<Left>', test_vlavo)
+
+Najčastejšie to využijeme tak, ako v tomto príklade:
+
+ ::
+
+  import tkinter
+
+  canvas = tkinter.Canvas(bg='white', width=400, height=400)
+  canvas.pack()
+
+  def kresli():
+      global pole
+      pole += [x, y]
+      canvas.coords(ciara, pole)
+
+  def udalost_vlavo(event):
+      global x
+      x -= 10
+      kresli()
+
+  def udalost_vpravo(event):
+      global x
+      x += 10
+      kresli()
+
+  def udalost_hore(event):
+      global y
+      y -= 10
+      kresli()
+
+  def udalost_dolu(event):
+      global y
+      y += 10
+      kresli()
+
+  x, y = 200, 200
+  pole = [x, y]
+  ciara = canvas.create_line(0, 0, 0, 0)        # zatiaľ prázdna čiara
+  canvas.bind_all('<Left>', udalost_vlavo)
+  canvas.bind_all('<Right>', udalost_vpravo)
+  canvas.bind_all('<Up>', udalost_hore)
+  canvas.bind_all('<Down>', udalost_dolu)
+
+
+Časovač
+-------
+
+Pripomeňme si, ako sme doteraz v grafickej ploche kreslili krúžky na náhodné pozície s nejakým časovým pozdržaním (napr. 100 ms):
+
+ ::
+
+  import tkinter
+  import random
+
+  canvas = tkinter.Canvas(width=600, height=450, bg='white')
+  canvas.pack()
+
+  def kresli():
+      while True:
+          x = random.randrange(600)
+          y = random.randrange(450)
+          canvas.create_oval(x-10, y-10, x+10, y+10, fill='red')
+          canvas.update()
+          canvas.after(100)
+
+  kresli()
+  print('hotovo')
+
+Použili sme tu nekonečný cyklus a preto sa príkaz ``print()`` za volaním ``kresli()`` s nekonečným while-cyklom už nikdy nevykoná.
+
+Metóda grafickej plochy ``after()``, ktorá pozdrží výpočet o nejaký počet milisekúnd, je oveľa všestrannejšia: môžeme pomocou nej štartovať, tzv. **časovač**:
+
+.. topic:: metóda ``after()``
+
+   Metóda ``after()`` grafickej plochy môže mať jeden z týchto tvarov:
+
+   ::
+
+    canvas.after(milisekundy)
+    canvas.after(milisekundy, funkcia)
+
+   Prvý parameter ``milisekundy`` už poznáme: výpočet sa pozdrží o príslušný počet milisekúnd. Lenže, ak je metóda zavolaná aj s druhým parametrom ``funkcia``, výpočet sa naozaj nepozdrží, ale pozdrží sa vyvolanie zadanej funkcie (skutočným parametrom musí byť **referencia na funkciu**, teda väčšinou bez okrúhlych zátvoriek). Táto vyvolaná funkcia musí byť definovaná bez parametrov.
+
+   S týmto druhým parametrom metóda ``after()`` naplánuje (niekedy v budúcnosti) spustenie nejakej funkcie a pritom výpočet pokračuje normálne ďalej na ďalšom príkaze za ``after()`` (bez pozdržania).
+
+   Tomuto mechanizmu hovoríme **časovač** (naplánovanie spustenia nejakej akcie), po anglicky **timer**. Najčastejšie sa používa takto:
+
+   ::
+
+    def casovac():
+        # príkazy
+        canvas.after(cas, casovac)
+
+   V tomto prípade funkcia naplánuje spustenie samej seba po nejakom čase. Môžete si to predstaviť tak, že v počítači tikajú nejaké hodiny s udanou frekvenciou v milisekundách a pri každom tiknutí sa vykonajú príkazy v tele funkcie.
+   
+Najprv jednoduchý test:
+
+ ::
+
+  import tkinter
+
+  canvas = tkinter.Canvas()
+  canvas.pack()
+
+  def casovac():
+      print('tik')
+      canvas.after(1000, casovac)
+
+  casovac()
+
+Časovač každú sekundu vypíše text ``'tik'``.
+
+Predchádzajúci program s náhodnými červenými krúžkami teraz prepíšeme s použitím časovača:
+
+ ::
+
+  import tkinter
+  import random
+
+  canvas = tkinter.Canvas(width=600, height=450, bg='white')
+  canvas.pack()
+
+  def kresli():
+      x = random.randrange(600)
+      y = random.randrange(450)
+      canvas.create_oval(x-10, y-10, x+10, y+10, fill='red')
+      # canvas.update()
+      canvas.after(100, kresli)
+
+  kresli()
+  print('hotovo')
+
+Po spustení funkcie ``kresli()`` (tá nakreslí jeden kruh a zavolá ``after()``, t. j. naplánuje ďalšie kreslenie) sa pokračuje ďalším príkazom, t. j. sa vypíše ``print('hotovo')``, program končí a v shelli môžeme zadávať ďalšie príkazy. Pritom ale stále beží náš rozbehnutý **časovač**. Počas behu časovača môže program vykonávať ďalšie akcie, napr. spustiť aj ďalší časovač. Zapíšme:
+
+ ::
+
+  import tkinter
+  import random
+
+  canvas = tkinter.Canvas(width=600, height=450, bg='white')
+  canvas.pack()
+
+  def kresli():
+      x = random.randrange(600)
+      y = random.randrange(450)
+      canvas.create_oval(x-10, y-10, x+10, y+10, fill='red')
+      canvas.after(100, kresli)
+
+  def kresli1():
+      x = random.randrange(600)
+      y = random.randrange(450)
+      canvas.create_rectangle(x-10, y-10, x+10, y+10, fill='blue')
+      canvas.after(300, kresli1)
+
+  kresli()
+  kresli1()
+  print('hotovo')
+
+Program teraz spustí oba časovače: kreslia sa červené krúžky a modré štvorčeky. Keďže druhý časovač má svoj interval 300 milisekúnd, teda "tiká" 3-krát pomalšie ako prvý, kreslí 3-krát menej modrých štvorčekov ako prvý časovač červených krúžkov
+
+Zastavovanie časovača
+.....................
+
+Na zastavenie časovača nemáme žiaden príkaz. Časovač môžeme zastaviť len tak, že on sám v svojom tele na konci nezavolá metódu ``canvas.after()`` a tým aj skončí. Upravíme predchádzajúci príklad tak, že zadefinujme dve globálne premenné, ktoré budú slúžiť pre oba časovače na zastavovanie:
+
+ ::
+
+  import tkinter
+  import random
+
+  canvas = tkinter.Canvas(width=600, height=450, bg='white')
+  canvas.pack()
+
+  def kresli():
+      x = random.randrange(600)
+      y = random.randrange(450)
+      canvas.create_oval(x-10, y-10, x+10, y+10, fill='red')
+      if not skonci:
+          canvas.after(100, kresli)
+
+  def kresli1():
+      x = random.randrange(600)
+      y = random.randrange(450)
+      canvas.create_rectangle(x-10, y-10, x+10, y+10, fill='blue')
+      if not skonci1:
+          canvas.after(300, kresli1)
+
+  skonci = False
+  skonci1 = False
+  kresli()
+  kresli1()
+  print('hotovo')
+
+Teraz bežia oba časovače, ale stačí zavolať, napr.
+
+ ::
+
+  >>> skonci = True
+
+V tomto momente sa prvý časovač zastaví a beží iba druhý, teda sa kreslia len modré štvorčeky. Ak by sme chceli znovu naštartovať prvý časovač, nesmieme zabudnúť zmeniť premennú ``skonci`` a zavolať ``kresli()``:
+
+ ::
+
+  >>> skonci = False
+  >>> kresli()
+
+Opäť bežia súčasne oba časovače.
+
+Globálne premenné môžeme využiť aj na iné účely: môžeme nimi meniť "parametre" bežiacich príkazov. Napr. farbu krúžkov, ale aj interval tikania časovača, napr.
+
+ ::
+
+  import tkinter
+  import random
+
+  canvas = tkinter.Canvas(width=600, height=450, bg='white')
+  canvas.pack()
+
+  def kresli():
+      x = random.randrange(600)
+      y = random.randrange(450)
+      canvas.create_oval(x-10, y-10, x+10, y+10, fill=farba)
+      if not skonci:
+          canvas.after(cas, kresli)
+
+  skonci = False
+  farba = 'red'
+  cas = 100
+  kresli()
+
+Pohyb 2 obrázkov rôznou rýchlosťou:
+
+ ::
+
+  import tkinter
+  import random
+
+  canvas = tkinter.Canvas(width=600, height=450, bg='white')
+  canvas.pack()
+
+  obrazok1 = tkinter.PhotoImage(file='auto1.png')
+  obrazok2 = tkinter.PhotoImage(file='auto2.png')
+  x1, x2 = 50, 550
+  prvy = canvas.create_image(x1, 200, image=obrazok1)
+  druhy = canvas.create_image(x2, 200, image=obrazok2)
+  dx1, dx2 = 8, 5
+
+  def start(e):
+      canvas.coords(prvy, x1, 200)
+      canvas.coords(druhy, x2, 200)
+      pohyb()
+
+  def pohyb():
+      #global x1, x2
+      canvas.move(prvy, dx1, 0)
+      #x1 += dx1
+      canvas.move(druhy, -dx2, 0)
+      #x2 -= dx2
+      canvas.update()
+      if canvas.coords(prvy)[0]+50 < canvas.coords(druhy)[0]-50:
+          canvas.after(50, pohyb)
+      else:
+          canvas.create_text(300, 250, text='BUM', fill='red', font='arial 40')
+
+  canvas.bind('<Button-1>', start)
+
+Časovač tu zastane sám pri splnení nejakej podmienky. Lenže klikanie aj počas animácie autíčok funguje a opätovné spustenie časovača tu môže narobiť nepríjemnosti. Bolo by dobre, keby sme vedeli počas behu časovača **zablokovať** klikanie a po skončení opäť povoliť. Využijeme metódu na zrušenie zviazania udalosti:
+
+.. topic:: metóda ``unbind()``
+
+   Metóda zruší zviazanie príslušnej udalosti:
+
+   ::
+
+    canvas.unbind(meno_udalosti)
+
+Upravíme program:
+
+ ::
+
+  import tkinter
+  import random
+
+  canvas = tkinter.Canvas(width=600, height=450, bg='white')
+  canvas.pack()
+
+  obrazok1 = tkinter.PhotoImage(file='auto1.png')
+  obrazok2 = tkinter.PhotoImage(file='auto2.png')
+  x1, x2 = 50, 550
+  prvy = canvas.create_image(x1, 200, image=obrazok1)
+  druhy = canvas.create_image(x2, 200, image=obrazok2)
+  dx1, dx2 = 8, 5
+
+  def start(e):
+      canvas.unbind('<Button-1>')         # zruší klikaciu udalosť
+      canvas.coords(prvy, x1, 200)
+      canvas.coords(druhy, x2, 200)
+      pohyb()
+
+  def pohyb():
+      canvas.move(prvy, dx1, 0)
+      canvas.move(druhy, -dx2, 0)
+      canvas.update()
+      if canvas.coords(prvy)[0]+50 < canvas.coords(druhy)[0]-50:
+          canvas.after(50, pohyb)
+      else:
+          canvas.create_text(300, 250, text='BUM', fill='red', font='arial 40')
+          canvas.bind('<Button-1>', start)   # obnoví klikaciu udalosť
+
+  canvas.bind('<Button-1>', start)
+
+
+Cvičenie
+--------
+
+Vo všetkých úlohách zostavíte program, ktorý bude pracovať s grafickou plochou, preto najprv vytvoríte ``canvas`` vhodnej veľkosti a farby.
+
+Úloh je viac, ako sa dá vyriešiť v rámci jedného cvičenia. Preto si môžete vyberať a riešiť tie, ktoré vás nejako zaujmú.
+
+Klikanie myšou
+..............
+
+1. Na pozícii kliknutia myšou sa vypíšu súradnice kliknutého bodu v tvare ``(120, 151)``
+
+  * zvoľte malý font
+
+2. Máme dané globálne pole reťazcov. Na každé kliknutie myšou sa na danej pozícii vypíše prvý reťazec z poľa a zároveň sa z poľa odstráni (metódou ``pop()``)
+
+  * reťazce vypisujte do plochy nejakým väčším fontom
+  * keď je pole už prázdne, klikanie do plochy nerobí nič (v shelli môžeme do poľa priradiť nové reťazce)
+  * napr.
+
+   ::
+    
+    >>> pole = list('PYTHON')
+    >>> ... # 6-krát klikneme do plochy
+    >>> pole = 'python java pascal c++ ruby php logo javascript'.split()
+    >>> ... # klikáme do plochy
+     
+3. Do plochy nakreslite tesne vedľa seba 8 štvorcov veľkosti 50x50. Na každé kliknutie sa príslušný kliknutý štvorec zafarbí na červeno (alebo na nejakú náhodnú farbu)
+
+  * poradové číslo štvorca v rade zistite z x-ovej súradnice kliknutého bodu ``event.x // 50``, kontrolujte, či aj ``event.y`` je v správnom intervale, t. j. kliklo sa do vnútra niektorého štvorca a nie niekde mimo
+
+
+4. Predchádzajúci príklad doplňte tak, aby klikanie v každom štvorci striedalo 3 farby: ``('white', 'blue', 'red')``
+
+  * napr. na začiatku sú všetky biele, ak teraz postupne na všetky klikneme raz, budú sa prefarbovať na modro
+
+
+5. V poli máme čísla 0 až ``n`` v náhodnom poradí
+
+  * napr.
+
+   ::
+   
+    pole = [3, 0, 1, 2]
+    
+  Toto pole reprezentuje takýto hlavolam: máme ``n+1`` políčok (štvorčekov) v každom okrem jedného je číslo od 1 do ``n``. Políčko s 0 vykreslíme ako prázdne ostatné so zodpovedajúcim číslom v strede. Kliknutie do jedného zo štvorčekov s číslom presťahuje toto číslo na voľné políčko (zároveň v poli vymení 0 a toto kliknuté číslo). Cieľom riešenia hlavolamu je preusporiadať čísla tak aby v prvých ``n`` políčkach boli postupne čísla 1 až ``n`` a posledné políčko ostalo prázdne: vtedy program vypíše 'HURA'.
+
+Ťahanie myšou
+.............
+
+6. Gumená úsečka: kliknutie naštartuje vytváranie úsečky (prvý aj druhý bod úsečky je kliknutý bod, t. j. jej veľkosť je 0), ťahanie aktualizuje jej druhý bod (použite metódu ``canvas.coords()``)
+
+  * každé ďalšie kliknutie a ťahanie vytvára ďalšiu úsečku
+
+7. Gumený obdĺžnik: kliknutie naštartuje vytváranie obdĺžnika (jeden vrchol je kliknutý bod a veľkosť je zatiaľ 0x0), ťahanie aktualizuje jeho veľkosť, t.j. protiľahlý vrchol
+
+  * kliknutie nastaví náhodnú farbu výplne tohto obdĺžnika
+  * každé ďalšie kliknutie a ťahanie vytvára ďalší obdĺžnik
+
+8. V ploche sa nachádza jeden červený štvorček veľkosti 50x50. Keď klikneme do jeho vnútra (počíta sa aj obvod), môžeme ho ťahať, teda posúvať po ploche podľa pohybu myši (inak ťahanie s kliknutím mimo štvorček nerobí nič).
+
+  * dajte pozor, aby aj malé posunutie myši počas ťahania neurobilo jeho neúmerne veľký skok (môžeme ho chytiť a ťahať napr. aj za ľubovoľný vrchol
+
+9. Predchádzajúci príklad upravte tak, aby fungoval aj pre 2 rôzne veľké štvorce: jeden červený veľkosti 50x50, druhý modrý veľkosti 100x100
+
+  * vedeli by ste tento program upraviť tak, aby fungoval pre ľubovoľný počet štvorcov v ploche
+
+10. V ďalšom programe bude kliknutie aj ťahanie robiť to isté:
+
+  * funkcia bude využívať tieto globálne premenné:
+
+   ::
+   
+    pocet = 20
+    farba = 'green'
+    vzd = 20
+    
+  * v okolí kliknutého bodu sa náhodne vygeneruje ``pocet`` malých farebných krúžkov (s polomerom 2, s danou ``farbou`` a bez obrysu), tieto náhodne vygenerované body majú ``x``, resp. ``y`` v intervale plus mínus ``vzd`` od kliknutého bodu (napr. ``x=event.x+random.randint(-vzd,vzd)``)
+  * takto by mal vzniknúť efekt spreja (experimentujte s rôznymi hodnotami týchto troch premenných)
+   
+Klávesnica
+..........
+
+11. Približne v strede sa zobrazí nejaký obrázok (nájdite nejaký ``.png`` súbor), stláčaním šípok sa celý obrázok posúva daným smerom
+
+  * každé stlačenie klávesu šípky posunie obrázok daným smerom o 10 pixelov
+  * otestujte, či sa bude automaticky posúvať aj vtedy, keď kláves šípky podržíme zatlačený dlhšie
+
+12. Stláčaním malých a veľkých písmen abecedy sa tieto vypisujú nejakým fontom pod seba. Keď už by to malo presiahnuť spodný okraj plochy, pokračuje sa odhora ale celý ďalší výpis je trochu posunutý vpravo
+
+  * použite metódu ``bind_all('<Key>', ...)`` pričom vo viazanej funkcii pracujte s hodnotou ``event.char``
+
+Časovač
+.......
+
+13. V globálnej premennej ``farba = 'red'`` je nastavená nejaká farba, nastavte časovač, ktorý každú 0.05 sekundy nakreslí na náhodnú pozíciu farebný štvorček 10x10 s danou farbou
+
+  * počas behu časovača, meňte nastavenú farbu a sledujte, čo sa robí
+
+14. Do riešenia predchádzajúcej úlohy dorobte ďalší časovač, ktorý každých 5 sekúnd zmení obsah premennej ``farba`` na náhodnú farbu
+
+  * porozmýšľajte aj o treťom časovači (napr. každých 8 sekúnd), ktorý zmení veľkosť vykresľovaných štvorčekov na náhodné číslo od 5 do 20
+
+15. V ploche je nakreslených 10 sústredných kružníc s náhodnými farbami a s polomermi 50, 45, 40, ... (ako bolo na prednáške), ich stred je (50, 100). Časovač všetky tieto kruhy pomaly (0.1 sekundy) posúva vpravo s krokom 1.
+
+  * použite metódu ``canvas.move()``
+  * časovač sa pri vykreslení kružníc na pravom okraji plochy sám zastaví
+
+16. V ploche je farebný štvorček, po kliknutí myšou (hocikde v ploche) sa začne posúvať smerom vpravo, keď narazí na okraj plochy posúvanie sa otočí opačným smerom, takto sa otočí aj na ľavom okraji, atď. Každé ďalšie kliknutie myšou buď zastaví alebo rozbehne posúvanie štvorčeka
+
+  * zastavené posúvanie si pamätá smer a opätovné kliknutie ho rozbehne v danom smere
+
+17. Nechajte bežať na obrazovke veľké digitálky: čas je zobrazený v tvare ``'17:22:34.5'`` a mení sa každú 0.1 sekundu
+
+  * použite jeden textový objekt (``create_text()``), ktorému pomocou ``itemconfig()`` meníte zobrazovanú hodnotu
+
+18. Nakreslite úsečku (150, 150, 150, 50); táto sa bude pomaly otáčať okolo bodu (150, 150), tak aby sa každú sekundu otočila o uhol 6 stupňov vpravo (za minútu sa teda otočí o 360 stupňov)
+
+  * môžete to testovať aj s kratším časovým intervalom, napr. s 0.1 sekundy
+
+19. Naprogramujte takúto hru na postreh:
+
+  * každých ``interval`` milisekúnd sa farebný kruh s polomerom ``r`` presunie na náhodnú pozíciu v ploche
+  * keď klikneme do plochy a trafíme do vnútra kruhu, ku nášmu skóre sa pripočíta 1
+  * keď klikneme do plochy, ale netrafíme do kruhu, skóre sa zníži o 1
+  * aktuálne skóre sa vypisuje niekde v rohu obrazovky (ako grafický objekt ``create_text()``)
+  * ``interval`` a ``r`` sú nejaké globálne premenné, napr. s hodnotami 500 a 20
+
+20. Na mieste kliknutia myšou sa nakreslí kruh s polomerom 50 a s náhodnou farbou výplne, ďalších 50x sa jej polomer zmenší o 1 s časovým intervalom 0.1 sekundy, keď bude polomer 0, časovač sa zastaví (nebude pokračovať v zmenšovaní kružnice)
+
+  * zabezpečte, aby aj viac kliknutí tesne za sebou na rôzne miesta plochy paralelne vytvorilo viac kruhov a aby sa všetky postupne zmenšovali o 1 (každé kliknutie vytvorí nový časovač s vlastnou kružnicou - treba dať pozor na lokálne a globálne premenné)
+
+21. V strede plochy je malý útvar (obrázok, alebo štvorček, alebo text, ...). Ďalej máme dve globálne premenné ``dx=dy=0``. Po stlačení jednej zo šípok sa útvar začne pohybovať daným smerom, t. j. príslušná premenná ``dx`` alebo ``dy`` sa zvýši alebo zníži o 1 (podľa zatlačeného smeru šípky) a útvar sa bude posúvať o momentálne ``(dx, dy)``.
+
+  * na okrajoch plochy útvar zastane, t. j. nezrealizuje posunutie, ktoré by ho dostalo von z plochy
+  * aj keď útvar stojí na mieste, môžeme stláčať šípky a tým mu meniť ``(dx, dy)`` a teda ho môžeme aj rozbehnúť
+

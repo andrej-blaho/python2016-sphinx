@@ -1,0 +1,762 @@
+Úvodná prednáška v zimnom semestri
+==================================
+
+Priebeh semestra
+----------------
+
+Vyučovanie počas semestra sa skladá z
+
+* týždenne dve dvojhodinové prednášky
+* týždenne dve dvojhodinové cvičenia
+* skoro každý týždeň jedno domáce zadanie
+* jeden semestrálny projekt
+* dva písomné testy
+* praktická skúška pri počítači
+
+
+.. topic:: prednášky
+
+   dvakrát týždenne po 2 hodiny v posluchárni A
+
+   * odporúčam nosiť si notebook s nainštalovaným Pythonom
+   * niektoré informácie z prednášok budú na webe, niečo sa dozviete len na prednáške
+
+     - robte si podrobné poznámky
+
+   * prednášky nie sú povinné (povinné je len vedieť to, čo sa odprednášalo)
+
+
+.. topic:: cvičenia
+
+   prebiehajú v počítačovej hale H3
+
+   * bude sa precvičovať látka hlavne z prednášok v danom týždni
+   * môžete pracovať na vlastnom notebooku
+   * spolupráca na cvičeniach nie je zakázaná - je odporúčaná
+
+     - možete pracovať aj po dvojiciach (dvaja riešia úlohy pri jednom počítači)
+
+   * na cvičeniach je povinná **aktívna účasť**
+
+     - budú sa kontrolovať vyriešené úlohy
+     - riešenie budete ukladať na úlohový server `LIST <http://capek.ii.fmph.uniba.sk/list/>`_
+
+   * počas semestra sú povolené maximálne **2** absencie
+
+
+.. topic:: domáce zadania
+
+   počas semestra dostanete približne 10 povinných samostatných domácich zadaní
+
+   * na ich vyriešenie dostanete väčšinou 2 týždne
+   * vaše riešenia budú bodované (môžu mať rôzne ohodnotenia, väčšinou od 5 do 10 bodov)
+
+     * maximálny počet bodov získate len za úplne správne riešenie
+     * riešenie budete ukladať na úlohový server `LIST <http://capek.ii.fmph.uniba.sk/list/>`_
+
+   * riešenia musíte vypracovávať samostatne - **spolupráca je zakázaná**
+
+..
+     * pri porušení tohto pravidla sa vystavujete riziku, že nesplníte podmienky priebežného hodnotenia, nebudete môcť robiť skúšku a teda okamžite získavate známku **Fx**
+
+     ..          nezíska 0, ale sa strhne maximálny počet bodov za príslušný príklad
+
+
+.. topic:: priebežné hodnotenie
+
+   aktívna účasť na cvičeniach a body získané za domáce zadania sú priebežným hodnotením semestra
+
+   * zo všetkých cvičení počas semestra môžete mať maximálne **2 neúčasti**
+   * zo všetkých domácich zadaní musíte získať spolu aspoň **50% bodov**
+   * ak nesplníte podmienky priebežného hodnotenia, získavate známku **Fx** (bez možnosti robiť skúšku)
+
+
+.. topic:: semestrálny projekt
+
+   v priebehu semestra dostávate možnosť riešiť jeden semestrálny projekt:
+
+   * tému si zvolíte z ponúknutej množiny tém (najčastejšie to budú jednoduché počítačové hry)
+   * za načas odovzdaný projekt môžete získať maximálne 10 bodov - tieto sa pripočítavajú k bodom ku skúške
+
+.. topic:: skúška
+
+   sa skladá z dvoch častí:
+
+   1. dva písomné testy (v strede semestra 24.10. a posledný týždeň semestra 12.12.) - spolu max. 40 bodov
+   2. praktická skúška pri počítači (v skúškovom období) - max. 60 bodov
+
+   ..
+      praktická skúška pri počítači
+
+      * budete riešiť 1 komplexnejší príklad
+
+        * v počítačových halách H3 a H6 len na školských počítačoch
+        * počas skúšky nebude pre vás k dispozícii internet
+
+      * skúška bude trvať 2.5 hodiny
+      * riešenie budete ukladať na úlohový server LIST, ktorý bude vaše riešenie automaticky hodnotiť
+
+        * v ústnej časti skúšky (po skončení praktickej skúšky) môžete ešte konzultovať vaše riešenie
+
+      * skúškový príklad, ktorý bude obsahovať:
+
+        * definovanie konkrétnej dátovej štruktúry (napr. graf): metódy a atribúty
+        * čítanie (príp. aj zapisovanie) textového súboru, napr. na definovanie konrétneho obsahu štruktúry
+        * zostavenie náročnejšieho algoritmu, napr. backtracking na prechádzanie grafu
+
+   * máte nárok na 2 opravné termíny
+
+..
+  .. warning::
+     Skúšku musíte vypracovať samostatne. Za pokus o podvod (spolupráca, nepovolené materiály, ...) dostávate **Fx** bez možnosti opravného termínu, resp. návrh na disciplinárne konanie.
+
+.. topic:: hodnotenie skúšky
+
+   spočítajú sa body z písomného testu, praktickej skúšky, príp. bodov za semestrálny projekt:
+
+     * **☺** známka **A** aspoň 90 bodov
+     * **☺** známka **B** aspoň 80 bodov
+     * **☺** známka **C** aspoň 70 bodov
+     * **☺** známka **D** aspoň 60 bodov
+     * **☺** známka **E** aspoň 50 bodov
+     * **☹** známka **Fx** menej ako 50 bodov
+
+
+.. topic:: zaujímavé linky
+
+   základná stránka Pythonu:
+
+   * `Python Programming Language – Official Website <https://www.python.org/>`_
+
+     * `stiahnite si najnovšiu 3.x verziu <https://www.python.org/downloads/>`_ (aspoň 3.5.2)
+     * `Python v3.x documentation <https://docs.python.org/3/>`_
+
+
+   voľne stiahnuteľné materiály:
+   
+   * materiály k prednáškam a cvičeniam z programovania na FMFI UK v šk. roku 2015/2016:
+
+     * `Programovanie v Pythone časť 1 <http://zona.fmph.uniba.sk/fileadmin/fmfi/sluzby/elektronicke_studijne_materialy/Python1.pdf>`_
+     * `Programovanie v Pythone časť 2 <http://zona.fmph.uniba.sk/fileadmin/fmfi/sluzby/elektronicke_studijne_materialy/Python2.pdf>`_
+     * `Cvičenia k Programovanie v Pythone <http://zona.fmph.uniba.sk/fileadmin/fmfi/sluzby/elektronicke_studijne_materialy/Cvicenia_Python.pdf>`_
+
+
+   * `How to Think Like a Computer Scientist: Learning with Python <http://interactivepython.org/runestone/static/thinkcspy/toc.html>`_
+   * `Think Python: How to Think Like a Computer Scientist <http://it-ebooks.info/book/922/>`_
+
+     * `aj ďalšie free knihy o Pythone <http://it-ebooks.info/search/?q=python&type=title>`_
+
+   * `python.cz <http://python.cz/>`_
+   * `www.py.cz <http://www.py.cz/>`_
+
+     * `Učíme se programovat v jazyce Python 3 <http://howto.py.cz/index.htm>`_
+
+.. topic:: Prečítajte si
+
+   `Teach Yourself Programming in Ten Years <http://norvig.com/21-days.html>`_ alebo slovenský preklad
+   `Ako sa naučiť programovať za desať rokov <http://www.efton.sk/sk/learn_programming_in_10_years.html>`_
+
+Jazyk Python
+------------
+
+**Python** je moderný programovací jazyk, ktorého popularita stále rastie.
+
+* jeho autorom je `Guido van Rossum <http://sk.wikipedia.org/wiki/Guido_van_Rossum>`_ (vymyslel ho v roku 1989)
+* používajú ho napr. v Google, YouTube, Dropbox, Mozilla, Quora, Facebook, Rasperry Pi, ...
+* na mnohých špičkových univerzitách sa učí ako úvodný jazyk, napr. MIT, Carnegie Mellon, Berkeley, Cornell, Caltech, Illinois, ...
+* beži na rôznych platformách, napr. Windows, Linux, Mac. Je to *freeware* a tiež *open source*.
+
+Na rozdiel od mnohých iných jazykov, ktoré sú kompilačné (napr. Pascal, C/C++) je Python interpreter. To znamená, že
+
+* interpreter nevytvára spustiteľný kód (napr. .exe súbor vo Windows)
+* na spustenie programu musí byť v počítači nainštalovaný Python
+* interpreter umožňuje aj interaktívnu prácu s prostredím
+
+.. topic:: Ako ho získať
+
+   * zo stránky https://www.python.org/ stiahnete najnovšiu verziu Pythonu - momentálne je to verzia **3.5.2**
+   * spustite inštalačný program (napr. ``python-3.5.2.exe``)
+
+.. admonition:: Upozornenie
+
+   Nesťahujte verziu začínajúcu 2 (napr. 2.7.12) - tá nie je kompatibilná s verziou 3.x
+
+Interaktívny režim
+..................
+
+Po spustení **IDLE (Python GUI)** - čo je vývojové prostredie (Integrated Development Learning Environment), vidíme informáciu o verzii Pythonu a tiež riadok s tromi znakmi ``>>>`` (tzv. výzva, t.j. **prompt**). Za túto výzvu budeme písať príkazy pre Python.
+
+ ::
+
+  Python 3.5.2 (v3.5.2:4def2a2901a5, Jun 25 2016, 22:01:18) [MSC v.1900 32 bit (Intel)] on win32
+  Type "copyright", "credits" or "license()" for more information.
+  >>>
+
+.. topic:: Ako to funguje
+
+   * Python je interpreter a pracuje v niekoľkých možných režimoch
+   * teraz sme ho spustili v **príkazovom režime**: očakáva zadávanie textových príkazov (do riadka za znaky ``>>>``), každý zadaný príkaz vyhodnotí a vypíše prípadnú reakciu (alebo **chybovú správu**, ak sme zadali niečo nesprávne)
+   * po skončení vyhodnocovania riadka sa do ďalšieho riadka znovu vypíšu znaky ``>>>`` a očakáva sa opätovné zadávanie ďalšieho príkazu
+   * takémuto interaktívnemu oknu hovoríme **shell**
+   * niekedy sa môžete dočítať aj o tzv. REP cykle interprétra, znamená to **Read**, **Evaluate**, **Print**, teda prečítaj, potom tento zápis vyhodnoť a na koniec vypíš výsledok, toto celé stále opakuj
+
+Môžeme teda zadávať, napr. nejaké matematické výrazy
+
+ ::
+
+  >>> 12345
+  12345
+  >>> 123 + 456
+  579
+  >>> 1 * 2 * 3 * 4 * 5 * 6
+  720
+  >>>
+
+V tomto príklade sme pracovali s celými číslami a niektorými celočíselnými operáciami. Python poskytuje niekoľko rôznych **typov** údajov; na začiatok sa zoznámime s tromi základnými typmi: celými číslami, desatinnými číslami a znakovými reťazcami.
+
+.. topic:: celé čísla
+
+    * majú rovnaký význam, ako ich poznáme z matematiky: zapisujú sa v desiatkovej sústave a môžu začínať znamienkom mínus
+    * ich veľkosť (počet cifier) je obmedzená len kapacitou pracovnej pamäte Pythonu (hoci aj niekoľko miliónov cifier)
+
+Pracovať môžeme aj s desatinnými číslami (tzv. floating point), napr.
+
+ ::
+
+  >>> 22/7
+  3.142857142857143
+  >>> .1+.2+.3+.4
+  1.0
+  >>> 9999999999*99999999999
+  999999999890000000001
+  >>> 9999999999*99999999999.
+  9.9999999989e+20
+  >>>
+
+.. topic:: desatinné čísla
+
+    * obsahujú desatinnú bodku alebo exponenciálnu časť (napr. 1e+15)
+    * môžu vzniknúť aj ako výsledok niektorých operácií (napr. delením dvoch celých čísel)
+    * majú obmedzenú presnosť (približne 16-17 platných cifier)
+
+Všimnite si, že 3. výraz ``9999999999*99999999999`` násobí dve celé čísla a aj výsledkom je celé číslo. Hneď ďalší výraz ``9999999999*99999999999.`` obsahuje jedno desatinné číslo a teda aj výsledok je desatinné číslo.
+
+V ďalšom príklade by sme chceli pracovať s nejakými textami. Ak ale zadáme
+
+ ::
+
+  >>> ahoj
+  Traceback (most recent call last):
+    File "<pyshell#1>", line 1, in <module>
+      ahoj
+  NameError: name 'ahoj' is not defined
+  >>>
+
+dostaneme chybovú správu **name 'ahoj' is not defined** - Python nepozná takéto slovo. Takýmto spôsobom sa texty ako postupnosti nejakých znakov nezadávajú: na to potrebujeme špeciálny zápis: texty zadávame uzavreté medzi apostrofy, resp. úvodzovky. Takýmto textovým zápisom hovoríme **znakové reťazce**. Keď ich zapíšeme do príkazového riadka, Python ich vyhodnotí (v tomto prípade s nimi neurobí nič) a vypíše ich hodnotu
+
+ ::
+
+  >>> 'ahoj'
+  'ahoj'
+  >>> "hello folks"
+  'hello folks'
+  >>> 'úvodzovky "v" reťazci'
+  'úvodzovky "v" reťazci'
+  >>> "a tiež apostrofy 'v' reťazci"
+  "a tiež apostrofy 'v' reťazci"
+  >>>
+
+.. topic:: znakové reťazce
+
+    * ich dĺžka (počet znakov) je obmedzená len kapacitou pracovnej pamäte Pythonu
+    * uzatvárame do apostrofov ``'text'`` alebo úvodzoviek ``"text"``
+
+      * oba zápisy sú rovnocenné - reťazec musí končiť tým istým znakom ako začal (apostrof alebo úvodzovka)
+      * takto zadaný reťazec nesmie presiahnuť jeden riadok
+
+    * môže obsahovať aj písmená s diakritikou
+    * prázdny reťazec má dĺžku 0 a zapisujeme ho ako ``''``
+
+Zatiaľ sme nepísali príkazy, ale len zadávali výrazy (číselné a znakové) - ich hodnoty sa vypísali v ďalšom riadku. Toto funguje len v tomto príkazovom režime.
+
+
+Programovací režim
+..................
+
+V IDLE vytvoríme nové okno (menu **File** a položka **New Window**), resp. stlačíme <Ctrl-N>. Otvorí sa nové textové okno, ale už bez promptu ``>>>``. Do tohto okna nebudeme zadávať výrazy, ale príkazy. Napr. príkaz ``print()`` vypíše hodnoty uvedené v zátvorkách. Napr.
+
+ ::
+
+  # môj prvý program
+  print('vitaj')
+  print()
+  print('výpočet je', 3 + 4 * 5)
+
+Takto vytvorený program treba spustiť (**Run**, alebo klávesom <F5>) a vtedy sa v okne shell objaví
+
+ ::
+
+  >>> ================================ RESTART ================================
+  >>>
+  vitaj
+
+  výpočet je 23
+  >>>
+
+* takýmto programom hovoríme **skript** - väčšinou sú uložené v súbore s príponou ``.py``
+* po ich spustení sa v pôvodnom okne **shell** najprv celý Python reštartuje (zabudne, všetko, čo sme ho doteraz naučili) a takto vyčistený vykoná všetky príkazy programu
+* do prvého riadka sme zapísali komentár - text za znakom ``#`` sa ignoruje, teda je to komentár pre nás
+
+.. topic:: výrazy v programe
+
+    * po zadaní výrazov v príkazovom režime (za promptom ``>>>``) sa tieto vyhodnotili a hneď aj vypísali
+    * po zadaní výrazov v programovom režime sa tieto tiež vyhodnotia, ale ich **hodnota sa nevypíše ale ignoruje**
+    * ak chceme, aby sa táto hodnota neignorovala, musíme ju spracovať nejakým príkazom alebo funkciou (napr. pomocou ``print()``) alebo priradiť do nejakej premennej (uvidíme to neskôr)
+
+Programy môžeme spúšťať nielen z vývojového prostredia IDLE, ale aj dvojkliknutím na súbor v operačnom systéme.
+
+.. topic:: spustenie skriptu priamo zo systému
+
+   * ak je Python v operačnom systéme nainštalovaný korektne, dvojkliknutie na príponu súboru ``.py`` pre neho znamená spustenie programu:
+
+     * otvorí sa nové konzolové okno, vykonajú sa príkazy a okno sa hneď aj zatvorí
+
+   * aby sa takéto okno nezatvorilo hneď, ale počkalo, kým nestlačíme napr. ENTER, pridáme do programu nový riadok s funkciou ``input()``
+
+Do skriptu dopíšeme nový riadok:
+
+ ::
+
+  # môj prvý program
+  print('vitaj')
+  print()
+  print('výpočet je', 3 + 4 * 5)
+
+  # bude sa čakať na stlačenie klávesu ENTER
+  input()
+
+Po spustení takéhoto programu sa najprv vypíšu zadané texty a okno sa nezavrie, kým nestlačíme ENTER. Príkaz ``input()`` môže obsahovať aj nejaký text: ten sa potom vypíše, napr.
+
+ ::
+
+  # môj prvý program
+  print('programujem v Pythone')
+  print()
+
+  input('stlač ENTER')
+
+Po spustení v operačnom systéme (nie v IDLE) sa v konzolovom okne objaví:
+
+ ::
+
+  programujem v Pythone
+
+  stlač ENTER
+
+Po stlačení klávesu ENTER sa okno zatvorí.
+
+Zhrňme oba tieto príkazy:
+
+.. topic:: ``print()``
+
+    * uvidíme neskôr, že je to volanie špeciálnej funkcie
+    * táto funkcia vypisuje hodnoty výrazov, ktoré sú uvedené medzi zátvorkami
+    * hodnoty sú pri výpise oddelené medzerami
+    * ``print()`` bez parametrov spôsobí len zariadkovanie výpisu, teda vloží na momentálne miesto prázdny riadok
+
+.. topic:: ``input()``
+
+    * je tiež funkcia, ktorá najprv vypíše zadaný znakový reťazec (ak je zadaný) a potom čaká na vstupný reťazec ukončený ENTER
+    * funkcia vráti tento zadaný reťazec
+
+Funkciu ``input()`` môžeme otestovať aj v priamom režime:
+
+ ::
+
+  >>> input()
+  pisem nejaky text
+  'pisem nejaky text'
+
+Príkaz ``input()`` tu čaká na stlačenie ENTER a teda, kým ho nestlačíme ale píšeme nejaký text, tak tento sa postupne zapamätáva. Stlačenie ENTER (za napísaný text ``pisem nejaky text``) spôsobí, že sa tento zapamätaný text vráti ako výsledok, teda v príkazovom režime sa vypísala hodnota zadaného znakového reťazca. Druhý príklad najprv vypíše zadaný reťazec ``'? '`` a očakáva písanie textu s ukončením pomocou klávesu ENTER:
+
+ ::
+
+  >>> input('? ')
+  ? matfyz
+  'matfyz'
+  >>>
+
+
+Typy údajov
+...........
+
+Videli sme, že hodnoty (konštanty alebo výrazy) môžu byť rôznych typov. V Pythone má každý typ svoje meno:
+
+* ``int`` ako **celé čísla**, napr. ``0``, ``1``, ``15``, ``-123456789``, ...
+* ``float`` ako **desatinné čísla**, napr. ``0.0``, ``3.14159``, ``2.0000000001``, ``33e50``, ...
+* ``str`` ako **znakové reťazce**, napr. ``'a'``, ``"abc"``, ``''``, ``"I'm happy"``
+
+Typ ľubovoľnej hodnoty vieme v Pythone zistiť pomocou štandardnej funkcie ``type()``, napr.
+
+ ::
+
+  >>> type(123)
+  <class 'int'>
+  >>> type(22/7)
+  <class 'float'>
+  >>> type(':-)')
+  <class 'str'>
+  >>>
+
+Rôzne typy hodnôt majú zadefinované rôzne operácie.
+
+.. topic:: celočíselné operácie
+
+    * oba operandy musia byť celočíselného typu
+
+      * ``+`` súčet, napr. ``1 + 2`` má hodnotu ``3``
+      * ``-`` rozdiel, napr. ``2 - 5`` má hodnotu ``-3``
+      * ``*`` násobenie, napr. ``3 * 37`` má hodnotu ``111``
+      * ``//`` celočíselné delenie, napr. ``22 // 7`` má hodnotu ``3``
+      * ``%`` zvyšok po delení, napr. ``22 % 7`` má hodnotu ``1``
+      * ``**`` umocňovanie, napr. ``2 ** 8`` má hodnotu ``256``
+
+    * zrejme nemôžeme deliť 0
+
+.. topic:: operácie s desatinnými číslami
+
+    * aspoň jeden operand musí byť desatinného typu (okrem delenia ``/``)
+
+      * ``+`` súčet, napr. ``1 + 0.2`` má hodnotu ``1.2``
+      * ``-`` rozdiel, napr. ``6 - 2.86`` má hodnotu ``3.14``
+      * ``*`` násobenie, napr. ``1.5 * 2.5`` má hodnotu ``3.75``
+      * ``/`` delenie, napr. ``23 / 3`` má hodnotu ``7.666666666666667``
+      * ``//`` delenie zaokrúhlené nadol, napr. ``23.0 // 3`` má hodnotu ``7.0``
+      * ``%`` zvyšok po delení, napr. ``23.0 % 3`` má hodnotu ``2.0``
+      * ``**`` umocňovanie, napr. ``3 ** 3.`` má hodnotu ``27.0``
+
+    * zrejme nemôžeme deliť 0
+
+
+.. topic:: operácie so znakovými reťazcami
+
+    * ``+`` zreťazenie (spojenie dvoch reťazcov), napr. ``'a' + 'b'`` má hodnotu ``'ab'``
+    * ``*`` viacnásobné zreťazenie toho istého reťazca, napr. ``3 * 'x'`` má hodnotu ``'xxx'``
+
+Zreťazenie dvoch reťazcov je bežné aj v iných programovacích jazykoch. Viacnásobné zreťazenie je dosť výnimočné. Na príklade vidíme, ako to funguje:
+
+ ::
+
+  >>> 'ahoj' + 'Python'
+  'ahojPython'
+  >>> 'ahoj' + ' ' + 'Python'
+  'ahoj Python'
+  >>> '=' * 20
+  '===================='
+  >>> 10 * ' :-) '
+  ' :-)  :-)  :-)  :-)  :-)  :-)  :-)  :-)  :-)  :-) '
+  >>>
+
+
+Premenné a priradenie
+.....................
+
+* meno premennej:
+
+  * môže obsahovať písmená, číslice a znak podčiarkovník
+  * pozor na to, že v Pythone sa rozlišujú malé a veľké písmená
+  * musí sa líšiť od Pythonovských príkazov, tzv. **rezervovaných slov** (napr. ``for``, ``if``, ``def``, ``return``, ...)
+
+* premenná sa vytvorí priraďovacím príkazom (ak ešte doteraz neexistovala):
+
+  * zapisujeme: ``premenná = hodnota``
+
+    * tento zápis znamená, že do *premennej* sa má priradiť zadaná *hodnota*
+
+  * v skutočnosti sa v Pythone do premennej priradí **referencia** (odkaz) na danú hodnotu (a nie samotná hodnota)
+  * ďalšie priradenie do tej istej premennej zmení túto referenciu
+  * na tú istú hodnotu sa môže odkazovať aj viac premenných
+  * meno môže referencovať (mať priradenú) maximálne jednu hodnotu
+
+Python si v svojej pamäti udržuje všetky premenné (v tzv. pamäti mien premenných) a všetky momentálne vytvorené hodnoty (v tzv. pamäti hodnôt). Po vykonaní týchto troch priraďovacích príkazov:
+
+ ::
+
+  >>> a = 17
+  >>> b = 'abcd'
+  >>> x = a
+
+To v pamäti Pythonu vyzerá nejako takto:
+
+ .. image:: image/01_1.png
+    :alt: pamäť premenných a hodnôt
+
+Vidíme, že
+
+* priradenie do jednej premennej nejakej inej premennej (napr. ``x = a``) neznamená referenciu na meno ale na jej hodnotu
+* najprv sa zistí hodnota na pravej strane príkazu a až potom sa spraví referencovanie (priradenie) do premennej na ľavej strane
+
+V ďalšom príklade vidíme, ako to funguje, keď vo výraze na pravej strane (kde je priraďovaná hodnota) sa nachádza tá istá premenná, ako na ľavej strane (teda kam priraďujeme):
+
+ ::
+
+  >>> ab = 13
+  >>> ab = ab + 7
+
+1. najprv má ``ab`` hodnotu ``13``
+
+ .. image:: image/01_2.png
+    :alt: pamäť premenných a hodnôt
+
+2. potom sa vypočíta nová hodnota ``20`` (ako súčet ``ab + 7``)
+
+ .. image:: image/01_3.png
+    :alt: pamäť premenných a hodnôt
+
+3. do premennej ``ab`` sa priradí nová hodnota
+
+ .. image:: image/01_4.png
+    :alt: pamäť premenných a hodnôt
+
+.. topic:: možné problémy s menami premenných
+
+   Mená premenných môžu byť skoro ľubovoľné reťazce, zložené z písmen (malých a veľkých), číslic a znaku podčiarkovník. Keďže mená premenných si najčastejšie programátori vymýšľajú sami, neskúsený programátor môže pri tom narobiť problémy nielen druhým, ale aj sebe, keď sa potom nevyzná ani vo svojom vlastnom programe. Uvedieme niekoľko typických problémov.
+
+
+Veľké písmená v menách premenných treba používať veľmi opatrne. Všimnite si, že všetky tieto premenné sú rôzne:
+
+ ::
+
+  >>> Pocet = 10
+  >>> POCET = 20
+  >>> PoCet = 30
+  >>> PoceT = 40
+
+V Pythone majú programátori dohodu, že na mená premenných sa používaú len malé písmená (prípadne aj číslice a podčiarkovník).
+
+Tiež si treba dávať pozor na ľahko zameniteľné znaky, napr. písmeno ``O`` a číslica ``0`` a tiež písmeno ``l`` a číslica ``1``:
+
+ ::
+
+  >>> OO1 = 15
+  >>> O01 = 16
+  >>> print(OO1, O01)
+  15 16
+  >>> d1zka = 15
+  >>> dlzka = d1zka + 1
+
+Snažíme sa nepoužívať ani slová, v ktorých často robíme preklepy, napr.
+
+ ::
+
+  >>> kalerab = 'mnam'
+  >>> karelab = 'fuj'
+
+.. topic:: správne mená
+
+   Pri písaní programov používame čo najvhodnejšie mená premenných.
+
+Napr. tento program má veľmi nezrozumiteľné mená a preto sa horšie chápe, čo vlastne počíta:
+
+ ::
+
+  vrk = 16
+  mrk = 3.14
+  drk = 2 * vrk * mrk
+  frk = vrk * mrk * vrk
+  print('drk =', drk)
+  print('frk =', frk)
+
+Stačí dať menám premenných zodpovedajúce texty, napr.
+
+ ::
+
+  polomer = 16
+  pi = 3.14
+  obvod = 2 * pi * polomer
+  obsah = pi * polomer ** 2
+  print('obvod =', obvod)
+  print('obsah =', obsah)
+
+Tento zápis programu je zrazu oveľa zrozumiteľnejší (hoci robí presne to isté, ako predchádzajúci).
+
+.. topic:: Uvedomte si
+
+   Zápisu programu má rozumieť hlavne človek. Hoci niekedy bude tento program vykonávať aj počítač, tomu je jedno, aké sú tam mená premenných.
+
+
+
+Zhrnutie
+........
+
+.. glossary::
+
+   príkazový režim
+      za výzvu (prompt) ``>>>`` zadávame výrazy a príkazy
+
+   programovací režim
+      **skripty** vytvárame v textovom súbore (prípona .py) a spúšťame pomocou <F5> alebo z operačného systému
+
+   funkcia print()
+      vypisuje zadané hodnoty
+
+   funkcia input()
+      čaká na stlačenie ENTER, funkcia vráti zadaný používateľom reťazec
+
+   typy hodnôt a premenné
+      základné typy: ``int``, ``float``, ``str``, funkcia ``type()``
+
+   premenná
+      obsahuje referenciu na hodnotu, vznikne pomocou priraďovacieho príkazu
+
+
+Cvičenie
+--------
+
+1. Zistite, čo sa vypočíta
+
+  * skontrolujte
+  
+   ::
+   
+    >>> 1/0
+    >>> 1//0
+    >>> 1%0
+    >>> 1--2
+    >>> 1---2
+    >>> 1----2
+    >>> 1-----2
+ 
+2. Vieme, že desatinné čísla sú obmedzené nejakou konkrétnou maximálnou hodnotou. Pokusmi nájdite taký čo najväčší exponent v semilogaritmickom zápise desatinného čísla ``1e+xxx``, že už o 1 väčší by vzniklo niečo iné ako desatinné číslo
+
+  * napr.
+  
+    ::
+    
+     >>> 1e+100
+     1e+100
+     >>> 1e+101
+     1e+101
+
+3. Pre dané odvesny ``a`` a ``b`` vypočítajte preponu ``c``
+
+  * napr.
+  
+    ::
+    
+     >>> a = 10
+     >>> b = 14
+     >>> c = ...
+     >>> c
+     17.204650534085253
+     
+4. V premenných ``meno`` a ``priezvisko`` sú priradené nejaké dva znakové reťazce. Do premennej ``desat`` priraďte reťazec, ktorý obsahuje desaťkrát meno a priezvisko oddelené čiarkou.  
+
+  * napr.
+  
+    ::
+    
+     >>> meno = 'Janko'
+     >>> priezvisko = 'Hraško'
+     >>> desat = ...
+     >>> desat
+     'Janko Hraško, Janko Hraško, Janko Hraško, Janko Hraško, Janko Hraško, 
+     Janko Hraško, Janko Hraško, Janko Hraško, Janko Hraško, Janko Hraško'
+     
+5. V dvoch premenných ``cislo1`` a ``cislo2`` sú priradené nejaké dve celé čísla (``cislo2`` bude učite trojciferné). Vytvorte novú hodnotu do premennej ``cislo3``, ktorá zlepí tieto dve čísla do jedného celého čísla. Nepoužívajte znakové reťazce.
+     
+  * napr.
+  
+    ::
+    
+     >>> cislo1 = 4567
+     >>> cisko2 = 912
+     >>> cislo3 = ...
+     >>> cislo3
+     4567912
+     
+6. Zapíšte prevod českej koruny na euro a opačne (predpokladajte, že kurz je 27 korun za 1 euro).      
+     
+  * napr. ak priradíme do ``ck`` 1000 korún, vypočíta sa euro a potom sa 30 euro prepočíta na české koruny
+  
+    ::
+    
+     >>> ck = 1000
+     >>> euro = ...
+     >>> euro
+     37.03703703703704
+     >>> euro = 30
+     >>> ck = ...
+     >>> ck
+     810
+     
+7. Vypočítajte stav účtu, na ktorom je na 4% úrok na začiatku 100 euro. V premennej ``pocet_rokov`` je priradená hodnota počtu rokov, ktoré nás zaujímajú.        
+     
+  * napr.
+  
+    ::
+    
+     >>> pocet_rokov = 10
+     >>> stav_uctu = ...
+     >>> stav_uctu
+     148.02442849183444
+     
+8. Napíšte skript, ktorý vypíše vašu vizitku: bude orámovaná znakmi ``'-'`` a ``'|'`` a obsahovať by mala aspoň vaše meno, adresu a telefón (adresu a telefón si môžete vymyslieť).
+
+  * napr.
+  
+    ::
+    
+     +---------------------+
+     | Janko Hraško        |
+     | Pri brázde 17       |
+     | mobil: 0999 123456  |
+     +---------------------+
+     
+
+9. Napíšte skript, ktorý najprv do troch premenných ``prvy``, ``druhy`` a ``treti`` priradí tri rôzne znakové reťazce a potom vypíše všetky rôzne poradia týchto reťazcov (permutácie).
+
+  * napr. pre ``prvy = 'biela'``, ``druhy = 'modrá'`` a ``treti = 'červená'`` vypíše
+  
+    ::
+    
+     biela modrá červená
+     modrá červená biela
+     ...
+     
+10. Napíšte skript, v krtorom sa najprv do premennej ``cislo`` priradí nejaké celé číslo a potom do troch premenných ``c1``, ``c2``, ``c3`` priradí posledné tri cifry daného čísla. Potom tieto tri cifry vypíše.
+
+  * napr. pre ``cislo = 12345678`` vypíše
+  
+    ::
+    
+     posledné tri cifry čísla 12345678 sú 6 7 8
+     
+11. Napíšte skript, ktorý najprv do premennej ``n`` priradí nejakú celočíselnú hodnotu, pre ktorú ``n >= 10``. Potom na základe tejto hodnoty vypíše orámovaný text ``'PYTHON'``. Tento text bude v rámiku "prirazený" k ľavému okraju, pričom medzi textom a rámikom bude práve jedna medzera.
+
+  * napr. pre ``n = 12`` program vypíše:
+   
+    ::
+    
+     ************
+     *          *
+     * PYTHON   *
+     *          *
+     ************
+               
+12. Napíšte skript, ktorý najprv do premennej ``n`` priradí nejakú celočíselnú hodnotu, pre ktorú ``n >= 10``. Potom na základe tejto hodnoty vypíše orámovaný text ``'PYTHON'``, ktorý bude ale vycentrovaný (pozor na nepárne ``n``).
+
+  * napr. pre ``n = 20`` program vypíše:
+   
+    ::
+    
+     ********************
+     *                  *
+     *      PYTHON      *
+     *                  *
+     ********************
+               
+
+     
+     
+     

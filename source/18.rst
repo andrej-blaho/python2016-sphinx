@@ -1,0 +1,908 @@
+Polymorfizmus
+=============
+
+Ešte raz zopakujme, aké sú najdôležitejšie vlastnosti objektového programovania:
+
+* **zapuzdrenie**
+* **dedičnosť**
+* **polymorfizmus**
+
+V dnešnej téme sa budeme sústrediť na poslednú vlastnosť **polymorfizmus** (polymorphism).
+
+Vráťme sa k príkladu, v ktorom korytnačka kreslila domček:
+
+ .. image:: image/18_1.png
+    :width: 300 px
+    :align: right
+
+ ::
+ 
+  from turtle import Turtle
+  
+  class MojaTurtle(Turtle):
+      def __init__(self, x=0, y=0):
+          super().__init__()
+          self.speed(0)
+          self.pu()
+          self.setpos(x, y)
+          self.pd()
+  
+      def domcek(self, dlzka):
+          for uhol in 90, 90, 90, 30, 120, -60:
+              self.fd(dlzka)       # fd z triedy Turtle
+              self.rt(uhol)        # rt z triedy Turtle
+  
+  t = MojaTurtle(-200, 100)
+  t.domcek(100)
+  
+V metóde ``domcek()`` predpokladáme, že pri kreslení domčeka inštancia ``t`` triedy ``MojaTurtle`` použije zdedenú metódu ``fd()`` (z triedy ``Turtle``) a tiež zdedenú metódu ``rt()`` z triedy ``Turtle``.
+
+Z triedy ``MojaTurtle`` sme **odvodili** novú triedu ``MojaTurtle1``. Táto nová trieda teda zdedila od svojej základnej triedy ``MojaTurtle`` všetko okrem metódy ``fd()``, ktorú **prekryla** (override) svojou vlastnou verziou tejto metódy (tento ``fd()`` kreslí cikcakové čiary):
+
+ .. image:: image/18_2.png
+    :width: 300 px
+    :align: right
+
+ ::
+ 
+  class MojaTurtle1(MojaTurtle):
+      def fd(self, dlzka):
+          while dlzka >= 5:
+              self.lt(60)
+              super().fd(5)
+              self.rt(120)
+              super().fd(5)
+              self.lt(60)
+              dlzka -= 5
+          super().fd(dlzka)
+
+  t = MojaTurtle1(-200, 100)
+  t.domcek(100)
+
+Takže teraz:
+
+* inštancia triedy ``MojaTurtle`` pomocou metódy ``domcek()`` nakreslí domček zo 6 riadnych úsečiek
+* inštancia triedy ``MojaTurtle1`` pomocou metódy ``fd()`` kreslí cikcakové čiary
+* táto inštancia triedy ``MojaTurtle1`` bude takýmito cikcakovými čiarami kresliť aj domček (volaním metódy ``domcek()``)
+
+Ako je to možné? Veď predsa v metóde ``domcek()``, keď sme ju definovali, sme jasne zapísali, že kreslenie čiar ``fd()`` sa bude robiť tak, ako bolo definované v základnej triede ``Turtle``. Nikde sme tu nijako nezaznačovali (ani nás to vtedy nenapadlo), že tento ``fd()`` niekto v budúcnosti možno nahradí svojou vlastnou verziou metódy (napr. cikcak). Tak práve tomuto mechanizmu sa hovorí **polymorfizmus** a označuje:
+
+* keď Python vykonáva nejakú metódu (napr. ``domcek()``), tak sa toto vykonávanie **prispôsobí** (adaptuje) tej inštancii, ktorá túto metódu zavolala
+* vždy sa použijú aktuálne verzie metód objektu, pre ktorý sa niečo vykonáva
+* funguje to aj spätne, teda vo všetkých zdedených metódach: ak sa v nich nachádza volanie niečoho, čo sme práve prekryli svojou novou verziou, tak sa to naozaj uplatní
+
+Uvedomte si, čo by sa stalo, keby tu nefungoval polymorfizmus:
+
+* metóda ``domcek()`` by vždy kreslila úplne rovnaký domček z rovných čiar bez ohľadu na to, kto túto metódu zavolal (kto bol ``self``)
+* keby sme potrebovali domček z cikcakových čiar aj pre objekt typu ``MojaTurtle1``, museli by sme túto metódu skopírovať aj do tejto triedy, hoci dedičnosť nám hovorí, že by sme to nemali robiť
+
+Toto ale nie je jidiný význam polymorfizmu - tento pojem sa objavuje na mnohých miestach aj v sitáciách, s ktorými sme sa zoznámili dávnejšie a už sme sa zmierili s takýmto správaním Pythonu. Pripomeňme si triedu ``Cas`` z 15. prednášky:
+
+ ::
+ 
+  class Cas:
+
+      def __init__(self, hodiny=0, minuty=0, sekundy=0):
+          self.sek = abs(3600*hodiny + 60*minuty + sekundy)
+
+      def __str__(self):
+          return '{}:{:02}:{:02}'.format(self.sek//3600, self.sek//60%60, self.sek%60)
+
+      def sucet(self, iny):
+          return Cas(sekundy=self.sek+iny.sek)
+
+      def rozdiel(self, iny):
+          return Cas(sekundy=self.sek-iny.sek)
+
+      def mensi(self, iny):
+          return self.sek < iny.sek
+
+      def rovny(self, iny):
+          return self.sek == iny.sek
+
+Tu vidíme použitie aj magickej metódy ``__str__()``:
+
+ ::
+ 
+  >>> c1 = Cas(10, 22, 30)
+  >>> c1.__str__()
+  '10:22:30'
+  >>> c2 = Cas(4, 55, 18)
+  >>> str(c2)
+  '4:55:18'
+  >>> print('sucet =', c1.sucet(c2))
+  sucet = 15:17:48
+  
+Už vieme, že ``c1.__str__()`` priamo zavolá metódu ``__str__()``, teda vráti reťazcovú reprezentáciu hodnoty čas. Volanie ``str(c2)`` tiež zavolá ``__str__()``, ale neurobí sa to priamo, ale cez nejaký "magický" mechanizmus:
+
+* štandardná funkcia ``str()`` má za úlohu ľubovoľnú Pythonovskú hodnotu (napr. číslo, pole, n-ticu, ...) vyjadriť ako znakový reťazec
+* keďže túto štandardnú funkciu naprogramovali vo firme "Python" pred veľa rokmi, nemohli vtedy myslieť aj na to, že v roku 2016 niekto zadefinuje vlastný typ ``Cas`` a bude ho potrebovať pomocou ``str(c2)`` previesť na znakový reťazec
+* preto má táto štandardná funkcia v sebe skrytý mechanizmus, pomocou ktorého veľmi jednoducho zistí reťazcovú reprezentáciu ľubovoľného typu: namiesto toho aby sama vyrábala znakový reťazec, zavolá metódu ``__str__()`` danej hodnoty; pritom každá trieda má vždy zadefinovanú náhradnú verziu tejto metódy, ktorá (keď ju neprekryjeme vlastnou metódou) vypisuje známe ``'<__main__.Cas object at 0x035B92D0>'``
+
+Štandardná funkcia ``print()``, ktorá má za úlohu vypísať všetky svoje parametre, najprv všetky neznakové parametre prevedie na znakové reťazce pomocou štandardnej funkcie ``str()`` z nich vyrobí reťazce a tieto vypíše.
+
+Takže aj prevod hodnoty typu ``Cas`` na znakový reťazec pomocou štandardnej funkcie ``str()`` funguje vďaka **polymorfizmu**: aj táto funkcia sa prispôsobí (adaptuje) k zadému typu a snaží sa z neho získať reťazec volaním jeho metódy ``__str__()``.
+
+Operátorový polymorfizmus
+-------------------------
+
+Už máme skúsenosti s tým, že napr. operácia ``+`` funguje nielen s číslami ale aj s reťazcami a poľami:
+
+ ::
+ 
+  >>> 12 + 34
+  46
+  >>> 'Pyt' + 'hon'
+  Python
+  >>> [1, 2] + [3, 4, 5]
+  [1, 2, 3, 4, 5]
+  >>> 12 + '34'
+  ...
+  TypeError: unsupported operand type(s) for +: 'int' and 'str'
+
+Hovoríme tomu **operátorový polymorfizmus**, lebo táto operácia funguje pre rôzne typy. Python sa v tomto prípade nemusí pre každú dvojicu typov rozhodovať, či ich súčet je realizovateľný alebo je to chyba ``TypeError``. Jednoducho prvému operandu oznámi, aby pripočítal druhý operand, t.j. zavolá nejakú jeho metódu a pošle mu druhý operand. Tou metódou je samozrejme magická metóda ``__add__()`` a preto pri vyhodnocovaní súčtu Python vlastne volá metódu:
+
+ ::
+ 
+  >>> 12 + 34
+  46
+  >>> (12).__add__(34)   # 12 tu musí byť v zátvorkách
+  46
+  >>> 'Pyt' + 'hon'
+  Python
+  >>> 'Pyt'.__add__('hon')   
+  Python
+  >>> (12).__add__('34')
+  NotImplemented
+
+Tiež si uvedomte, že ``a.__add__(b)`` pre ``a`` napr. celé číslo je to isté ako ``int.__add__(a, b)``. Práve táto metóda je zodpovedná za to, či a ako sa dá k celému číslu pripočítať hodnota nejakého iného typu.
+
+Teraz už vieme, že keď v Pythone zapíšeme ``a + b``, v skutočnosti sa volá metóda ``a.__add__(b)`` a preto aj pre našu triedu ``Cas`` stačí dodefinovať túto metódu, teda vlastne stačí len premenovať ``sucet()`` na ``__add__()``. Vyskúšajme: 
+
+ ::
+ 
+  class Cas:
+
+      ...
+
+      def __add__(self, iny):
+          return Cas(sekundy=self.sek+iny.sek)
+
+      ...
+
+  c1 = Cas(10, 22, 30)
+  c2 = Cas(4, 55, 18)
+  print('sucet =', c1 + c2)
+
+a vidíme, že to naozaj funguje. Zrejme na rovnakom princípe fungujú nielen všetky aritmetické operácie ale aj relačné operátory:
+
+  ======================== ============
+  metóda                   operácia
+  ======================== ============
+  ``x.__add__(y)``         ``x + y``
+  ``x.__sub__(y)``         ``x - y``
+  ``x.__mul__(y)``         ``x * y``
+  ``x.__truediv__(y)``     ``x / y``
+  ``x.__floordiv__(y)``    ``x // y``
+  ``x.__mod__(y)``         ``x % y``
+  ``x.__pow__(y)``         ``x ** y``
+  ``x.__neg__()``          ``- x``
+  ======================== ============
+
+Tomuto sa hovorí **preťažovenie operátorov** (operator overloading): existujúca operácia dostáva pre našu triedu nový význam, t.j. prekryli sme štandardné správanie Pythonu, keď niektoré operácie pre neznáme operandy hlásia chybu. Stretnete sa s tým aj v iných programovacích jazykoch.
+
+  ======================== ============
+  metóda                   relácia
+  ======================== ============
+  ``x.__eq__(y)``          ``x == y``
+  ``x.__ne__(y)``          ``x != y``
+  ``x.__lt__(y)``          ``x < y``
+  ``x.__le__(y)``          ``x <= y``
+  ``x.__gt__(y)``          ``x > y``
+  ``x.__ge__(y)``          ``x >= y``
+  ======================== ============
+
+Teraz môžeme vylepšiť kompletnú triedu ``Cas``
+
+ ::
+ 
+  class Cas:
+
+      def __init__(self, hodiny=0, minuty=0, sekundy=0):
+          self.sek = abs(3600*hodiny + 60*minuty + sekundy)
+
+      def __str__(self):
+          return '{}:{:02}:{:02}'.format(self.sek//3600, self.sek//60%60, self.sek%60)
+
+      def __add__(self, iny):
+          return Cas(sekundy=self.sek+iny.sek)
+
+      def __sub__(self, iny):
+          return Cas(sekundy=self.sek-iny.sek)
+
+      def __lt__(self, iny):
+          return self.sek < iny.sek
+
+      def __eq__(self, iny):
+          return self.sek == iny.sek
+
+Vďaka tomuto môžeme časy nielen sčitovať ale aj odčitovať a porovnávať relačnými operátormi.
+
+Pozrime si ešte takúto funkciu:
+
+ ::
+ 
+  def sucet(a, b): 
+     return a + b 
+     
+Zrejme táto funkcia bude dávať správne výsledky pre rôzne typy parametrov, môžeme im hovoriť **polymorfné parametre** a niekedy sa stretnete aj s pojmom **parametrický polymorfizmus**.
+
+
+V 16. prednáške (v časti 16.2.2. Grafické objekty) sme okrem tried ``Utvar``, ``Kruh`` a ``Obdlznik`` definovali aj triedu ``Skupina``:
+
+ ::
+ 
+  class Utvar:
+      ...
+      
+  class Kruh(Utvar):
+      ...
+      
+  class Obdlznik(Utvar):
+      ...
+      
+  class Skupina:
+      def __init__(self):
+          self.pole = []
+
+      def pridaj(self, utvar):
+          self.pole.append(utvar)
+
+      ...
+      
+Testovali sme to napr. takto:
+
+ ::
+
+  sk = Skupina()
+  for i in range(20):
+      if ri(0, 1):
+          sk.pridaj(Kruh(ri(50, 350), ri(50, 350), ri(10, 25)))
+      else:
+          sk.pridaj(Obdlznik(ri(50, 350), ri(50, 350), ri(10, 50), ri(10, 50)))
+
+V tejto triede sa vytvára pole útvarov (atribút ``sk.pole``), v ktorom sú náhodne uložené kruhy a obdĺžniky (inštancie tried ``Kruh`` a ``Obdlznik``). Keďže toto pole obsahuje inštancie rôznych typov, hovoríme, že je to tzv. **polymorfné pole**.
+
+V Pythone ale nie je problém s poľami, ktorých prvky sú rôznych typov. Toto ale nie je bežné v iných programovacích jazykoch (Pascal, C++, ...), kde väčšinou určujeme nejaký jeden konkrétny typ ako typ všetkých prvkov poľa (napr. pole celých čísel, pole reťazcov, ...). Aj v týchto jazykoch sa dá vytvárať polymorfné pole, ale už to nebude také jednoduché ako v Pythone.
+
+Trieda Zlomok
+-------------
+
+Na 14. cvičeniach sme riešili aj úlohu, v ktorej sme definovali triedu ``Zlomok`` aj s metódami ``str()`` a ``float()``. My toto riešenie trochu vylepšíme:
+
+ ::
+ 
+  class Zlomok:
+      def __init__(self, citatel=0, menovatel=1):
+          self.cit = citatel
+          self.men = menovatel
+          
+      def __str__(self):
+          return '{}/{}'.format(self.cit, self.men)
+          
+      def __int__(self):
+          return self.cit // self.men
+
+      def __float__(self):
+          return self.cit / self.men
+
+a jednoduchý test:
+
+ ::
+ 
+  >>> z1 = Zlomok(3, 8)
+  >>> z2 = Zlomok(2, 4)
+  >>> print('desatinne cislo z', z1, 'je', float(z1))
+  desatinne cislo z 3/8 je 0.375
+  >>> print('cela cast', z2, 'je', int(z2))
+  cela cast 2/4 je 0
+
+Magické metódy ``__int__()`` a ``__float__()`` slúžia na to, aby sme objekt typu ``Zlomok`` mohli poslať do konvertovacích funkcií ``int()`` a ``float()``.
+
+Tento dátový typ by mohol byť naozaj užitočný, keby obsahoval aj nejaké operácie. S týmto už máme nejaké skúsenosti z definovania triedy ``Cas``. Tiež by bolo veľmi vhodné, keby sa v tejto triede zlomok automaticky upravil na základný tvar. Túto úpravu budeme robiť v inicializácii ``__init__()``: z matematiky na základnej škole vieme, že na to potrebujeme zistiť **najväčší spoločný deliteľ**. Použijeme známy `Euklidov algoritmus <https://en.wikipedia.org/wiki/Euclidean_algorithm>`_:
+
+ ::
+ 
+  def nsd(a, b):
+      while b != 0:
+          a, b = b, a % b
+      return a
+
+Ak budeme túto funkciu potrebovať len v metóde ``__init__()``, nemusíme ju definovať ako globálnu funkciu, ale ju prenesieme do tela inicializačnej funkcie, čím z nej urobíme lokálnu funkciu (vidí ju len samotná metóda ``__init__()``). Všimnite si, že sme sem doplnili niekoľko zatiaľ neznámych magických metód:
+
+ ::
+ 
+  class Zlomok:
+
+      def __init__(self, citatel=0, menovatel=1):
+
+          def nsd(a, b):
+              while b != 0:
+                  a, b = b, a % b
+              return a
+
+          if menovatel == 0:
+              menovatel = 1
+          delitel = nsd(citatel, menovatel)
+          self.cit = citatel // delitel
+          self.men = menovatel // delitel
+
+      def __str__(self):
+          return '{}/{}'.format(self.cit, self.men)
+
+      __repr__ = __str__
+
+      def __add__(self, iny):
+          if isinstance(iny, int):
+              c, m = iny, 1
+          else:
+              c, m = iny.cit, iny.men
+          return Zlomok(self.cit*m+self.men*c, self.men*m)
+
+      __radd__ = __add__
+
+      def __sub__(self, iny):
+          if isinstance(iny, int):
+              c, m = iny, 1
+          else:
+              c, m = iny.cit, iny.men
+          return Zlomok(self.cit*m-self.men*c, self.men*m)
+
+      def __rsub__(self, iny):
+          if isinstance(iny, int):
+              c, m = iny, 1
+          else:
+              c, m = iny.cit, iny.men
+          return Zlomok(self.men*c-self.cit*m, self.men*m)
+
+
+      def __mul__(self, iny):
+          if isinstance(iny, int):
+              c, m = iny, 1
+          else:
+              c, m = iny.cit, iny.men
+          return Zlomok(self.cit*c, self.men*m)
+
+      __rmul__ = __mul__
+
+      def __abs__(self):
+          return Zlomok(abs(self.cit), self.men)
+
+      def __int__(self):
+          return self.cit // self.men
+
+      def __float__(self):
+          return self.cit / self.men
+
+      def __lt__(self, iny):
+          return self.cit*iny.men < self.men*iny.cit
+
+      def __eq__(self, iny):
+          return self.men==iny.men and self.cit==iny.cit
+
+Niekoľko noviniek v tomto kóde:
+
+* atribút ``__repr__`` je tu definovaný pomocou priradenia ``__repr__ = __str__`` a znamená:
+
+  * aj ``__repr__`` bude metódou triedy ``Zlomok`` a týmto sme ju definovali ako identickú k ``__str__`` (triedny atribút ``__repr__`` obsahuje rovnakú referenciu ako ``__str__``, teda obsahuje rovnakú definíciu metódy)
+  * magická metóda ``__repr__`` špecifikuje, čo sa bude vypisovať, ak inštanciu zadáme priamo v shelli alebo sa objaví pri vypisovaní prvkov poľa, napr.
+
+   ::
+   
+    >>> z = Zlomok(1, 3)
+    >>> z
+    1/3
+    >>> pole = [Zlomok(1, 5), Zlomok(2, 5), Zlomok(3, 5), Zlomok(4, 5)]
+    >>> pole
+    [1/5, 2/5, 3/5, 4/5]
+    
+* magická metóda ``__radd__`` (jej definícia je identická s ``__add__``) je potrebná v situáciách, keď chceme sčitovať celé číslo so zlomkom:
+
+  * samotná ``__add__`` zvláda sčítať len zlomok s číslom (súčet ``Zlomok(1, 3) + 1`` označuje volanie ``Zlomok(1, 3).__add__(1)``)
+  * sčitovanie čísla so zlomkom ``1 + Zlomok(1, 3)`` označuje ``(1).__add__(Zlomok(1, 3))``, čo by znamenalo, že metóda ``__add__`` triedy ``int`` by mala vedieť sčitovať aj zlomky (je nemožné predefinovať štandardnú metódu ``int.__add__()`` aby fungovala s nejakým divným typom)
+  * preto pri sčitovaní ``1 + Zlomok(1, 3)``, keď Python zistí, že nefunguje ``(1).__add__(Zlomok(1, 3))``, vyskúša vymeniť operandy operácie a namiesto ``__add__()`` zavolať ``__radd__()``
+
+* podobne je definovaná aj metóda ``__rmul__``, pričom odčitovanie ``__rsub__`` nemôže byť identická funkcia s metódou ``__sub__``, preto je zadefinovaná zvlášť
+* pridali sme magickú metódu ``__abs__()``, vďaka ktorej bude fungovať aj štandardná funkcia ``abs(zlomok)``
+
+Uvedomte si, že všetky nami definované metódy triedy ``Zlomok`` (okrem ``__init__()``) sú **pravé funkcie** a preto aj náš nový typ ``Zlomok`` môžeme považovať za nemeniteľný (immutable).
+
+Vďaka relačným operátorom ``__lt__()`` a ``__eq__()`` a schopnosti sčitovať zlomky s číslami bude fungovať aj takáto ukážka:
+
+ ::
+ 
+  >>> pole = []
+  >>> for m in range(2, 8):
+          for c in range(1, m):
+              pole.append(Zlomok(c, m))
+
+  >>> pole
+  [1/2, 1/3, 2/3, 1/4, 1/2, 3/4, 1/5, 2/5, 3/5, 4/5, 1/6, 1/3, 1/2, 2/3, 5/6, 1/7, 2/7, 3/7, 4/7, 5/7, 6/7]
+  >>> min(pole)
+  1/7
+  >>> max(pole)
+  6/7
+  >>> sum(pole)
+  21/2
+  >>> sorted(pole)
+  [1/7, 1/6, 1/5, 1/4, 2/7, 1/3, 1/3, 2/5, 3/7, 1/2, 1/2, 1/2, 4/7, 3/5, 2/3, 2/3, 5/7, 3/4, 4/5, 5/6, 6/7]
+
+
+Typ množina
+-----------
+
+Na 14. cvičeniach ste riešili príklad, v ktorom sa v nejakom zozname uchovávali nejaké texty. Tu je možné riešenie:
+
+ ::
+
+  class Zoznam:
+      def __init__(self):
+          self.pole = []
+
+      def __str__(self):
+          p = []
+          for prvok in self.pole:
+              p.append(str(prvok))
+          return ', '.join(p)
+
+      def pridaj(self, prvok):
+          if prvok not in self.pole:
+              self.pole.append(prvok)
+
+      def vyhod(self, prvok):
+          if prvok in self.pole:
+              self.pole.remove(prvok)
+
+      def je_v_zozname(self, prvok):
+          return prvok in self.pole
+
+      def pocet(self):
+          return len(self.pole)
+
+.. sidebar:: ...
+
+   ::
+
+    musis behat
+    zoznam = behat, upratat, ucit sa
+    pocet prvkov v zozname = 3
+
+Jednoduchý test:
+
+ ::
+ 
+  z = Zoznam()
+  z.pridaj('behat')
+  z.pridaj('upratat')
+  z.pridaj('ucit sa')
+  if z.je_v_zozname('behat'):
+      print('musis behat')
+  else:
+      print('nebehaj')
+  z.pridaj('upratat')
+  print('zoznam =', z)
+  z.vyhod('spievat')
+  print('pocet prvkov v zozname =', z.pocet())
+
+V Pythone je zaužívané použiť operáciu ``in`` vtedy, keď potrebujeme zistiť, či sa v nejakej postupnosti hodnôt nachádza nejaká konkrétna hodnota, napr.
+
+ ::
+ 
+  >>> 3 in [1, 2, 3, 4, 5]
+  True
+  >>> 'x' in 'Python'
+  False
+  
+Zrejme by bolo prirodzené, keby sme aj našu metódu ``je_v_zozname()`` vedeli prerobiť na pythonovský štýl (pythonic). Aj na toto existuje magická metóda ``__contains__()`` a predchádzajúce dva príklady sú vlastne krajšími zápismi (tzv. *syntactic sugar*) pre:
+
+ ::
+ 
+  >>> [1, 2, 3, 4, 5].__contains__(3)
+  True
+  >>> 'Python'.__contains__('x')
+  False
+
+Podobne aj štandardná funkcia ``len()``, ktorá vie zistiť počet prvkov poľa alebo dĺžku reťazca (počet znakov v reťazci), využíva polymorfizmus, teda v skutočnosti, aby zistila počet prvkov nejakej štruktúry, sa jej na to opýta pomocou magickej metódy ``__len__()``. Preto nasledovné trojice príkazov robia to isté:
+
+ ::
+ 
+  >>> len([1, 2, 3, 4, 5])
+  5
+  >>> [1, 2, 3, 4, 5].__len__()
+  5
+  >>> list.__len__([1, 2, 3, 4, 5])
+  5
+  
+  >>> len('Python')
+  6
+  >>> 'Python'.__len__()
+  6
+  >>> str.__len__('Python')
+  6
+
+Upravme aj našu triedu ``Zoznam``, pričom premenujeme aj metódy ``pridaj()`` a ``vyhod()`` na anglické ekvivalenty:
+
+ ::
+
+  class Zoznam:
+      def __init__(self):
+          self.pole = []
+
+      def __str__(self):
+          p = []
+          for prvok in self.pole:
+              p.append(str(prvok))
+          return ', '.join(p)
+
+      def __contains__(self, prvok):
+          return prvok in self.pole
+
+      def __len__(self):
+          return len(self.pole)
+
+      def add(self, prvok):
+          if prvok not in self.pole:
+              self.pole.append(prvok)
+
+      def discard(self, prvok):
+          if prvok in self.pole:
+              self.pole.remove(prvok)
+
+.. sidebar:: ...
+
+   ::
+
+    musis behat
+    zoznam = behat, upratat, ucit sa
+    pocet prvkov v zozname = 3
+
+Otestujeme rovnako ako predtým:
+
+ ::
+
+  z = Zoznam()
+  z.add('behat')
+  z.add('upratat')
+  z.add('ucit sa')
+  if 'behat' in z:
+      print('musis behat')
+  else:
+      print('nebehaj')
+  z.add('upratat')
+  print('zoznam =', z)
+  z.discard('spievat')
+  print('pocet prvkov v zozname =', len(z))
+
+Uvedomte si, že do takéhoto zoznamu nemusíme vkladať len znakové reťazce, ale rovnako by fungoval aj pre ľubovoľné iné typy hodnôt. Tento typ je vlastne jednoduchá realizácia matematickej množiny hodnôt: každý prvok sa tu môže nachádzať maximálne raz.
+
+Python má medzi štandardnými typmi aj typ **množina**, ktorý má v Pythone meno ``set``. Podobne ako aj iné typy ``str``, ``list`` a ``tuple`` aj tento množinový typ je postupnosťou hodnôt, ktorú môžeme prechádzať for-cyklom alebo ju poslať ako parameter pri konštruovaní iného typu. Napr.
+
+ ::
+ 
+  >>> mnozina = {'behat', 'ucit sa', 'upratat'}
+  >>> mnozina
+  {'upratat', 'behat', 'ucit sa'}
+  >>> pole = list(mnozina)
+  >>> pole
+  ['upratat', 'behat', 'ucit sa']
+  >>> ntica = tuple(mnozina)
+  >>> ntica
+  ('upratat', 'behat', 'ucit sa')
+  >>> for prvok in mnozina:
+          print(prvok, end=', ')
+          
+  'upratat', 'behat', 'ucit sa',
+
+Tak ako vieme skonštruovať pole pomocou generátora postupnosti ``range()``, vieme to urobiť aj s množinami:
+
+ ::
+ 
+  >>> list(range(7))
+  [0, 1, 2, 3, 4, 5, 6]
+  >>> set(range(7))
+  {0, 1, 2, 3, 4, 5, 6}
+  
+alebo vytvorenie poľa a množiny zo znakového reťazca:
+
+ ::
+
+  >>> list('mama ma emu')
+  ['m', 'a', 'm', 'a', ' ', 'm', 'a', ' ', 'e', 'm', 'u']
+  >>> set('mama ma emu')
+  {' ', 'm', 'u', 'a', 'e'}
+
+Štandardný Pythonovský typ **set** má kompletnú sadu množinových operácií a veľa užitočných metód. Pre prvky množiny ale platí, že to nemôžu byť ľubovoľné hodnoty, ale musia to byť nemenné typy (immutable), napr. čísla, reťazce, n-tice.
+
+.. sidebar:: ...
+
+   ::
+
+    musis behat
+    zoznam = {behat, upratat, ucit sa}
+    pocet prvkov v zozname = 3
+
+Predchádzajúci príklad, v ktorom sme definovali triedu ``Zoznam`` vieme prepísať l s použitím pythonovských množín napr. takto:
+
+ ::
+
+  z = set()                  # prázdna pythonovská množina
+  z.add('behat')
+  z.add('upratat')
+  z.add('ucit sa')
+  if 'behat' in z:
+      print('musis behat')
+  else:
+      print('nebehaj')
+  z.add('upratat')
+  print('zoznam =', z)
+  z.discard('spievat')
+  print('pocet prvkov v zozname =', len(z))
+
+
+
+**Operácie a metódy s množinami**
+
+pre množiny ``M``, ``M1`` a ``M2``:
+
+================================ ========================================================================
+\                                popis
+================================ ========================================================================
+``M1 | M2``                      zjednotenie dvoch množín
+``M1 & M2``                      prienik dvoch množín
+``M1 - M2``                      rozdiel dvoch množín
+``M1 ^ M2``                      vylučovacie zjednotenie dvoch množín
+``M1 == M2``                     dve množiny majú rovnaké prvky
+``M1 is M2``                     dve množiny sú identické štruktúry v pamäti (je to tá istá hodnota)
+``M1 < M2``                      M1 je podmnožinou M2 (funguje aj pre zvyšné relačné operátory)
+``prvok in M``                   zistí, či prvok patrí do množiny
+``prvok not in M``               zistí, či prvok nepatrí do množiny
+``for prvok in M: ...``          cyklus, ktorý prechádza cez všetky prvky množiny
+================================ ========================================================================
+
+
+**Štandardné funkcie**
+
+================================ ===================================================================================
+\                                popis
+================================ ===================================================================================
+``len(M)``                       počet prvkov
+``min(M)``                       minimálny prvok (ale všetky prvky sa musia dať navzájom porovnávať)
+``max(M)``                       maximálny prvok (ale všetky prvky sa musia dať navzájom porovnávať)
+``list(M)``                      vráti neusporiadané pole prvkov z množiny
+``sorted(M)``                    vráti usporiadané pole (ale všetky prvky sa musia dať navzájom porovnávať)
+================================ ===================================================================================
+
+
+**Niektoré metódy**
+
+(je ich oveľa viac):
+
+====================== ======================================================================================================
+\                      popis
+====================== ======================================================================================================
+``M.add(prvok)``       pridá prvok do množiny (ak už v množine bol, neurobí nič)
+``M.remove(prvok)``    vyhodí daný prvok z množiny (ak neexistuje, vyhlási chybu)
+``M.discard(prvok)``   vyhodí daný prvok z množiny (ak neexistuje, neurobí nič)
+``M.pop()``            vyhodí nejaký neurčený prvok z množiny a vráti jeho hodnotu (ak je množina prázdna, vyhlási chybu)
+====================== ======================================================================================================
+
+
+**Vytvorenie množiny**
+
+================================ ========================================================================
+\                                popis
+================================ ========================================================================
+``M = set()``                    vytvorí prázdnu množinu
+``M = {hodnota, hodnota, ...}``  vytvorí neprázdnu množinu so zadanými prvkami
+``M = set(pole)``                so zadaného poľa vytvorí množinu
+``M = set(M1)``                  vytvorí kópiu množiny ``M1``
+================================ ========================================================================
+
+Uvedomte si, že niektoré situácie vieme riešiť rôznymi spôsobmi, napr.
+
+* pridať ``prvok`` do množiny ``mnoz``
+
+ ::
+ 
+  mnoz.add(prvok)
+  
+ alebo::
+ 
+  mnoz = mnoz | {prvok}
+
+ čo je to isté ako::
+
+  mnoz |= {prvok}
+
+* vyhodiť jeden ``prvok`` z množiny ``mnoz``
+
+ ::
+
+  mnoz.discard(prvok)
+
+ alebo::
+
+  mnoz = mnoz - {prvok}
+
+ čo je to isté ako::
+
+  mnoz -= {prvok}
+  
+ ak máme istotu, že prvok je v množine (inak to spadne na chybe)::
+
+  mnoz.remove(prvok)
+  
+* zistí, či je množina ``mnoz`` prázdna:
+
+ ::
+ 
+  mnoz == set()
+  
+ alebo::
+ 
+  len(mnoz) == 0
+  
+ alebo veľmi nečitateľne::
+ 
+  not mnoz
+
+
+Cvičenie
+--------
+
+1. Otestujte čo najviac magických metód s typom ``int``.
+
+   * napr. 
+   
+    ::
+    
+     >>> i = 5
+     >>> i.__add__(7)
+     12
+     >>> int.__add__(i, 7)
+     12
+     
+   * zistite, ktoré magické metódy s týmto typom nefungujú (napr. ``__contains__()``)
+     
+2. Triedu ``Cas`` z prednášky doplňte tak, aby operácie sčitovania a odčitovania fungovali aj s celými číslami (pripočítava, resp. odpočítava sekundy) alebo aj s n-ticami (prvým prvkom sú hodiny, druhým minúty a tretím sekundy)
+
+   * napr.
+
+    ::
+    
+     >>> c = Cas(8, 10, 34)
+     >>> print(c + 640)
+     8:21:14
+     >>> print(c + (1, 55))
+     10:05:34
+     >>> print(c - 100)
+     8:08:54
+     
+3. Pomocou modulu ``time`` a funkcie vieme zistiť momentálny čas v počítači.
+
+   * napr.
+
+    ::
+    
+     >>> import time
+     >>> time.localtime()
+     time.struct_time(tm_year=2016, tm_mon=11, tm_mday=22, tm_hour=8, tm_min=26, tm_sec=12, tm_wday=1, tm_yday=327, tm_isdst=0)
+     >>> time.localtime()[3:6]
+     (8, 26, 24)
+
+   Napíšte funkciu ``Teraz()``, ktorá vráti inštanciu triedy ``Cas`` s momentálnym časom.
+   
+   * napr.
+
+    ::
+    
+     >>> c = Teraz()
+     >>> print(type(c), c)
+     <class '__main__.Cas'> 8:34:07
+     
+4. Vytvorte pole rôznych časov (napr. ich generujte náhopdným generátorom). Otestujte, či funguje triedenie pomocou štandardnej funkcie ``sorted()``.
+
+   * napr.
+
+    ::
+    
+     >>> pole = [Cas(20, 15), Cas(7), ...]
+     >>> pole1 = sorted(pole)
+     >>> # vypíš pole1
+    
+Množiny
+.......
+
+5. Napíšte funkciu ``prvo()``, ktorá vráti množinu všetkých prvočísel menších ako 20.
+
+   * napr.
+
+    ::
+    
+     >>> m = prvo()
+     >>> type(m)
+     <class 'set'>
+     >>> m
+     {2, ...
+     
+   * množinu čísel nemusíte vytvárať cyklom, v tomto prípade stačí, keď funkcia len vráti 8-prvkovú množinu konkrétnych čísel
+    
+6. Napíšte funkciu ``samohlasky(veta)``, ktorá vráti množinu samohlások v danej vete.
+
+   * napr.
+
+    ::
+    
+     >>> samohlasky('mama ma emu')
+     {'e', 'a', 'u'}
+     >>> samohlasky('strc prst skrz krk')
+     set()
+
+7. Napíšte funkciu ``slova(meno_suboru)``, ktorá z textového súboru vytvorí množinu slov (slová sú navzájom oddelené medzerami). Funkcia túto množinu vráti ako svoj výsledok.
+
+   * napr.
+   
+    ::
+    
+     >>> mn = slova('text1.txt')
+     >>> mn
+     {...}
+
+8. Napíšte funkciu ``vyrob(n)``, ktorá vytvorí (a vráti) množinu celých čísel, ktoré sú menšie ako ``n``, nie sú deliteľné 7 a zvyšok po delení 5 je 2 alebo 3
+
+   * napr.
+   
+    ::
+    
+     >>> a = vyrob(20)
+     >>> a
+     {2, 3, 8, 12, 13, 17, 18}
+
+9. Napíšte funkciu ``bez(mnoz, k)``, ktorá z danej množiny ``mnoz`` vyhodí všetky prvky, ktoré sú deliteľné číslom ``k``. Funkcia nič nevracia ani nevypisuje.
+
+   * napr.
+
+    ::
+
+     >>> m = {1, 2, 3, 4, '5', 6}
+     >>> bez(m, 3)
+     >>> m
+     {1, 2, 4, '5'}
+     >>> m1 = set(range(0, 100, 5))
+     >>> bez(m1, 10)
+     >>> m1
+     {65, 35, 5, 75, 45, 15, 85, 55, 25, 95}
+
+10. Napíšte funkciu ``viac(pole)``, ktorá vráti množinu tých prvkov poľa ``pole``, ktoré sa v ňom vyskytujú viac ako raz.
+
+   * napr.
+   
+    ::
+    
+     >>> p = ['prvy', 2, (3, 4), 'dva', 3, 4, 'prvy', 3]
+     >>> v = viac(p)
+     >>> v
+     {3, 'prvy'}
+
+11. Napíšte funkciu ``len_cisla(mnozina)``, ktorá z danej množiny vyrobí novú ale len z tých prvkov, ktoré sú čísla (``int`` alebo ``float``).
+
+   * napr.
+   
+    ::
+    
+     >>> a = {'1', 2.2, (3, 4), 5}
+     >>> b = len_cisla(a)
+     >>> b
+     {2.2, 5}
+     
+     
